@@ -153,6 +153,15 @@ public class SwerveBase extends SubsystemBase {
         swerveOdometer.resetPosition(getYaw(), getModulePositions(), pose);
     }
 
+    /**
+     * Agrega una medición de visión al estimador de pose.
+     * @param visionMeasurement La pose estimada por la cámara en el campo.
+     * @param timestampSeconds El tiempo (FPGA timestamp) en que se tomó la imagen.
+     */
+    public void addVisionMeasurement(Pose2d visionMeasurement, double timestampSeconds) {
+        swerveOdometer.addVisionMeasurement(visionMeasurement, timestampSeconds);
+    }
+
     public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for (SwerveModule mod : swerveMods) {

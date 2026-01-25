@@ -20,6 +20,11 @@ import frc.robot.subsystems.SwerveBase;
 import frc.robot.commands.VisionAlignCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 
 public class RobotContainer {
     /* Shuffleboard */
@@ -30,6 +35,7 @@ public class RobotContainer {
 
     /* Subsystems */
     private final SwerveBase s_Swerve;
+    private final Vision s_Vision;
 
     private final VisionAlignCommand visionAlignCommand;
 
@@ -45,6 +51,17 @@ public class RobotContainer {
 
     public RobotContainer() {
         s_Swerve = new SwerveBase();
+
+        // Configuración de Visión
+        VisionIO visionIO;
+        if (RobotBase.isReal()) {
+            // CAMBIAR "nombreCamara" y el Transform3d a la posición real de tu cámara
+            visionIO = new VisionIOPhotonVision("Arducam_OV9281_USB_Camera", new Transform3d(0.2, 0, 0.5, new Rotation3d(0,0,0))); 
+        } else {
+            // Aquí podrías poner una implementación de Simulación (VisionIOSim)
+            visionIO = new VisionIO() {}; // Dummy para simulación por ahora
+        }
+        s_Vision = new Vision(visionIO, s_Swerve);
 
         ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
 
