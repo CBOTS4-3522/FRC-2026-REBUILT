@@ -26,16 +26,22 @@ public class Vision extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // Este método se ejecuta automáticamente cada 20 milisegundos.
-        // Aquí es donde leeremos los datos de los AprilTags.
-        var result = camara.getLatestResult();
+        // 1. Obtenemos el ALBUM completo (Lista de resultados)
+        var allResults = camara.getAllUnreadResults();
 
-        var estimatedPose = poseEstimator.update(result);
-        if (estimatedPose.isPresent()) {
-            var pose = estimatedPose.get();
+        // 2. Abrimos el álbum y procesamos foto por foto
+        for (var result : allResults) {
 
-            Logger.recordOutput("Vision/Posicion", pose.estimatedPose);
-            Logger.recordOutput("Vision/Tiempo", pose.timestampSeconds);
+            // Todo esto es IGUAL, pero ahora está dentro del ciclo
+            var estimatedPose = poseEstimator.estimateCoprocMultiTagPose(result);
+
+            if (estimatedPose.isPresent()) {
+                var pose = estimatedPose.get();
+
+                // Registramos cada dato que encontremos
+                Logger.recordOutput("Vision/Posicion", pose.estimatedPose);
+                Logger.recordOutput("Vision/Tiempo", pose.timestampSeconds);
+            }
         }
 
     }
