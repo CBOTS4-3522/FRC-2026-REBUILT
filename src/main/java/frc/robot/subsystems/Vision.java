@@ -26,7 +26,7 @@ public class Vision extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // 1. Obtenemos el ALBUM completo (Lista de resultados)
+        // 1. Obtenemos el ÁLBUM completo (Lista de resultados)
         var allResults = camara.getAllUnreadResults();
 
         // 2. Abrimos el álbum y procesamos foto por foto
@@ -43,6 +43,5 @@ public class Vision extends SubsystemBase {
                 Logger.recordOutput("Vision/Tiempo", pose.timestampSeconds);
             }
         }
-
     }
 }
