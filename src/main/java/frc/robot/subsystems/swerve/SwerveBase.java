@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -27,6 +27,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.config.PIDConstants;
 
 import frc.robot.Constants;
+import frc.robot.subsystems.NavXGyro;
 
 public class SwerveBase extends SubsystemBase {
     
