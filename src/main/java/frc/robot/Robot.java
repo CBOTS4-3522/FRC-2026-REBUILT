@@ -38,8 +38,7 @@ public class Robot extends  LoggedRobot{
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     
-    // Publicamos la velocidad del motor de prueba para que los mecánicos la vean
-    //SmartDashboard.putNumber("Test Motor RPM", testMotor.getEncoder().getVelocity());
+  
   }
 
   @Override
@@ -50,17 +49,7 @@ public class Robot extends  LoggedRobot{
 
   @Override
   public void testPeriodic() {
-    // LEER EL GATILLO: El valor va de 0.0 a 1.0
-    /*double speed = testController.getRightTriggerAxis();
-    double speedReversed = speed * -1;
     
-
-    // Si el driver presiona el botón 'A', el motor gira en reversa (para sacar piezas)
-    if (testController.a().getAsBoolean()) {
-        testMotor.set(speedReversed);
-    } else {
-        testMotor.set(speed);
-    }*/
   }
 
   @Override
