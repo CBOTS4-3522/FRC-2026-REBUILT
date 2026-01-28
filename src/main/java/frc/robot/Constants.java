@@ -14,6 +14,7 @@ public final class Constants {
 	public static final class OIConstants{
 		public static final double kStickDeadband = 0.08;
 		public static final int kDriver1Port = 0;
+		public static final int kDriver2Port = 0;
 	}
 	public static final class shooter {
 		public static final byte kLiderID = 50;

@@ -8,7 +8,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 
-public class shooter extends SubsystemBase {
+public class Shooter extends SubsystemBase {
     
     private final SparkMax motorLider;
     private final SparkMax motorSeguidor;
@@ -17,7 +17,7 @@ public class shooter extends SubsystemBase {
     private final int liderID = Constants.shooter.kLiderID; 
     private final int seguidorID = Constants.shooter.kSeguidorID; 
 
-    public shooter() {
+    public Shooter() {
         motorLider = new SparkMax(liderID, MotorType.kBrushless);
         motorSeguidor = new SparkMax(seguidorID, MotorType.kBrushless);
 
@@ -26,7 +26,7 @@ public class shooter extends SubsystemBase {
         configLider.idleMode(com.revrobotics.spark.config.SparkBaseConfig.IdleMode.kCoast); // Coast es mejor para shooters
         configLider.inverted(false); // Cambiar si gira al revés
         
-        // --- AQUÍ ESTÁ LA MAGIA DEL PID ---
+
         // Valores iniciales (luego los ajustaremos en Elastic)
         configLider.closedLoop.p(0.0001); 
         configLider.closedLoop.i(0);
