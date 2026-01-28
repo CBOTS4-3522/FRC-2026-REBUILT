@@ -99,12 +99,10 @@ public final class Constants {
 
 		public static final class Drive {
 		/* Drive Motor PID Values */
-		public static final double kP = 0.080473;
+		public static final double kP = 1000;
 		public static final double kI = 0.0;
 		public static final double kD = 0.00;
-		// private static final double K_F_FACTOR = 0.5;
-		// public static final double DRIVE_KFF = (1 / K_DRIVE_WHEEL_FREE_SPEED_RPS) * K_F_FACTOR;
-
+		
 		/* Drive motor FeedForward Values */
 		public static final double kS = 0.18366; // Voltios para empezar a mover
 		public static final double kV = 2.557275; // Voltios por metro/segundo

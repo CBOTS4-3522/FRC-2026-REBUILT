@@ -97,6 +97,8 @@ public class RevSwerveModule implements SwerveModule {
     }
 
     private void configDriveMotor() {
+        //Compensar voltaje
+        mDriveConfig.voltageCompensation(12.0);
         // Aseguramos usar las constantes de DRIVE (KP, KI, KD)
         mDriveConfig.closedLoop.p(Constants.Swerve.Drive.kP, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.i(Constants.Swerve.Drive.kI, ClosedLoopSlot.kSlot0);
@@ -106,7 +108,7 @@ public class RevSwerveModule implements SwerveModule {
         mDriveConfig.closedLoop.feedForward.kS(Constants.Swerve.Drive.kS,  ClosedLoopSlot.kSlot0);
         
         
-        mDriveConfig.closedLoop.outputRange(-1, 1); 
+        mDriveConfig.closedLoop.outputRange(-12.0, 12.0);
         mDriveConfig.smartCurrentLimit(Constants.Swerve.kDriveContinuousCurrentLimit);
 
         mDriveConfig.inverted(Constants.Swerve.kDriveMotorInvert);
