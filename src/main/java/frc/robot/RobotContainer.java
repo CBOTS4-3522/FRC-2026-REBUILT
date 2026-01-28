@@ -28,6 +28,7 @@ public class RobotContainer {
 
     /* Controllers */
     private final Joystick driver1 = new Joystick(Constants.OIConstants.kDriver1Port);
+    private final Joystick driver2 = new Joystick(Constants.OIConstants.kDriver2Port);
 
     /* Subsystems */
     private final SwerveBase s_Swerve;
@@ -120,7 +121,7 @@ public class RobotContainer {
 
     //Reset Gyro
     zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-    new JoystickButton(driver1, XboxController.Button.kY.value)
+    new JoystickButton(driver2, XboxController.Button.kY.value)
         .toggleOnTrue(new RunShooter(s_Shooter));
 
     }
