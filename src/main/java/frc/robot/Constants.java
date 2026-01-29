@@ -70,8 +70,8 @@ public final class Constants {
 		/* Drivetrain Constants */
 		public static final double kTrackWidth = Units.inchesToMeters(22);
 		public static final double kWheelBase = Units.inchesToMeters(26);
-
-		// Swerve Kinematics
+	
+		 //Swerve Kinematics
 		public static final SwerveDriveKinematics kSwerveKinematics = new SwerveDriveKinematics(
 				new Translation2d(kWheelBase / 2.0, kTrackWidth / 2.0),
 				new Translation2d(kWheelBase / 2.0, -kTrackWidth / 2.0),

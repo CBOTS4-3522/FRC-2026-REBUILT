@@ -6,6 +6,7 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.littletonrobotics.junction.Logger; // Asegúrate de importar esto
 import frc.robot.Constants;
+import frc.robot.subsystems.swerve.SwerveBase;
 
 public class Vision extends SubsystemBase {
     private final PhotonCamera camara;

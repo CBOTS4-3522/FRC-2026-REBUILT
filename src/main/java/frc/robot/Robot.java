@@ -1,11 +1,8 @@
 package frc.robot;
 
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 // 1. Añade estas importaciones arriba
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -16,10 +13,7 @@ public class Robot extends  LoggedRobot{
   private Command m_autonomousCommand;
   RobotContainer m_robotContainer;
 
-   //OBJETOS PARA PRUEBAS (Test Mode)
-    private SparkMax testMotor;
-    private CommandXboxController testController;
-
+  
   @Override
   public void robotInit() {
     // Indica el nombre del proyecto
@@ -31,24 +25,20 @@ public class Robot extends  LoggedRobot{
     // Enviar datos por la red para verlos en vivo en AdvantageScope
     Logger.addDataReceiver(new NT4Publisher()); 
 
-    // ¡ESTA ES LA LÍNEA MÁGICA! Sin esto no se guarda nada
-    Logger.start(); 
+    // ¡esta es la linea magica! Sin esto no se guarda nada
+    Logger.start();
 
  
 
     m_robotContainer = new RobotContainer();
-    
-     //Inicializamos el motor de prueba (ID 50 por ejemplo)
-    testMotor = new SparkMax(50, MotorType.kBrushless);
-    testController = new CommandXboxController(0);
+
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     
-    // Publicamos la velocidad del motor de prueba para que los mecánicos la vean
-    SmartDashboard.putNumber("Test Motor RPM", testMotor.getEncoder().getVelocity());
+  
   }
 
   @Override
@@ -59,17 +49,7 @@ public class Robot extends  LoggedRobot{
 
   @Override
   public void testPeriodic() {
-    // LEER EL GATILLO: El valor va de 0.0 a 1.0
-    double speed = testController.getRightTriggerAxis();
-    double speedReversed = speed * -1;
     
-
-    // Si el driver presiona el botón 'A', el motor gira en reversa (para sacar piezas)
-    if (testController.a().getAsBoolean()) {
-        testMotor.set(speedReversed);
-    } else {
-        testMotor.set(speed);
-    }
   }
 
   @Override
@@ -77,7 +57,7 @@ public class Robot extends  LoggedRobot{
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
+      CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
   }
 
