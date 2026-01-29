@@ -28,10 +28,13 @@ public class Shooter extends SubsystemBase {
         
 
         // Valores iniciales (luego los ajustaremos en Elastic)
-        configLider.closedLoop.p(0.0001); 
-        configLider.closedLoop.i(0);
-        configLider.closedLoop.d(0);
-        configLider.closedLoop.feedForward.kV(0.00018); // Ayuda a mantener velocidad base
+        configLider.closedLoop.p(Constants.shooter.kP);
+        configLider.closedLoop.i(Constants.shooter.kI);
+        configLider.closedLoop.d(Constants.shooter.kD);
+        configLider.closedLoop.feedForward.kV(Constants.shooter.kV); // Ayuda a mantener velocidad base
+        configLider.closedLoop.feedForward.kA(Constants.shooter.kA);
+        configLider.closedLoop.feedForward.kS(Constants.shooter.kS);
+
 
         // Configuración del SEGUIDOR
         SparkMaxConfig configSeguidor = new SparkMaxConfig();

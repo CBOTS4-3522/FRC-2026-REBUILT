@@ -20,6 +20,15 @@ public final class Constants {
 		public static final byte kLiderID = 50;
 		public static final byte kSeguidorID = 51;
 
+		public static final double kP = 0.0001;
+		public static final double kI = 0;
+		public static final double kD = 0;
+
+		public static final double kV = 0.00018;
+		public static final double kA = 0.000;
+		public static final double kS = 0.000;
+
+
 	}
 
 

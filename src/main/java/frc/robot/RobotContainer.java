@@ -5,7 +5,7 @@ import java.util.function.DoubleSupplier;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -69,12 +69,12 @@ public class RobotContainer {
         new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kReverse), Set.of(s_Swerve)))
         .withSize(2, 1).withPosition(2, 1);
 
-    /*diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
+    diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
            .withSize(2, 2).withPosition(4, 0);
 
     // 3. Agregamos el Gyro y el Selector de Autos para tener todo a la mano
     diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
-           .withSize(2, 2).withPosition(4, 0); */
+           .withSize(2, 2).withPosition(4, 0); 
 
 
     //Autos
