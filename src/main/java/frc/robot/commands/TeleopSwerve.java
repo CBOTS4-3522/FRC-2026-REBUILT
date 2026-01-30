@@ -49,7 +49,7 @@ public class TeleopSwerve extends Command {
         // 1. Leer valores de joystick con deadband
         double xRaw = MathUtil.applyDeadband(translationX.getAsDouble(), Constants.OIConstants.kStickDeadband);
         double yRaw = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
-        double rotationVal = MathUtil.applyDeadband(rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
+        double rotationVal = MathUtil.applyDeadband(-rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
 
         // 2. APLICAR EL FILTRO (Capacitor Digital)
         double xFiltered = xLimiter.calculate(xRaw);
@@ -82,7 +82,7 @@ public class TeleopSwerve extends Command {
             new Translation2d(xFiltered, yFiltered)
                     .times(Constants.Swerve.kMaxSpeed)
                     .times(speedCutoffVal ? 1 : 0.5),
-            -rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
+            rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
             !robotCentric,
             true
         );
