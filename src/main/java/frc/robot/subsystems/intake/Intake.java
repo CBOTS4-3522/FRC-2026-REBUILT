@@ -20,7 +20,7 @@ public class Intake extends SubsystemBase {
         
         // Usamos la constante de IdleMode que ya tenías en SwerveConstants o definimos una aquí
         // Usualmente Brake es mejor para pruebas, Coast para operación normal si no quieres que se trabe
-        config.idleMode(IdleMode.kBrake); 
+        config.idleMode(IdleMode.kCoast); 
         
         config.inverted(false); // Cambiar a true si gira al revés
         
