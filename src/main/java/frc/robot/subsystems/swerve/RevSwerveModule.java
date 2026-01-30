@@ -14,7 +14,7 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.lib.util.swerveUtil.CTREState; 
+import frc.lib.util.swerveUtil.CTREState;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import frc.robot.Constants;
 
@@ -24,7 +24,7 @@ public class RevSwerveModule implements SwerveModule {
 
     private SparkMax mAngleMotor;
     private SparkMax mDriveMotor;
-    
+
     // Objetos de configuración (REV 2025)
     private SparkMaxConfig mAngleConfig;
     private SparkMaxConfig mDriveConfig;
@@ -38,24 +38,24 @@ public class RevSwerveModule implements SwerveModule {
 
     public RevSwerveModule(int moduleNumber, RevSwerveModuleConstants moduleConstants) {
         this.moduleNumber = moduleNumber;
-        
+
         this.angleOffset = moduleConstants.angleOffset;
 
         /* Angle Motor Config */
         mAngleMotor = new SparkMax(moduleConstants.angleMotorID, MotorType.kBrushless);
-        mAngleConfig = new SparkMaxConfig(); 
+        mAngleConfig = new SparkMaxConfig();
         configAngleMotor(); // Prepara el config, no lo aplica todavía
 
         /* Drive Motor Config */
         mDriveMotor = new SparkMax(moduleConstants.driveMotorID, MotorType.kBrushless);
-        mDriveConfig = new SparkMaxConfig(); 
+        mDriveConfig = new SparkMaxConfig();
         configDriveMotor(); // Prepara el config, no lo aplica todavía
 
         /* Angle Encoder Config */
         angleEncoder = new CANcoder(moduleConstants.cancoderID);
-        
+
         // Configura encoders y APLICA la configuración a los motores
-        configEncoders(); 
+        configEncoders();
 
         // Sincronizar encoders (Absolute -> Relative)
         synchronizeEncoders();
@@ -74,7 +74,6 @@ public class RevSwerveModule implements SwerveModule {
         mAngleConfig.encoder.positionConversionFactor(Constants.Swerve.kDegreesPerTurnRotation);
         mAngleConfig.encoder.velocityConversionFactor(Constants.Swerve.kDegreesPerTurnRotation / 60);
 
-        
         mDriveMotor.configure(mDriveConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         mAngleMotor.configure(mAngleConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     }
@@ -87,7 +86,7 @@ public class RevSwerveModule implements SwerveModule {
         mAngleConfig.closedLoop.feedForward.kV(Constants.Swerve.Angle.kV, ClosedLoopSlot.kSlot0);
         mAngleConfig.closedLoop.feedForward.kA(Constants.Swerve.Angle.kA, ClosedLoopSlot.kSlot0);
         mAngleConfig.closedLoop.outputRange(-Constants.Swerve.kAnglePower, Constants.Swerve.kAnglePower);
-        
+
         // CORRECCION: Usar el límite de corriente de ANGLE, no de DRIVE
         mAngleConfig.smartCurrentLimit(Constants.Swerve.kAngleContinuousCurrentLimit);
 
@@ -97,7 +96,7 @@ public class RevSwerveModule implements SwerveModule {
     }
 
     private void configDriveMotor() {
-        //Compensar voltaje
+        // Compensar voltaje
         mDriveConfig.voltageCompensation(12.0);
         // Aseguramos usar las constantes de DRIVE (KP, KI, KD)
         mDriveConfig.closedLoop.p(Constants.Swerve.Drive.kP, ClosedLoopSlot.kSlot0);
@@ -105,9 +104,8 @@ public class RevSwerveModule implements SwerveModule {
         mDriveConfig.closedLoop.d(Constants.Swerve.Drive.kD, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.feedForward.kA(Constants.Swerve.Drive.kA, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.feedForward.kV(Constants.Swerve.Drive.kV, ClosedLoopSlot.kSlot0);
-        mDriveConfig.closedLoop.feedForward.kS(Constants.Swerve.Drive.kS,  ClosedLoopSlot.kSlot0);
-        
-        
+        mDriveConfig.closedLoop.feedForward.kS(Constants.Swerve.Drive.kS, ClosedLoopSlot.kSlot0);
+
         mDriveConfig.closedLoop.outputRange(-12.0, 12.0);
         mDriveConfig.smartCurrentLimit(Constants.Swerve.kDriveContinuousCurrentLimit);
 
@@ -124,6 +122,12 @@ public class RevSwerveModule implements SwerveModule {
     }
 
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
+        // Si la velocidad es casi cero, apagamos el motor para evitar el "creeping"
+        if (Math.abs(desiredState.speedMetersPerSecond) < 0.01) {
+            mDriveMotor.stopMotor();
+            return;
+        }
+
         if (isOpenLoop) {
             double percentOutput = desiredState.speedMetersPerSecond / Constants.Swerve.kMaxSpeed;
             mDriveMotor.set(percentOutput);
@@ -141,7 +145,7 @@ public class RevSwerveModule implements SwerveModule {
             mAngleMotor.stopMotor();
             return;
         }
-        
+
         Rotation2d angle = desiredState.angle;
         SparkClosedLoopController controller = mAngleMotor.getClosedLoopController();
         double degReference = angle.getDegrees();
@@ -184,10 +188,12 @@ public class RevSwerveModule implements SwerveModule {
 
     @Override
     public double getOmega() {
-        // Retorna la velocidad angular en grados por segundo (o la unidad que necesites)
+        // Retorna la velocidad angular en grados por segundo (o la unidad que
+        // necesites)
         // OJO: Checar si 'getVelocity' de CANCoder retorna Rotaciones/Seg o Grados/Seg
-        // Usualmente Phoenix 6 retorna Rotaciones/Seg, por eso * 360 estaba en tu logica anterior
-        return angleEncoder.getVelocity().getValueAsDouble() * 360; 
+        // Usualmente Phoenix 6 retorna Rotaciones/Seg, por eso * 360 estaba en tu
+        // logica anterior
+        return angleEncoder.getVelocity().getValueAsDouble() * 360;
     }
 
     @Override
@@ -201,22 +207,22 @@ public class RevSwerveModule implements SwerveModule {
     public SwerveModuleState getDesiredState() {
         return desiredState;
     }
+
     // Dentro de RevSwerveModule.java
     public void setDriveVoltage(double volts) {
         mDriveMotor.setVoltage(volts);
     }
-    
 
     @Override
-public double getDriveVoltage() {
-    // El voltaje aplicado es el voltaje de la batería por el porcentaje de salida
-    return mDriveMotor.getBusVoltage() * mDriveMotor.getAppliedOutput();
-}
+    public double getDriveVoltage() {
+        // El voltaje aplicado es el voltaje de la batería por el porcentaje de salida
+        return mDriveMotor.getBusVoltage() * mDriveMotor.getAppliedOutput();
+    }
 
     @Override
     public void lockAngle() {
-    // Forzamos a que el módulo siempre mire hacia adelante (0 grados)
-    mAngleMotor.getClosedLoopController().setSetpoint(0, com.revrobotics.spark.SparkBase.ControlType.kPosition);
+        // Forzamos a que el módulo siempre mire hacia adelante (0 grados)
+        mAngleMotor.getClosedLoopController().setSetpoint(0, com.revrobotics.spark.SparkBase.ControlType.kPosition);
     }
 
 }

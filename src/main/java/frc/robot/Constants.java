@@ -19,8 +19,8 @@ public final class Constants {
 		public static final double kSlewRateLimit = 1.5; // Unidades por segundo (de 0 a 1)
 
 		// Spark Max Idle Modes
-		public static final SparkMaxConfig.IdleMode kDriveIdleMode = SparkMaxConfig.IdleMode.kBrake;
-		public static final SparkMaxConfig.IdleMode kAngleIdleMode = SparkMaxConfig.IdleMode.kBrake;
+		public static final SparkMaxConfig.IdleMode kDriveIdleMode = SparkMaxConfig.IdleMode.kCoast;
+		public static final SparkMaxConfig.IdleMode kAngleIdleMode = SparkMaxConfig.IdleMode.kCoast;
 
 		public static final SparkMaxConfig.IdleMode kIntakeIdleMode = SparkMaxConfig.IdleMode.kBrake;
 
@@ -99,14 +99,14 @@ public final class Constants {
 
 		public static final class Drive {
 		/* Drive Motor PID Values */
-		public static final double kP = 0.1;
+		public static final double kP = 0.28;
 		public static final double kI = 0.0;
-		public static final double kD = 0.00;
+		public static final double kD = 0.25;
 		
 		/* Drive motor FeedForward Values */
-		public static final double kS = 0.18366; // Voltios para empezar a mover
-		public static final double kV = 2.557275; // Voltios por metro/segundo
-		public static final double kA = 0.29773; // Voltios por metro/segundo^2
+		public static final double kS = 0.1615675; // Voltios para empezar a mover
+		public static final double kV = 2.56015; // Voltios por metro/segundo
+		public static final double kA = 0.3928225; // Voltios por metro/segundo^2
 
 		}
 		/** Meters per Second */
