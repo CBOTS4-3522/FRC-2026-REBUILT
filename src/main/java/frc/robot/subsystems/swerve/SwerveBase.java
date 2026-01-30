@@ -79,7 +79,7 @@ public class SwerveBase extends SubsystemBase {
                 ChassisSpeeds fixedSpeeds = new ChassisSpeeds(
                     speeds.vxMetersPerSecond,
                     speeds.vyMetersPerSecond,
-                    -speeds.omegaRadiansPerSecond
+                    speeds.omegaRadiansPerSecond
                 );
                 driveRobotRelative(fixedSpeeds);
             },
