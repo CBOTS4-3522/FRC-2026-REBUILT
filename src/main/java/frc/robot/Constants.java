@@ -14,7 +14,13 @@ public final class Constants {
 	public static final class OIConstants{
 		public static final double kStickDeadband = 0.08;
 		public static final int kDriver1Port = 0;
+		public static final int kDriver2Port = 0;
 	}
+
+	public static final class Intake {
+        public static final int kMotorID = 60; // Ajusta este ID si es necesario
+    }
+
 	public static final class Swerve {
 		public static final double kSlewRateLimit = 1.5; // Unidades por segundo (de 0 a 1)
 
