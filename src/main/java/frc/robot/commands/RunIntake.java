@@ -23,7 +23,7 @@ public class RunIntake extends Command {
     @Override
     public void execute() {
         // Lee el valor de Elastic (Default 0.0)
-        double velocidad = SmartDashboard.getNumber(KEY_VELOCIDAD, 0.0);
+        double velocidad = SmartDashboard.getNumber(KEY_VELOCIDAD, 1.0);
 
         // Protecciones básicas
         if (velocidad > 1.0) velocidad = 1.0;

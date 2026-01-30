@@ -49,7 +49,7 @@ public class RobotContainer {
     s_Swerve = new SwerveBase();
     s_Intake = new Intake();
     ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
-    SmartDashboard.putNumber("Intake/VelocidadTest", 0.0);
+    SmartDashboard.putNumber("Intake/VelocidadTest", 1.0);
 
     // USAR DEFERREDCOMMAND AQUÍ TAMBIÉN
     diagTab.add("Quasistatic Forward", 
