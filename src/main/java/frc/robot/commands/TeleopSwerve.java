@@ -82,7 +82,7 @@ public class TeleopSwerve extends Command {
             new Translation2d(xFiltered, yFiltered)
                     .times(Constants.Swerve.kMaxSpeed)
                     .times(speedCutoffVal ? 1 : 0.5),
-            rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
+            -rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
             !robotCentric,
             true
         );
