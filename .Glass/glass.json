@@ -1,5 +1,56 @@
 {
+  "NetworkTables": {
+    "transitory": {
+      "AdvantageKit": {
+        "open": true
+      },
+      "Shuffleboard": {
+        "open": true
+      },
+      "SmartDashboard": {
+        "Tuning": {
+          "open": true
+        },
+        "Turning": {
+          "open": true
+        },
+        "open": true
+      }
+    },
+    "types": {
+      "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
+      "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/DiagnÃ³stico/Dynamic Forward": "Command",
+      "/Shuffleboard/DiagnÃ³stico/Dynamic Reverse": "Command",
+      "/Shuffleboard/DiagnÃ³stico/Gyro": "Gyro",
+      "/Shuffleboard/DiagnÃ³stico/Quasistatic Forward": "Command",
+      "/Shuffleboard/DiagnÃ³stico/Quasistatic Reverse": "Command",
+      "/SmartDashboard/Calibracion/Dynamic Forward": "Command",
+      "/SmartDashboard/Calibracion/Dynamic Reverse": "Command",
+      "/SmartDashboard/Calibracion/Quasistatic Forward": "Command",
+      "/SmartDashboard/Calibracion/Quasistatic Reverse": "Command",
+      "/SmartDashboard/Derecha": "String Chooser",
+      "/SmartDashboard/Frente": "String Chooser",
+      "/SmartDashboard/Giro": "String Chooser",
+      "/SmartDashboard/PathPlanner": "Alerts",
+      "/SmartDashboard/Prueba": "String Chooser",
+      "/SmartDashboard/field": "Field2d"
+    }
+  },
   "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "Connections": {
+      "open": true
+    },
+    "Server": {
+      "open": true
+    },
     "visible": true
+  },
+  "NetworkTables Settings": {
+    "mode": "Client (NT4)",
+    "serverTeam": "10.35.22.2"
   }
 }
