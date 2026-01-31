@@ -19,7 +19,7 @@ public class RunShooter extends Command {
     public void initialize() {
         System.out.println("Shooter PID Iniciado");
         // Publicamos un valor por defecto si no existe (ej. 1500 RPM para probar)
-        SmartDashboard.putNumber(KEY_RPM, 1500); 
+        
     }
 
     @Override
