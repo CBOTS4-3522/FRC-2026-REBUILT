@@ -2,7 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.Shooter;
 
 public class RunShooter extends Command {
     private final Shooter s_Shooter;
