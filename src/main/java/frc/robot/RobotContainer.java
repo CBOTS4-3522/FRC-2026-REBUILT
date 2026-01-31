@@ -19,6 +19,8 @@ import frc.robot.commands.RunShooter;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.swerve.SwerveBase;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.commands.RunIntake;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
 
@@ -29,10 +31,18 @@ public class RobotContainer {
     /* Controllers */
     private final Joystick driver1 = new Joystick(Constants.OIConstants.kDriver1Port);
     private final Joystick driver2 = new Joystick(Constants.OIConstants.kDriver2Port);
+<<<<<<< HEAD
 
     /* Subsystems */
     private final SwerveBase s_Swerve;
     private final Shooter s_Shooter;
+=======
+
+
+    /* Subsystems */
+    private final SwerveBase s_Swerve;
+    private final Intake s_Intake;
+>>>>>>> feature/intake-provitional
 
 /////Driver 1////////////
     private final int translationX = XboxController.Axis.kLeftY.value;
@@ -50,7 +60,9 @@ public class RobotContainer {
 
     SmartDashboard.putNumber("Shooter/VelocidadTest", 0.0);
 
+    s_Intake = new Intake();
     ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
+    SmartDashboard.putNumber("Intake/VelocidadTest", 1.0);
 
     // USAR DEFERREDCOMMAND AQUÍ TAMBIÉN
     diagTab.add("Quasistatic Forward", 
@@ -121,6 +133,9 @@ public class RobotContainer {
     zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
     new JoystickButton(driver2, XboxController.Button.kY.value)
         .toggleOnTrue(new RunShooter(s_Shooter));
+
+    new JoystickButton(driver2, XboxController.Button.kX.value)
+            .toggleOnTrue(new RunIntake(s_Intake));
 
     }
     public Command getAutonomousCommand() {
