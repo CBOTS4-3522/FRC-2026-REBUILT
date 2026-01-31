@@ -13,12 +13,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.swerve.SwerveBase;
-import frc.robot.subsystems.intake.Intake;
-import frc.robot.commands.RunIntake;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
 
@@ -28,7 +28,7 @@ public class RobotContainer {
 
     /* Controllers */
     private final Joystick driver1 = new Joystick(Constants.OIConstants.kDriver1Port);
-    private final Joystick driver2 = new Joystick(Constants.OIConstants.kDriver2Port);
+    private final CommandXboxController driver2 = new CommandXboxController(Constants.OIConstants.kDriver2Port);
 
 
     /* Subsystems */
@@ -119,8 +119,7 @@ public class RobotContainer {
     //Reset Gyro
     zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
-    new JoystickButton(driver2, XboxController.Button.kX.value)
-            .toggleOnTrue(new RunIntake(s_Intake));
+    driver2.x().toggleOnTrue(s_Intake.runIntake());
 
     }
     public Command getAutonomousCommand() {
