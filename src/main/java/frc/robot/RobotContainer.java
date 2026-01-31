@@ -71,6 +71,22 @@ public class RobotContainer {
 
     diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
            .withSize(2, 2).withPosition(4, 0);
+
+    diagTab.add("Shooter Quasistatic FWD", 
+        new DeferredCommand(() -> s_Shooter.sysIdQuasistatic(Direction.kForward), Set.of(s_Shooter)))
+        .withSize(2, 1).withPosition(4, 0);
+
+    diagTab.add("Shooter Quasistatic REV", 
+        new DeferredCommand(() -> s_Shooter.sysIdQuasistatic(Direction.kReverse), Set.of(s_Shooter)))
+        .withSize(2, 1).withPosition(6, 0);
+
+    diagTab.add("Shooter Dynamic FWD", 
+        new DeferredCommand(() -> s_Shooter.sysIdDynamic(Direction.kForward), Set.of(s_Shooter)))
+        .withSize(2, 1).withPosition(4, 1);
+
+    diagTab.add("Shooter Dynamic REV", 
+        new DeferredCommand(() -> s_Shooter.sysIdDynamic(Direction.kReverse), Set.of(s_Shooter)))
+        .withSize(2, 1).withPosition(6, 1);
  
 
 
