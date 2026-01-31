@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.RunShooter;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.swerve.SwerveBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
@@ -71,10 +71,7 @@ public class RobotContainer {
 
     diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
            .withSize(2, 2).withPosition(4, 0);
-
-    // 3. Agregamos el Gyro y el Selector de Autos para tener todo a la mano
-    diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
-           .withSize(2, 2).withPosition(4, 0); 
+ 
 
 
     //Autos
