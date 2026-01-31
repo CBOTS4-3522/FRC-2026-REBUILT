@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import frc.robot.Constants;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -21,10 +22,12 @@ public class Shooter extends SubsystemBase {
     // Aquí pondremos los IDs correctos después
     private final int liderID = Constants.shooter.kLiderID; 
     private final int seguidorID = Constants.shooter.kSeguidorID; 
+    private static final String KEY_RPM = "Shooter/ObjetivoRPM";
 
     public Shooter() {
         motorLider = new SparkMax(liderID, MotorType.kBrushless);
         motorSeguidor = new SparkMax(seguidorID, MotorType.kBrushless);
+        SmartDashboard.putNumber(KEY_RPM, 1500);
 
         // Configuración del LIDER
         SparkMaxConfig configLider = new SparkMaxConfig();
