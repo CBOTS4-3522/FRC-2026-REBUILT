@@ -16,7 +16,6 @@ public final class Constants {
 		public static final int kDriver1Port = 0;
 		public static final int kDriver2Port = 0;
 	}
-<<<<<<< HEAD
 	public static final class shooter {
 		public static final byte kLiderID = 50;
 		public static final byte kSeguidorID = 51;
@@ -32,12 +31,10 @@ public final class Constants {
 
 	}
 
-=======
 
 	public static final class Intake {
         public static final int kMotorID = 60; // Ajusta este ID si es necesario
     }
->>>>>>> feature/intake-provitional
 
 	public static final class Swerve {
 		public static final double kSlewRateLimit = 1.5; // Unidades por segundo (de 0 a 1)

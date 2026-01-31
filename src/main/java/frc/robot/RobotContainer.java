@@ -31,18 +31,13 @@ public class RobotContainer {
     /* Controllers */
     private final Joystick driver1 = new Joystick(Constants.OIConstants.kDriver1Port);
     private final Joystick driver2 = new Joystick(Constants.OIConstants.kDriver2Port);
-<<<<<<< HEAD
 
-    /* Subsystems */
-    private final SwerveBase s_Swerve;
-    private final Shooter s_Shooter;
-=======
 
 
     /* Subsystems */
     private final SwerveBase s_Swerve;
     private final Intake s_Intake;
->>>>>>> feature/intake-provitional
+    private final Shooter s_Shooter;
 
 /////Driver 1////////////
     private final int translationX = XboxController.Axis.kLeftY.value;
@@ -56,11 +51,11 @@ public class RobotContainer {
 
     public RobotContainer() {
     s_Swerve = new SwerveBase();
+    s_Intake = new Intake();
     s_Shooter = new Shooter();
 
     SmartDashboard.putNumber("Shooter/VelocidadTest", 0.0);
 
-    s_Intake = new Intake();
     ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
     SmartDashboard.putNumber("Intake/VelocidadTest", 1.0);
 
