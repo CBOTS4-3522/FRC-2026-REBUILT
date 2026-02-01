@@ -86,5 +86,11 @@ public class Shooter extends SubsystemBase {
     @Override
     public void periodic() {
         // Aquí publicaremos datos a Elastic más adelante
+        SmartDashboard.putNumber("Shooter/RPM Actual", getVelocidad());
+        SmartDashboard.putNumber("Shooter/Corriente Lider", motorLider.getOutputCurrent());
+        SmartDashboard.putNumber("Shooter/Corriente Seguidor", motorSeguidor.getOutputCurrent());
+        SmartDashboard.putNumber("Shooter/Temperatura Lider", motorLider.getMotorTemperature());
+        
+        
     }
 }
