@@ -16,7 +16,11 @@ public final class Constants {
 		public static final int kDriver1Port = 0;
 	}
 	public static final class Swerve {
+
+
 		public static final double kSlewRateLimit = 3.0; // Unidades por segundo (de 0 a 1)
+		public static final boolean kIsOpenLoopTeleopSwerve = false;
+
 
 		// Spark Max Idle Modes
 		public static final SparkMaxConfig.IdleMode kDriveIdleMode = SparkMaxConfig.IdleMode.kBrake;
