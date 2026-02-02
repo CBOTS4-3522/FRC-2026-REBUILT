@@ -15,8 +15,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.util.swerveUtil.CTREState;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import frc.robot.Constants;
+import edu.wpi.first.math.MathUtil;
 
 public class RevSwerveModule implements SwerveModule {
     public int moduleNumber;
@@ -24,6 +28,10 @@ public class RevSwerveModule implements SwerveModule {
 
     private SparkMax mAngleMotor;
     private SparkMax mDriveMotor;
+
+    // motores de simulacion
+    private DCMotorSim mDriveSim;
+    private DCMotorSim mAngleSim;
 
     // Objetos de configuración (REV 2025)
     private SparkMaxConfig mAngleConfig;
@@ -60,6 +68,31 @@ public class RevSwerveModule implements SwerveModule {
         // Sincronizar encoders (Absolute -> Relative)
         synchronizeEncoders();
         this.desiredState = new SwerveModuleState(0, getAngle());
+
+        // ... dentro del constructor de RevSwerveModule ...
+
+        // 1. Definimos la física del sistema (La "Planta")
+        // createDCMotorSystem(Motor, Inercia J [kg*m^2], Relación de Engranes)
+
+        // Para el Drive (Rueda)
+        var drivePlant = LinearSystemId.createDCMotorSystem(
+                DCMotor.getNEO(1), // Motor
+                0.025, // Inercia aprox (J)
+                Constants.Swerve.kDriveGearRatio // Gearing
+        );
+
+        // Para el Angle (Dirección)
+        var anglePlant = LinearSystemId.createDCMotorSystem(
+                DCMotor.getNEO(1), // Motor
+                0.004, // Inercia aprox (J)
+                Constants.Swerve.kAngleGearRatio // Gearing
+        );
+
+        // 2. Creamos la simulación usando la planta
+        // El segundo parámetro es el gearbox, que usamos para saber limites de
+        // corriente, etc.
+        mDriveSim = new DCMotorSim(drivePlant, DCMotor.getNEO(1));
+        mAngleSim = new DCMotorSim(anglePlant, DCMotor.getNEO(1));
     }
 
     private void configEncoders() {
@@ -181,9 +214,14 @@ public class RevSwerveModule implements SwerveModule {
 
     @Override
     public SwerveModuleState getState() {
-        return new SwerveModuleState(
-                relDriveEncoder.getVelocity(),
-                getAngle());
+        // Si estamos en simulación, leemos la velocidad directo de la física
+        if (edu.wpi.first.wpilibj.RobotBase.isSimulation()) {
+            double simVel = mDriveSim.getAngularVelocityRadPerSec() * (Constants.Swerve.kWheelCircumference / (2 * Math.PI));
+            return new SwerveModuleState(simVel, getAngle());
+        }
+        
+        // Si es real, usamos el encoder
+        return new SwerveModuleState(relDriveEncoder.getVelocity(), getAngle());
     }
 
     @Override
@@ -234,6 +272,52 @@ public class RevSwerveModule implements SwerveModule {
         mDriveMotor.configure(mDriveConfig,
                 ResetMode.kNoResetSafeParameters,
                 PersistMode.kNoPersistParameters);
+    }
+    /**
+     * Este método corre cada 20ms SOLO en el simulador.
+     */
+    public void simulationPeriodic(double dt) {
+        // --- 1. CÁLCULO MANUAL DE VOLTAJES ---
+        // Como el SparkMax Sim no calcula el PID solo, lo hacemos nosotros con las constantes que ya tienes.
+        
+        // A) Voltaje de DRIVE (Feedforward + Friction)
+        double velocitySetpoint = desiredState.speedMetersPerSecond;
+        // Fórmula: Velocidad * kV + kS (para romper fricción)
+        double driveVoltage = velocitySetpoint * Constants.Swerve.Drive.kV;
+        if (Math.abs(velocitySetpoint) > 0.01) {
+            driveVoltage += Math.signum(velocitySetpoint) * Constants.Swerve.Drive.kS;
+        }
+
+        // B) Voltaje de ANGLE (PID Simple)
+        // Calculamos el error en grados (Rotation2d maneja la lógica de -180 a 180 automáticamente)
+        double angleErrorDegrees = desiredState.angle.minus(getAngle()).getDegrees();
+        // Fórmula: Error * kP * 12V (Multiplicamos por 12 porque kP es para output 0-1)
+        double angleVoltage = angleErrorDegrees * Constants.Swerve.Angle.kP * 12.0;
+
+        // Limitamos el voltaje a lo que da la batería (clamp)
+        driveVoltage = MathUtil.clamp(driveVoltage, -12.0, 12.0);
+        angleVoltage = MathUtil.clamp(angleVoltage, -12.0, 12.0);
+
+
+        // --- 2. FÍSICA (DCMotorSim) ---
+        mDriveSim.setInputVoltage(driveVoltage);
+        mAngleSim.setInputVoltage(angleVoltage);
+
+        mDriveSim.update(dt);
+        mAngleSim.update(dt);
+
+
+        // --- 3. ACTUALIZAR SENSORES ---
+        
+        // Drive Position (Radianes Sim -> Metros Encoder)
+        double drivePosMeters = (mDriveSim.getAngularPositionRad() / (2 * Math.PI)) * Constants.Swerve.kWheelCircumference;
+        relDriveEncoder.setPosition(drivePosMeters);
+
+        // Angle Position (Radianes Sim -> Grados Encoder)
+        
+        double angleDegrees = Math.toDegrees(mAngleSim.getAngularPositionRad());
+        
+        relAngleEncoder.setPosition(angleDegrees);
     }
 
 }

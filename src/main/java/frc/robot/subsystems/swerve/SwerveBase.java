@@ -237,9 +237,29 @@ public class SwerveBase extends SubsystemBase {
                 .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
     }
 
+    public void simulationPeriodic() {
+        // 1. Correr la física de cada módulo
+        for (SwerveModule mod : swerveMods) {
+            // Hacemos cast porque la interfaz SwerveModule no tiene este método
+            if(mod instanceof RevSwerveModule) {
+                ((RevSwerveModule)mod).simulationPeriodic(0.02);
+            }
+        }
+
+        // 2. Calcular cómo se movió el chasis REALMENTE basado en las ruedas
+        // Usamos los estados ACTUALES (simulados), no los deseados.
+        SwerveModuleState[] realStates = getModuleStates();
+        ChassisSpeeds actualSpeeds = Constants.Swerve.kSwerveKinematics.toChassisSpeeds(realStates);
+
+        // 3. Actualizar el Giroscopio simulado
+        // Ahora el gyro gira porque las ruedas giraron al chasis (¡Física!)
+        // Multiplicamos por 1000ms/20ms = 50 o simplemente pasamos radianes/segundo si tu updateSimAngle lo soporta.
+        // Viendo tu código anterior, updateSimAngle recibe (dt, radsPerSec):
+        gyro.updateSimAngle(0.02, actualSpeeds.omegaRadiansPerSecond);
+    }
+
     @Override
-    public void periodic() {
-        // 1. Leer valores de Glass
+    public void periodic() { 
         double currentKP = SmartDashboard.getNumber("Tuning/Drive kP", Constants.Swerve.Drive.kP);
         double currentKD = SmartDashboard.getNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
 
