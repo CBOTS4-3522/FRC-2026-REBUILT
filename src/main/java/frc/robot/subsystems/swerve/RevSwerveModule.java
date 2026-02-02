@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import frc.robot.Constants;
+import edu.wpi.first.math.MathUtil;
 
 public class RevSwerveModule implements SwerveModule {
     public int moduleNumber;
@@ -206,9 +207,14 @@ public class RevSwerveModule implements SwerveModule {
 
     @Override
     public SwerveModuleState getState() {
-        return new SwerveModuleState(
-                relDriveEncoder.getVelocity(),
-                getAngle());
+        // Si estamos en simulación, leemos la velocidad directo de la física
+        if (edu.wpi.first.wpilibj.RobotBase.isSimulation()) {
+            double simVel = mDriveSim.getAngularVelocityRadPerSec() * (Constants.Swerve.kWheelCircumference / (2 * Math.PI));
+            return new SwerveModuleState(simVel, getAngle());
+        }
+        
+        // Si es real, usamos el encoder
+        return new SwerveModuleState(relDriveEncoder.getVelocity(), getAngle());
     }
 
     @Override
@@ -252,50 +258,50 @@ public class RevSwerveModule implements SwerveModule {
 
     /**
      * Este método corre cada 20ms SOLO en el simulador.
-     * Toma el voltaje que tu código cree que envía y calcula dónde estarían las
-     * ruedas.
      */
     public void simulationPeriodic(double dt) {
-        // 1. Obtener el voltaje que estamos aplicando (o intentando aplicar)
-        // Usamos MathUtil.clamp para simular una batería real de 12V
-        double driveVoltage = mDriveMotor.getAppliedOutput() * RobotController.getBatteryVoltage();
-        double angleVoltage = mAngleMotor.getAppliedOutput() * RobotController.getBatteryVoltage();
+        // --- 1. CÁLCULO MANUAL DE VOLTAJES ---
+        // Como el SparkMax Sim no calcula el PID solo, lo hacemos nosotros con las constantes que ya tienes.
+        
+        // A) Voltaje de DRIVE (Feedforward + Friction)
+        double velocitySetpoint = desiredState.speedMetersPerSecond;
+        // Fórmula: Velocidad * kV + kS (para romper fricción)
+        double driveVoltage = velocitySetpoint * Constants.Swerve.Drive.kV;
+        if (Math.abs(velocitySetpoint) > 0.01) {
+            driveVoltage += Math.signum(velocitySetpoint) * Constants.Swerve.Drive.kS;
+        }
 
-        // 2. Alimentar a los motores simulados
+        // B) Voltaje de ANGLE (PID Simple)
+        // Calculamos el error en grados (Rotation2d maneja la lógica de -180 a 180 automáticamente)
+        double angleErrorDegrees = desiredState.angle.minus(getAngle()).getDegrees();
+        // Fórmula: Error * kP * 12V (Multiplicamos por 12 porque kP es para output 0-1)
+        double angleVoltage = angleErrorDegrees * Constants.Swerve.Angle.kP * 12.0;
+
+        // Limitamos el voltaje a lo que da la batería (clamp)
+        driveVoltage = MathUtil.clamp(driveVoltage, -12.0, 12.0);
+        angleVoltage = MathUtil.clamp(angleVoltage, -12.0, 12.0);
+
+
+        // --- 2. FÍSICA (DCMotorSim) ---
         mDriveSim.setInputVoltage(driveVoltage);
         mAngleSim.setInputVoltage(angleVoltage);
 
-        // 3. Avanzar el tiempo en la física
         mDriveSim.update(dt);
         mAngleSim.update(dt);
 
-        // 4. Actualizar los SENSORES simulados (Encoders)
-        // Esto cierra el ciclo: Tu código lee esto en el siguiente ciclo periodic()
 
-        // --- Drive (Conversión de Radianes del eje de salida a Metros) ---
-        // getAngularPositionRad() nos da radianes de la rueda.
-        // Distancia = (Radianes / 2PI) * Circunferencia
-        double drivePosMeters = (mDriveSim.getAngularPositionRad() / (2 * Math.PI))
-                * Constants.Swerve.kWheelCircumference;
-        double driveVelMetersPerSec = (mDriveSim.getAngularVelocityRadPerSec() / (2 * Math.PI))
-                * Constants.Swerve.kWheelCircumference;
-
+        // --- 3. ACTUALIZAR SENSORES ---
+        
+        // Drive Position (Radianes Sim -> Metros Encoder)
+        double drivePosMeters = (mDriveSim.getAngularPositionRad() / (2 * Math.PI)) * Constants.Swerve.kWheelCircumference;
         relDriveEncoder.setPosition(drivePosMeters);
-        // Nota: SparkMax sim no tiene setVelocity directo fácil, pero la odometría usa
-        // posición,
-        // así que con setPosition suele bastar. Si usas velocity para algo crítico,
-        // avísame.
 
-        // --- Angle (Conversión de Radianes del eje de salida a Grados) ---
-        double angleDegrees = Math.toDegrees(mAngleSim.getAngularPositionRad());
-
-        // Simular el encoder absoluto (CANCoder) y el relativo
-        // Hacemos que coincidan perfecto en simulación
-        relAngleEncoder.setPosition(angleDegrees);
-        // Si tuvieras un objeto sim de CANCoder aquí lo actualizarías, pero usas
-        // getCanCoder()
-        // que lee del hardware. En simulación pura, tu getAngle() lee del relativo, así
-        // que esto basta.
+        // Angle Position (Radianes Sim -> Grados Encoder)
+        double angleDegrees = Math.toDegrees(mAngleSim.getAngularPositionRad()); // Ojo: Aquí debería ser mAngleSim
+        // CORRECCIÓN: Usar mAngleSim para el ángulo
+        double angleDegreesCorrect = Math.toDegrees(mAngleSim.getAngularPositionRad());
+        
+        relAngleEncoder.setPosition(angleDegreesCorrect);
     }
 
 }
