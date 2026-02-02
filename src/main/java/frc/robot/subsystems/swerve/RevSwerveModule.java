@@ -16,7 +16,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.util.swerveUtil.CTREState;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
@@ -297,11 +296,10 @@ public class RevSwerveModule implements SwerveModule {
         relDriveEncoder.setPosition(drivePosMeters);
 
         // Angle Position (Radianes Sim -> Grados Encoder)
-        double angleDegrees = Math.toDegrees(mAngleSim.getAngularPositionRad()); // Ojo: Aquí debería ser mAngleSim
-        // CORRECCIÓN: Usar mAngleSim para el ángulo
-        double angleDegreesCorrect = Math.toDegrees(mAngleSim.getAngularPositionRad());
         
-        relAngleEncoder.setPosition(angleDegreesCorrect);
+        double angleDegrees = Math.toDegrees(mAngleSim.getAngularPositionRad());
+        
+        relAngleEncoder.setPosition(angleDegrees);
     }
 
 }
