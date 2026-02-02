@@ -43,6 +43,7 @@ public class RevSwerveModule implements SwerveModule {
 
     public SwerveModuleState desiredState;
     public final FeedForwardConfig feedForward = new FeedForwardConfig();
+    private double lastVelocitySetpoint = 0.0;
 
     public RevSwerveModule(int moduleNumber, RevSwerveModuleConstants moduleConstants) {
         this.moduleNumber = moduleNumber;
@@ -277,47 +278,60 @@ public class RevSwerveModule implements SwerveModule {
      * Este método corre cada 20ms SOLO en el simulador.
      */
     public void simulationPeriodic(double dt) {
-        // --- 1. CÁLCULO MANUAL DE VOLTAJES ---
-        // Como el SparkMax Sim no calcula el PID solo, lo hacemos nosotros con las constantes que ya tienes.
+        // --- 1. CÁLCULO DE VOLTAJES (PID + Feedforward Completo) ---
         
-        // A) Voltaje de DRIVE (Feedforward + Friction)
         double velocitySetpoint = desiredState.speedMetersPerSecond;
-        // Fórmula: Velocidad * kV + kS (para romper fricción)
-        double driveVoltage = velocitySetpoint * Constants.Swerve.Drive.kV;
+        double currentSimVelocity = mDriveSim.getAngularVelocityRadPerSec() * (Constants.Swerve.kWheelCircumference / (2 * Math.PI));
+
+        // CALCULAR ACELERACIÓN DESEADA (Nuevo)
+        // Aceleración = (Velocidad Actual - Velocidad Anterior) / Tiempo
+        double accelerationSetpoint = (velocitySetpoint - lastVelocitySetpoint) / dt;
+        lastVelocitySetpoint = velocitySetpoint; // Guardar para el siguiente ciclo
+
+        // A) DRIVE: Feedforward (kV, kS, kA) + PID (kP)
+        // 1. kS: Romper fricción
+        double driveVoltage = 0.0;
         if (Math.abs(velocitySetpoint) > 0.01) {
             driveVoltage += Math.signum(velocitySetpoint) * Constants.Swerve.Drive.kS;
         }
 
-        // B) Voltaje de ANGLE (PID Simple)
-        // Calculamos el error en grados (Rotation2d maneja la lógica de -180 a 180 automáticamente)
+        // 2. kV: Mantener velocidad
+        driveVoltage += velocitySetpoint * Constants.Swerve.Drive.kV;
+
+        // 3. kA: ¡EL EMPUJÓN! (Vencer inercia) <--- ESTO FALTABA
+        driveVoltage += accelerationSetpoint * Constants.Swerve.Drive.kA;
+
+        // 4. PID: Corregir error
+        double velocityError = velocitySetpoint - currentSimVelocity;
+        driveVoltage += velocityError * Constants.Swerve.Drive.kP;
+
+        // B) ANGLE: PID Simple (Lo que ya tenías)
         double angleErrorDegrees = desiredState.angle.minus(getAngle()).getDegrees();
-        // Fórmula: Error * kP * 12V (Multiplicamos por 12 porque kP es para output 0-1)
         double angleVoltage = angleErrorDegrees * Constants.Swerve.Angle.kP * 12.0;
 
-        // Limitamos el voltaje a lo que da la batería (clamp)
         driveVoltage = MathUtil.clamp(driveVoltage, -12.0, 12.0);
         angleVoltage = MathUtil.clamp(angleVoltage, -12.0, 12.0);
 
-
-        // --- 2. FÍSICA (DCMotorSim) ---
         mDriveSim.setInputVoltage(driveVoltage);
         mAngleSim.setInputVoltage(angleVoltage);
 
         mDriveSim.update(dt);
         mAngleSim.update(dt);
 
+        // --- 2. FÍSICA ---
+        mDriveSim.setInputVoltage(driveVoltage);
+        mAngleSim.setInputVoltage(angleVoltage);
+        
+        mDriveSim.update(dt);
+        mAngleSim.update(dt);
 
         // --- 3. ACTUALIZAR SENSORES ---
-        
-        // Drive Position (Radianes Sim -> Metros Encoder)
+        // (El resto de tu código de encoders sigue igual...)
         double drivePosMeters = (mDriveSim.getAngularPositionRad() / (2 * Math.PI)) * Constants.Swerve.kWheelCircumference;
         relDriveEncoder.setPosition(drivePosMeters);
-
-        // Angle Position (Radianes Sim -> Grados Encoder)
         
-        double angleDegrees = Math.toDegrees(mAngleSim.getAngularPositionRad());
-        
-        relAngleEncoder.setPosition(angleDegrees);
+        double angleDegreesCorrect = Math.toDegrees(mAngleSim.getAngularPositionRad());
+        relAngleEncoder.setPosition(angleDegreesCorrect);
     }
 
 }
