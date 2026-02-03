@@ -73,10 +73,8 @@ public class RobotContainer {
     //Autos
     autoChooser = AutoBuilder.buildAutoChooser();
 
-    SmartDashboard.putData("Giro", autoChooser);
-    SmartDashboard.putData("Frente", autoChooser);
-    SmartDashboard.putData("Derecha", autoChooser);
-    SmartDashboard.putData("Prueba", autoChooser);
+    SmartDashboard.putData("Auto mode", autoChooser);
+    
 
     /* Swerve */
         s_Swerve.setDefaultCommand(

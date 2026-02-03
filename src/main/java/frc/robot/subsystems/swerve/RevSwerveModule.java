@@ -148,12 +148,14 @@ public class RevSwerveModule implements SwerveModule {
     }
 
     @Override // Implementando de la interfaz
-    public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
+    public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean forceAngle) {
         // Optimizar para no girar más de 90 grados
         this.desiredState = CTREState.optimize(desiredState, getState().angle);
-        setAngle(this.desiredState);
+        setAngle(this.desiredState, forceAngle);
         setSpeed(this.desiredState, isOpenLoop);
     }
+
+    
 
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
         // Si la velocidad es casi cero, apagamos el motor para evitar el "creeping"
@@ -173,12 +175,14 @@ public class RevSwerveModule implements SwerveModule {
         controller.setSetpoint(velocity, ControlType.kVelocity, ClosedLoopSlot.kSlot0);
     }
 
-    private void setAngle(SwerveModuleState desiredState) {
+    private void setAngle(SwerveModuleState desiredState, boolean forceAngle) {
         // Prevenir Jitter: Si la velocidad es muy baja, no muevas el ángulo
-        if (Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.kMaxSpeed * 0.01)) {
+        if (!forceAngle && Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.kMaxSpeed * 0.01)) {
             mAngleMotor.stopMotor();
             return;
         }
+
+    
 
         Rotation2d angle = desiredState.angle;
         SparkClosedLoopController controller = mAngleMotor.getClosedLoopController();

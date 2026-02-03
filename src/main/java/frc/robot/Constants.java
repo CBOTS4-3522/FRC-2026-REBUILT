@@ -56,13 +56,14 @@ public final class Constants {
 		public static final double kDriveGearRatio = kChosenModule.driveGearRatio;
 
 		// meters per rotation
-		public static final double kWheelCircumference = kChosenModule.wheelCircumference;
-		public static final double kDriveRevToMeters = kWheelCircumference / (kDriveGearRatio);
+		public static final double kDriveEncoderFactor = .957;
+		public static final double kWheelCircumference = kChosenModule.wheelCircumference ;
+		public static final double kDriveRevToMeters = kWheelCircumference * kDriveEncoderFactor / (kDriveGearRatio);
 		public static final double kDriveRpmToMetersPerSecond = kDriveRevToMeters / 60;
 
 		/* Drivetrain Constants */
-		public static final double kTrackWidth = Units.inchesToMeters(21.8503);
-		public static final double kWheelBase = Units.inchesToMeters(22);
+		public static final double kTrackWidth = Units.inchesToMeters(21.8503); //55.5cm 0.555 M
+		public static final double kWheelBase = Units.inchesToMeters(22);//55.88 cm 0.5588M
 	
 		 //Swerve Kinematics
 		public static final SwerveDriveKinematics kSwerveKinematics = new SwerveDriveKinematics(
@@ -72,11 +73,11 @@ public final class Constants {
 				new Translation2d(-kWheelBase / 2.0, -kTrackWidth / 2.0));
 
 		/* Swerve Current Limiting */
-		public static final int kAngleContinuousCurrentLimit = 20;
+		public static final int kAngleContinuousCurrentLimit = 27;
 		public static final int kAnglePeakCurrentLimit = 40;
 		public static final double kAnglePeakCurrentDuration = 0.1;
 		public static final boolean kAngleEnableCurrentLimit = true;
-		public static final int kDriveContinuousCurrentLimit = 35;
+		public static final int kDriveContinuousCurrentLimit = 27;
 		public static final int kDrivePeakCurrentLimit = 60;
 		public static final double kDrivePeakCurrentDuration = 0.1;
 		public static final boolean kDriveEnableCurrentLimit = true;
