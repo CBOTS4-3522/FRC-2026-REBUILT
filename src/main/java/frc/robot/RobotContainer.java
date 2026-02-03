@@ -1,4 +1,5 @@
 package frc.robot;
+
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
@@ -13,25 +14,34 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+<<<<<<< HEAD
 import edu.wpi.first.wpilibj2.command.RunCommand;
+=======
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+>>>>>>> test/shooter-intake
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.swerve.SwerveBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
 
 public class RobotContainer {
-    /*  Shuffleboard */
+    /* Shuffleboard */
     public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
 
     /* Controllers */
     private final Joystick driver1 = new Joystick(Constants.OIConstants.kDriver1Port);
+    private final CommandXboxController driver2 = new CommandXboxController(Constants.OIConstants.kDriver2Port);
 
     /* Subsystems */
     private final SwerveBase s_Swerve;
+    private final Intake s_Intake;
+    private final Shooter s_Shooter;
 
-/////Driver 1////////////
+    ///// Driver 1////////////
     private final int translationX = XboxController.Axis.kLeftY.value;
     private final int translationY = XboxController.Axis.kLeftX.value;
     private final int rotation = XboxController.Axis.kRightX.value;
@@ -44,80 +54,99 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
 
     public RobotContainer() {
-    s_Swerve = new SwerveBase();
-    ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
+        s_Swerve = new SwerveBase();
+        s_Intake = new Intake();
+        s_Shooter = new Shooter();
 
-    // USAR DEFERREDCOMMAND AQUÍ TAMBIÉN
-    diagTab.add("Quasistatic Forward", 
-        new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(Direction.kForward), Set.of(s_Swerve)))
-        .withSize(2, 1).withPosition(0, 0);
+        SmartDashboard.putNumber("Shooter/VelocidadTest", 0.0);
 
-    diagTab.add("Quasistatic Reverse", 
-        new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(Direction.kReverse), Set.of(s_Swerve)))
-        .withSize(2, 1).withPosition(2, 0);
+        ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
+        SmartDashboard.putNumber("Intake/VelocidadI", 1.0);
 
-    diagTab.add("Dynamic Forward", 
-        new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kForward), Set.of(s_Swerve)))
-        .withSize(2, 1).withPosition(0, 1);
+        SmartDashboard.putNumber("Intake/UP", 1.0);
+        SmartDashboard.putNumber("Intake/DOWN", -1.0);
 
-    diagTab.add("Dynamic Reverse", 
-        new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kReverse), Set.of(s_Swerve)))
-        .withSize(2, 1).withPosition(2, 1);
+        // USAR DEFERREDCOMMAND AQUÍ TAMBIÉN
+        diagTab.add("Quasistatic Forward",
+                new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(Direction.kForward), Set.of(s_Swerve)))
+                .withSize(2, 1).withPosition(0, 0);
 
-    diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
-           .withSize(2, 2).withPosition(4, 0);
+        diagTab.add("Quasistatic Reverse",
+                new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(Direction.kReverse), Set.of(s_Swerve)))
+                .withSize(2, 1).withPosition(2, 0);
 
-    
+        diagTab.add("Dynamic Forward",
+                new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kForward), Set.of(s_Swerve)))
+                .withSize(2, 1).withPosition(0, 1);
 
+        diagTab.add("Dynamic Reverse",
+                new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kReverse), Set.of(s_Swerve)))
+                .withSize(2, 1).withPosition(2, 1);
 
-    //Autos
-    autoChooser = AutoBuilder.buildAutoChooser();
+        diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
+                .withSize(2, 2).withPosition(4, 0);
 
-    SmartDashboard.putData("Giro", autoChooser);
-    SmartDashboard.putData("Frente", autoChooser);
-    SmartDashboard.putData("Derecha", autoChooser);
-    SmartDashboard.putData("Prueba", autoChooser);
+        // Autos
+        autoChooser = AutoBuilder.buildAutoChooser();
 
-    /* Swerve */
+        SmartDashboard.putData("Giro", autoChooser);
+        SmartDashboard.putData("Frente", autoChooser);
+        SmartDashboard.putData("Derecha", autoChooser);
+        SmartDashboard.putData("Prueba", autoChooser);
+
+        /* Swerve */
         s_Swerve.setDefaultCommand(
-            new TeleopSwerve(
-                s_Swerve,
-                () -> -driver1.getRawAxis(translationX),
-                () -> -driver1.getRawAxis(translationY),
-                () -> driver1.getRawAxis(rotation),
-                turbo,
-                () -> driver1.getRawButtonPressed(XboxController.Button.kLeftBumper.value)
-            )
-        );
+                new TeleopSwerve(
+                        s_Swerve,
+                        () -> -driver1.getRawAxis(translationX),
+                        () -> -driver1.getRawAxis(translationY),
+                        () -> driver1.getRawAxis(rotation),
+                        turbo,
+                        () -> driver1.getRawButtonPressed(XboxController.Button.kLeftBumper.value)));
 
         // En RobotContainer.java, dentro del constructor public RobotContainer()
 
-    // Dentro del constructor de RobotContainer
-    if (RobotBase.isReal()) {
-    SmartDashboard.putData("Calibracion/Quasistatic Forward", 
-        new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kForward), Set.of(s_Swerve)));
-        
-    SmartDashboard.putData("Calibracion/Quasistatic Reverse", 
-        new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kReverse), Set.of(s_Swerve)));
+        // Dentro del constructor de RobotContainer
+        if (RobotBase.isReal()) {
+            SmartDashboard.putData("Calibracion/Quasistatic Forward",
+                    new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kForward),
+                            Set.of(s_Swerve)));
 
-    SmartDashboard.putData("Calibracion/Dynamic Forward", 
-        new DeferredCommand(() -> s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kForward), Set.of(s_Swerve)));
+            SmartDashboard.putData("Calibracion/Quasistatic Reverse",
+                    new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kReverse),
+                            Set.of(s_Swerve)));
 
-    SmartDashboard.putData("Calibracion/Dynamic Reverse", 
-        new DeferredCommand(() -> s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse), Set.of(s_Swerve)));
-}
-    // Configure the button bindings
+            SmartDashboard.putData("Calibracion/Dynamic Forward",
+                    new DeferredCommand(() -> s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kForward),
+                            Set.of(s_Swerve)));
+
+            SmartDashboard.putData("Calibracion/Dynamic Reverse",
+                    new DeferredCommand(() -> s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse),
+                            Set.of(s_Swerve)));
+        }
+        // Configure the button bindings
         configureButtonBindings();
     }
+
     private void configureButtonBindings() {
 
+<<<<<<< HEAD
 
     //Reset Gyro
     zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
     resetPose.onTrue(new InstantCommand(() -> s_Swerve.resetOdometry(new edu.wpi.first.math.geometry.Pose2d())));
     xStance.whileTrue(new RunCommand(() -> s_Swerve.wheelsIn(), s_Swerve));
+=======
+        // Reset Gyro
+        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+        driver2.y().toggleOnTrue(s_Shooter.RunShooter());
+        driver2.x().toggleOnTrue(s_Intake.runIntake());
+        driver2.b().toggleOnTrue(s_Intake.up());
+        driver2.a().toggleOnTrue(s_Intake.down());
+>>>>>>> test/shooter-intake
 
     }
+
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
     }

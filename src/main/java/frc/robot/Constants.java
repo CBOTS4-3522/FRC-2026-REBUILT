@@ -14,7 +14,29 @@ public final class Constants {
 	public static final class OIConstants{
 		public static final double kStickDeadband = 0.08;
 		public static final int kDriver1Port = 0;
+		public static final int kDriver2Port = 1;
 	}
+	public static final class shooter {
+		public static final byte kLiderID = 50;
+		public static final byte kSeguidorID = 51;
+
+		public static final double kP = 0.0001;
+		public static final double kI = 0;
+		public static final double kD = 0;
+
+		public static final double kV = 0.00018;
+		public static final double kA = 0.000;
+		public static final double kS = 0.000;
+
+
+	}
+
+
+	public static final class Intake {
+        public static final int kMotorID = 60; // Ajusta este ID si es necesario
+		public static final int rMotorID = 5;
+    }
+
 	public static final class Swerve {
 
 
