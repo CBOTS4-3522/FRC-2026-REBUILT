@@ -14,11 +14,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-<<<<<<< HEAD
 import edu.wpi.first.wpilibj2.command.RunCommand;
-=======
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
->>>>>>> test/shooter-intake
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.TeleopSwerve;
@@ -130,20 +127,15 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
 
-<<<<<<< HEAD
 
     //Reset Gyro
     zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
     resetPose.onTrue(new InstantCommand(() -> s_Swerve.resetOdometry(new edu.wpi.first.math.geometry.Pose2d())));
     xStance.whileTrue(new RunCommand(() -> s_Swerve.wheelsIn(), s_Swerve));
-=======
-        // Reset Gyro
-        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         driver2.y().toggleOnTrue(s_Shooter.RunShooter());
         driver2.x().toggleOnTrue(s_Intake.runIntake());
         driver2.b().toggleOnTrue(s_Intake.up());
         driver2.a().toggleOnTrue(s_Intake.down());
->>>>>>> test/shooter-intake
 
     }
 
