@@ -278,60 +278,60 @@ public class RevSwerveModule implements SwerveModule {
      * Este método corre cada 20ms SOLO en el simulador.
      */
     public void simulationPeriodic(double dt) {
-        // --- 1. CÁLCULO DE VOLTAJES (PID + Feedforward Completo) ---
-        
+        // --- 1. LÓGICA DE CONTROL (Lo que hace tu código/SparkMax) ---
+
         double velocitySetpoint = desiredState.speedMetersPerSecond;
         double currentSimVelocity = mDriveSim.getAngularVelocityRadPerSec() * (Constants.Swerve.kWheelCircumference / (2 * Math.PI));
 
-        // CALCULAR ACELERACIÓN DESEADA (Nuevo)
-        // Aceleración = (Velocidad Actual - Velocidad Anterior) / Tiempo
+        // Calcular Aceleración Deseada (para kA)
         double accelerationSetpoint = (velocitySetpoint - lastVelocitySetpoint) / dt;
-        lastVelocitySetpoint = velocitySetpoint; // Guardar para el siguiente ciclo
+        lastVelocitySetpoint = velocitySetpoint;
 
-        // A) DRIVE: Feedforward (kV, kS, kA) + PID (kP)
-        // 1. kS: Romper fricción
+        // CÁLCULO DE VOLTAJE DE DRIVE
+        // Feedforward: kS (Fricción) + kV (Velocidad) + kA (Aceleración)
         double driveVoltage = 0.0;
         if (Math.abs(velocitySetpoint) > 0.01) {
+            // kS: Solo se aplica si queremos movernos
             driveVoltage += Math.signum(velocitySetpoint) * Constants.Swerve.Drive.kS;
         }
-
-        // 2. kV: Mantener velocidad
         driveVoltage += velocitySetpoint * Constants.Swerve.Drive.kV;
-
-        // 3. kA: ¡EL EMPUJÓN! (Vencer inercia) <--- ESTO FALTABA
         driveVoltage += accelerationSetpoint * Constants.Swerve.Drive.kA;
 
-        // 4. PID: Corregir error
+        // PID: Proporcional (kP)
+        // Aquí usamos kP * 12.0 porque en la simulación calculamos voltios directos.
+        // Si en tus Constants ya dividiste kP/12, entonces aquí multiplicas: (kP_Constants * Error * 12.0)
+        // Si en tus Constants tienes el valor de SysId (0.23), úsalo directo: (kP_SysId * Error)
+        
+        // ASUMIENDO que en Constants pondrás el valor correcto para SparkMax (0.02):
         double velocityError = velocitySetpoint - currentSimVelocity;
-        driveVoltage += velocityError * Constants.Swerve.Drive.kP;
+        driveVoltage += velocityError * (Constants.Swerve.Drive.kP * 12.0); 
 
-        // B) ANGLE: PID Simple (Lo que ya tenías)
+        // CÁLCULO DE VOLTAJE DE ANGLE (Giro)
         double angleErrorDegrees = desiredState.angle.minus(getAngle()).getDegrees();
-        double angleVoltage = angleErrorDegrees * Constants.Swerve.Angle.kP * 12.0;
+        // Asumiendo que kP de Angle también está ajustado para SparkMax (0-1)
+        double angleVoltage = angleErrorDegrees * (Constants.Swerve.Angle.kP * 12.0);
 
+
+        // Clamp a 12V (Batería)
         driveVoltage = MathUtil.clamp(driveVoltage, -12.0, 12.0);
         angleVoltage = MathUtil.clamp(angleVoltage, -12.0, 12.0);
 
+
+        // --- 2. FÍSICA DEL MUNDO REAL (DCMotorSim) ---
+        // Le mandamos los voltios calculados al motor virtual
         mDriveSim.setInputVoltage(driveVoltage);
         mAngleSim.setInputVoltage(angleVoltage);
 
         mDriveSim.update(dt);
         mAngleSim.update(dt);
 
-        // --- 2. FÍSICA ---
-        mDriveSim.setInputVoltage(driveVoltage);
-        mAngleSim.setInputVoltage(angleVoltage);
-        
-        mDriveSim.update(dt);
-        mAngleSim.update(dt);
 
-        // --- 3. ACTUALIZAR SENSORES ---
-        // (El resto de tu código de encoders sigue igual...)
+        // --- 3. ACTUALIZAR SENSORES (Encoders) ---
         double drivePosMeters = (mDriveSim.getAngularPositionRad() / (2 * Math.PI)) * Constants.Swerve.kWheelCircumference;
         relDriveEncoder.setPosition(drivePosMeters);
         
-        double angleDegreesCorrect = Math.toDegrees(mAngleSim.getAngularPositionRad());
-        relAngleEncoder.setPosition(angleDegreesCorrect);
+        double angleDegrees = Math.toDegrees(mAngleSim.getAngularPositionRad());
+        relAngleEncoder.setPosition(angleDegrees);
     }
 
 }
