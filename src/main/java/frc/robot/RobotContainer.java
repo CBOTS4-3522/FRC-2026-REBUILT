@@ -55,7 +55,10 @@ public class RobotContainer {
         SmartDashboard.putNumber("Shooter/VelocidadTest", 0.0);
 
         ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
-        SmartDashboard.putNumber("Intake/VelocidadTest", 1.0);
+        SmartDashboard.putNumber("Intake/VelocidadI", 1.0);
+
+        SmartDashboard.putNumber("Intake/UP", 1.0);
+        SmartDashboard.putNumber("Intake/DOWN", -1.0);
 
         // USAR DEFERREDCOMMAND AQUÍ TAMBIÉN
         diagTab.add("Quasistatic Forward",
@@ -123,8 +126,11 @@ public class RobotContainer {
 
         // Reset Gyro
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-        driver2.y().whileTrue(s_Shooter.RunShooter());
+        driver2.y().toggleOnTrue(s_Shooter.RunShooter());
         driver2.x().toggleOnTrue(s_Intake.runIntake());
+        driver2.b().toggleOnTrue(s_Intake.up());
+        driver2.a().toggleOnTrue(s_Intake.down());
+
     }
 
     public Command getAutonomousCommand() {

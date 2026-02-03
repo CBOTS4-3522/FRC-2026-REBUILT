@@ -9,19 +9,26 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 
 public class Intake extends SubsystemBase {
     
     private final SparkMax motor;
-    private static final String KEY_VELOCIDAD = "Intake/VelocidadTest";
+    private final VictorSPX motorUD;
+    private static final String KEY_VELOCIDADI = "Intake/VelocidadI";
+    private static final String KEY_VELOCIDADU = "Intake/UP";
+    private static final String KEY_VELOCIDADD = "Intake/DOWN";
 
     public Intake() {
         motor = new SparkMax(Constants.Intake.kMotorID, MotorType.kBrushless);
+        motorUD = new VictorSPX(Constants.Intake.rMotorID);
 
         SparkMaxConfig config = new SparkMaxConfig();
         
+    //CONFIGURACIÓN
         // Usamos la constante de IdleMode que ya tenías en SwerveConstants o definimos una aquí
         // Usualmente Brake es mejor para pruebas, Coast para operación normal si no quieres que se trabe
         config.idleMode(IdleMode.kCoast); 
@@ -35,6 +42,7 @@ public class Intake extends SubsystemBase {
         motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
+    //JALAR
     public void setPorcentaje(double porcentaje) {
         motor.set(porcentaje);
     }
@@ -47,10 +55,9 @@ public class Intake extends SubsystemBase {
         return run(
             ()-> {
                 // Lee el valor de Elastic (Default 0.0)
-        double velocidad = SmartDashboard.getNumber(KEY_VELOCIDAD, 1.0);
+        double velocidad = SmartDashboard.getNumber(KEY_VELOCIDADI, 0);
 
         velocidad = MathUtil.clamp(velocidad, -1.0, 1.0);
-
 
         setPorcentaje(velocidad);
             }
@@ -62,6 +69,42 @@ public class Intake extends SubsystemBase {
         ;
     }
     
+     //SUBIR
+        public Command up(){
+        return run(
+            ()-> {
+        // Lee el valor de Elastic (Default 0.0)
+        double velocidad2 = SmartDashboard.getNumber(KEY_VELOCIDADU, 0);
+
+        velocidad2 = MathUtil.clamp(velocidad2, 0, 1.0);
+
+        motorUD.set(ControlMode.PercentOutput, velocidad2);
+            }
+        ).finallyDo(
+            interrupted -> {
+                motorUD.set(ControlMode.PercentOutput, 0);
+            }
+            )
+        ;
+    }
+
+      //BAJAR
+        public Command down(){
+        return run(
+            ()-> {
+        // Lee el valor de Elastic (Default 0.0)
+        double velocidad3 = SmartDashboard.getNumber(KEY_VELOCIDADD, 0);
+
+        velocidad3 = MathUtil.clamp(velocidad3, -1, 0);
+        motorUD.set(ControlMode.PercentOutput, velocidad3);
+            }
+        ).finallyDo(
+            interrupted -> {
+                motorUD.set(ControlMode.PercentOutput, 0);
+            }
+            );
+    }
+
     @Override
     public void periodic() {
         // Opcional: Publicar temperatura o corriente a Elastic si gustas

@@ -80,7 +80,12 @@ public class Shooter extends SubsystemBase {
 
                     // 3. Mandamos el voltaje
                     setPorcentaje(velocidad);
-                });
+                }).finallyDo(
+            interrupted -> {
+                motorLider.set(0);
+            }
+            )
+        ;
     }
 
     @Override
