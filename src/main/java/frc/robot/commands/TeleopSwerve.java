@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,6 +20,8 @@ public class TeleopSwerve extends Command {
     private final DoubleSupplier rotation;
     private final DoubleSupplier turbo;
     private final BooleanSupplier toggleRobotCentric;
+    private BooleanSupplier alignToMoveSup;
+    private PIDController headingController = new PIDController(0.1, 0.0, 0.0);
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
 
@@ -31,7 +34,8 @@ public class TeleopSwerve extends Command {
             DoubleSupplier translationY,
             DoubleSupplier rotation,
             DoubleSupplier turbo,
-            BooleanSupplier toggleRobotCentric) {
+            BooleanSupplier toggleRobotCentric,
+            BooleanSupplier alignToMoveSup) {
 
         this.s_Swerve = s_Swerve;
         addRequirements(s_Swerve);
@@ -41,6 +45,9 @@ public class TeleopSwerve extends Command {
         this.rotation = rotation;
         this.turbo = turbo;
         this.toggleRobotCentric = toggleRobotCentric;
+        this.alignToMoveSup = alignToMoveSup;
+
+        headingController.enableContinuousInput(-180, 180);
     }
 
     @Override
@@ -85,5 +92,21 @@ public class TeleopSwerve extends Command {
             rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
             !robotCentric, Constants.Swerve.kIsOpenLoopTeleopSwerve
         );
+
+        if (alignToMoveSup.getAsBoolean()) {
+            if (Math.abs(translationVal) > 0.01 || Math.abs(strafeVal) > 0.01) {
+                double targetAngleRad = Math.atan2(strafeVal, translationVal);
+                double targetAngleDeg = Math.toDegrees(targetAngleRad);
+
+                double rotationOutput = headingController.calculate(
+                    s_Swerve.getYaw().getDegrees(), 
+                    targetAngleDeg
+                );
+
+                rotationVal = rotationOutput;
+
+                rotationVal = MathUtil.clamp(rotationVal, -1.0, 1.0);
+            }
+        }
     }
 }

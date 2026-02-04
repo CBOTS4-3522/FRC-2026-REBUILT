@@ -3,7 +3,6 @@ package frc.robot;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
-import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -58,7 +57,7 @@ public class RobotContainer {
         s_Intake = new Intake();
         s_Shooter = new Shooter();
 
-        NamedCommands.registerCommand("TRAGAR" , s_Intake.intakeON());
+        NamedCommands.registerCommand("TRAGAR", s_Intake.intakeON());
         NamedCommands.registerCommand("LLENO", s_Intake.intakeOFF());
         NamedCommands.registerCommand("SUBIR INTAKE", s_Intake.upAuto());
         NamedCommands.registerCommand("BAJAR INTAKE", s_Intake.downAuto());
@@ -95,7 +94,6 @@ public class RobotContainer {
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Mode", autoChooser);
 
-       
         /* Swerve */
         s_Swerve.setDefaultCommand(
                 new TeleopSwerve(
@@ -104,11 +102,9 @@ public class RobotContainer {
                         () -> -driver1.getRawAxis(translationY),
                         () -> driver1.getRawAxis(rotation),
                         turbo,
-                        () -> driver1.getRawButtonPressed(XboxController.Button.kLeftBumper.value)));
+                        () -> driver1.getRawButtonPressed(XboxController.Button.kLeftBumper.value),
+                        () -> driver1.getRawButtonPressed(XboxController.Button.kRightBumper.value)));
 
-        // En RobotContainer.java, dentro del constructor public RobotContainer()
-
-        // Dentro del constructor de RobotContainer
         if (RobotBase.isReal()) {
             SmartDashboard.putData("Calibracion/Quasistatic Forward",
                     new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kForward),
@@ -132,11 +128,10 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
 
-
-    //Reset Gyro
-    zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-    resetPose.onTrue(new InstantCommand(() -> s_Swerve.resetOdometry(new edu.wpi.first.math.geometry.Pose2d())));
-    xStance.whileTrue(new RunCommand(() -> s_Swerve.wheelsIn(), s_Swerve));
+        // Reset Gyro
+        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+        resetPose.onTrue(new InstantCommand(() -> s_Swerve.resetOdometry(new edu.wpi.first.math.geometry.Pose2d())));
+        xStance.whileTrue(new RunCommand(() -> s_Swerve.wheelsIn(), s_Swerve));
         driver2.y().whileTrue(s_Shooter.RunShooter());
         driver2.x().toggleOnTrue(s_Intake.runIntake());
         driver2.b().whileTrue(s_Intake.up());
