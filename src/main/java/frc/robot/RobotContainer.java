@@ -3,7 +3,10 @@ package frc.robot;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
+import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
@@ -55,6 +58,11 @@ public class RobotContainer {
         s_Intake = new Intake();
         s_Shooter = new Shooter();
 
+        NamedCommands.registerCommand("TRAGAR" , s_Intake.intakeON());
+        NamedCommands.registerCommand("LLENO", s_Intake.intakeOFF());
+        NamedCommands.registerCommand("SUBIR INTAKE", s_Intake.upAuto());
+        NamedCommands.registerCommand("BAJAR INTAKE", s_Intake.downAuto());
+
         SmartDashboard.putNumber("Shooter/VelocidadTest", 0.0);
 
         ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
@@ -85,12 +93,9 @@ public class RobotContainer {
 
         // Autos
         autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.putData("Auto Mode", autoChooser);
 
-        SmartDashboard.putData("Giro", autoChooser);
-        SmartDashboard.putData("Frente", autoChooser);
-        SmartDashboard.putData("Derecha", autoChooser);
-        SmartDashboard.putData("Prueba", autoChooser);
-
+       
         /* Swerve */
         s_Swerve.setDefaultCommand(
                 new TeleopSwerve(
@@ -132,10 +137,10 @@ public class RobotContainer {
     zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
     resetPose.onTrue(new InstantCommand(() -> s_Swerve.resetOdometry(new edu.wpi.first.math.geometry.Pose2d())));
     xStance.whileTrue(new RunCommand(() -> s_Swerve.wheelsIn(), s_Swerve));
-        driver2.y().toggleOnTrue(s_Shooter.RunShooter());
+        driver2.y().whileTrue(s_Shooter.RunShooter());
         driver2.x().toggleOnTrue(s_Intake.runIntake());
-        driver2.b().toggleOnTrue(s_Intake.up());
-        driver2.a().toggleOnTrue(s_Intake.down());
+        driver2.b().whileTrue(s_Intake.up());
+        driver2.a().whileTrue(s_Intake.down());
 
     }
 
