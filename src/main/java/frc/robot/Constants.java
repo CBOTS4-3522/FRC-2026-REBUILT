@@ -19,7 +19,10 @@ public final class Constants {
 
 	public static final class Intake {
         public static final int kMotorID = 60; // Ajusta este ID si es necesario
-    }
+		public static final int kMotorID2 = 61; // Ajusta este ID si es necesario
+
+	}
+
 
 	public static final class Swerve {
 		public static final double kSlewRateLimit = 1.5; // Unidades por segundo (de 0 a 1)

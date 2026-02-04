@@ -120,6 +120,8 @@ public class RobotContainer {
     zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
     driver2.x().toggleOnTrue(s_Intake.runIntake());
+    driver2.b().toggleOnTrue(s_Intake.up());
+    driver2.a().toggleOnTrue(s_Intake.down());
 
     }
     public Command getAutonomousCommand() {
