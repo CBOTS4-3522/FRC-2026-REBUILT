@@ -87,8 +87,13 @@ public class RobotContainer {
                 new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kReverse), Set.of(s_Swerve)))
                 .withSize(2, 1).withPosition(2, 1);
 
+<<<<<<< HEAD
         diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
                 .withSize(2, 2).withPosition(4, 0);
+=======
+    SmartDashboard.putData("Auto mode", autoChooser);
+    
+>>>>>>> simulation/path-planner
 
         // Autos
         autoChooser = AutoBuilder.buildAutoChooser();
