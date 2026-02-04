@@ -12,7 +12,6 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-
 public class TeleopSwerve extends Command {
     private final SwerveBase s_Swerve;
     private final DoubleSupplier translationX;
@@ -21,7 +20,7 @@ public class TeleopSwerve extends Command {
     private final DoubleSupplier turbo;
     private final BooleanSupplier toggleRobotCentric;
     private BooleanSupplier alignToMoveSup;
-    private PIDController headingController = new PIDController(0.1, 0.0, 0.0);
+    private PIDController headingController = new PIDController(1, 0.0, 0.0);
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
 
@@ -50,63 +49,61 @@ public class TeleopSwerve extends Command {
         headingController.enableContinuousInput(-180, 180);
     }
 
-    @Override
+   @Override
     public void execute() {
-
-        // 1. Leer valores de joystick con deadband
-        double xRaw = MathUtil.applyDeadband(translationX.getAsDouble(), Constants.OIConstants.kStickDeadband);
-        double yRaw = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
-        double rotationVal = MathUtil.applyDeadband(-rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
-
-        // 2. APLICAR EL FILTRO (Capacitor Digital)
-        double xFiltered = xLimiter.calculate(xRaw);
-        double yFiltered = yLimiter.calculate(yRaw);
-
-    // Turbo para ajustar velocidad (manteniendo tu lógica actual)
-        boolean speedCutoffVal = turbo.getAsDouble() <= 0.1;
-        
-        // Leer valores de joystick con deadband
+        // 1. Leer valores (Ya lo tienes)
         double translationVal = MathUtil.applyDeadband(translationX.getAsDouble(), Constants.OIConstants.kStickDeadband);
         double strafeVal = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
+        double rotationVal = MathUtil.applyDeadband(-rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
+
+        double xFiltered = xLimiter.calculate(translationVal);
+        double yFiltered = yLimiter.calculate(strafeVal);
+
+        // --- DEBUGGING: Ver si el botón se detecta ---
+        boolean isButtonPushed = alignToMoveSup.getAsBoolean();
+        boolean isMoving = (Math.abs(translationVal) > 0.01 || Math.abs(strafeVal) > 0.01);
         
+        SmartDashboard.putBoolean("Debug/Boton Presionado", isButtonPushed);
+        SmartDashboard.putBoolean("Debug/Se Mueve", isMoving);
+        // ---------------------------------------------
 
-       
+        if (isButtonPushed) {
+            if (isMoving) {
+                // Calcular ángulo
+                double targetAngle = Math.toDegrees(Math.atan2(strafeVal, translationVal)); 
+                
+                // Calcular PID
+                double currentAngle = s_Swerve.getYaw().getDegrees();
+                double pidOutput = headingController.calculate(currentAngle, targetAngle);
+                
+                // Sobrescribir rotación
+                rotationVal = MathUtil.clamp(pidOutput, -1.0, 1.0);
 
-        // Alternar entre orientado al campo y orientado al robot
+                // --- DEBUGGING: Ver valores matemáticos ---
+                SmartDashboard.putNumber("Debug/Target Angle", targetAngle);
+                SmartDashboard.putNumber("Debug/Current Angle", currentAngle);
+                SmartDashboard.putNumber("Debug/PID Output", pidOutput);
+                // ------------------------------------------
+            }
+        } else {
+             SmartDashboard.putNumber("Debug/PID Output", 0.0); // Reset para no confundirnos
+        }
+
+        // Lógica de Turbo y Centric (Tu código original)
+        boolean speedCutoffVal = turbo.getAsDouble() <= 0.1;
         boolean currentButtonState = toggleRobotCentric.getAsBoolean();
         if (currentButtonState && !lastButtonState) {
             robotCentric = !robotCentric;
         }
         lastButtonState = currentButtonState;
 
-        // Actualizar en el SmartDashboard
-        SmartDashboard.putNumber("translationVal", translationVal);
-        SmartDashboard.putNumber("strafeVal", strafeVal);
-        SmartDashboard.putNumber("rotationVal", rotationVal);
-        SmartDashboard.putBoolean("Robot Centric Mode", robotCentric);
-
         s_Swerve.drive(
             new Translation2d(xFiltered, yFiltered)
                     .times(Constants.Swerve.kMaxSpeed)
                     .times(speedCutoffVal ? 1 : 0.5),
             rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
-            !robotCentric, Constants.Swerve.kIsOpenLoopTeleopSwerve
+            !robotCentric, 
+            Constants.Swerve.kIsOpenLoopTeleopSwerve
         );
-
-        if (alignToMoveSup.getAsBoolean()) {
-            if (Math.abs(translationVal) > 0.01 || Math.abs(strafeVal) > 0.01) {
-                double targetAngleRad = Math.atan2(strafeVal, translationVal);
-                double targetAngleDeg = Math.toDegrees(targetAngleRad);
-
-                double rotationOutput = headingController.calculate(
-                    s_Swerve.getYaw().getDegrees(), 
-                    targetAngleDeg
-                );
-
-                rotationVal = rotationOutput;
-
-                rotationVal = MathUtil.clamp(rotationVal, -1.0, 1.0);
-            }
-        }
     }
 }

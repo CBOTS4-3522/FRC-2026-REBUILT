@@ -140,7 +140,7 @@ public final class Constants {
 		public static final double kMaxSpeed = 3.658;
 
 		/** Radians per Second */
-		public static final double kMaxAngularVelocity = 5.0;
+		public static final double kMaxAngularVelocity = 7.0;
 		public static double kAngleRampRate = 0;
 
 //////////////Swerve Module Constants////////////

@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -9,6 +10,9 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import java.lang.module.ModuleDescriptor.Requires;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.PersistMode;
@@ -23,6 +27,8 @@ public class Intake extends SubsystemBase {
     private static final String KEY_VELOCIDADD = "Intake/DOWN";
 
     public Intake() {
+
+        
         motor = new SparkMax(Constants.Intake.kMotorID, MotorType.kBrushless);
         motorUD = new VictorSPX(Constants.Intake.rMotorID);
 
@@ -68,19 +74,7 @@ public class Intake extends SubsystemBase {
                         });
     }
 
-    public Command intakeON() {
-        return run(
-                () -> {
-                    setPorcentaje(1);
-                });
-    }
-
-    public Command intakeOFF() {
-        return runOnce(
-                () -> {
-                    setPorcentaje(0);
-                });
-    }
+    
 
     // SUBIR
     public Command up() {

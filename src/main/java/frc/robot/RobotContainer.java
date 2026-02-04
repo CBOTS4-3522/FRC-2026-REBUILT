@@ -57,8 +57,7 @@ public class RobotContainer {
         s_Intake = new Intake();
         s_Shooter = new Shooter();
 
-        NamedCommands.registerCommand("TRAGAR", s_Intake.intakeON());
-        NamedCommands.registerCommand("LLENO", s_Intake.intakeOFF());
+        NamedCommands.registerCommand("TRAGAR", s_Intake.runIntake());
         NamedCommands.registerCommand("SUBIR INTAKE", s_Intake.upAuto());
         NamedCommands.registerCommand("BAJAR INTAKE", s_Intake.downAuto());
 
@@ -106,7 +105,7 @@ public class RobotContainer {
                         () -> driver1.getRawAxis(rotation),
                         turbo,
                         () -> driver1.getRawButtonPressed(XboxController.Button.kLeftBumper.value),
-                        () -> driver1.getRawButtonPressed(XboxController.Button.kRightBumper.value)));
+                        () -> driver1.getRawButton(XboxController.Button.kRightBumper.value)));
 
         if (RobotBase.isReal()) {
             SmartDashboard.putData("Calibracion/Quasistatic Forward",
