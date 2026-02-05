@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.IntakeCalibration;
 import frc.robot.subsystems.swerve.SwerveBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
@@ -34,6 +35,8 @@ public class RobotContainer {
     /* Subsystems */
     private final SwerveBase s_Swerve;
     private final Intake s_Intake;
+    private final IntakeCalibration s_IntakeCalibration;
+
 
 /////Driver 1////////////
     private final int translationX = XboxController.Axis.kLeftY.value;
@@ -48,6 +51,8 @@ public class RobotContainer {
     public RobotContainer() {
     s_Swerve = new SwerveBase();
     s_Intake = new Intake();
+    s_IntakeCalibration = new IntakeCalibration();
+
     ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
     SmartDashboard.putNumber("Intake/VelocidadTest", 1.0);
 

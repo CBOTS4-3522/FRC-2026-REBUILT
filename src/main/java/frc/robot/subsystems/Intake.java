@@ -2,26 +2,32 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.AddressableLED;
+
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import com.revrobotics.spark.FeedbackSensor;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import java.lang.module.ModuleDescriptor.Requires;
+import java.lang.reflect.Type;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 
 public class Intake extends SubsystemBase {
 
     private final SparkMax motor;
-    private final VictorSPX motorUD;
+    private final SparkMax motorUD;
+    private final SparkAbsoluteEncoder encoder;
+    
     private static final String KEY_VELOCIDADI = "Intake/VelocidadI";
     private static final String KEY_VELOCIDADU = "Intake/UP";
     private static final String KEY_VELOCIDADD = "Intake/DOWN";
@@ -30,9 +36,13 @@ public class Intake extends SubsystemBase {
 
         
         motor = new SparkMax(Constants.Intake.kMotorID, MotorType.kBrushless);
-        motorUD = new VictorSPX(Constants.Intake.kMotorID);
+        motorUD = new SparkMax(Constants.Intake.kMotorID2, MotorType.kBrushed);
+
+        
 
         SparkMaxConfig config = new SparkMaxConfig();
+        SparkMaxConfig config2 = new SparkMaxConfig();
+        
 
         // CONFIGURACIÓN
         // Usamos la constante de IdleMode que ya tenías en SwerveConstants o definimos
@@ -46,9 +56,25 @@ public class Intake extends SubsystemBase {
         // Limitamos la corriente para proteger el mecanismo (ej. 40 Amps)
         config.smartCurrentLimit(50);
 
+        config2.idleMode(IdleMode.kBrake);
+        config2.inverted(false);
+        config2.smartCurrentLimit(50);
+        config2.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+
+        config2.absoluteEncoder.positionConversionFactor(180.0);
+        config2.absoluteEncoder.velocityConversionFactor(180/60);
+        config2.absoluteEncoder.inverted(false);
+
+
+
         // Aplicamos la configuración (API 2026)
         motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        motorUD.configure(config2, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
+        encoder = motorUD.getAbsoluteEncoder();
     }
+
+    
 
     // JALAR
     public void setPorcentaje(double porcentaje) {
@@ -85,10 +111,10 @@ public class Intake extends SubsystemBase {
 
                     velocidad2 = MathUtil.clamp(velocidad2, 0, 1.0);
 
-                    motorUD.set(ControlMode.PercentOutput, velocidad2);
+                    motorUD.set(velocidad2);
                 }).finallyDo(
                         interrupted -> {
-                            motorUD.set(ControlMode.PercentOutput, 0);
+                            motorUD.set( 0);
                         });
     }
 
@@ -100,10 +126,10 @@ public class Intake extends SubsystemBase {
                     double velocidad3 = SmartDashboard.getNumber(KEY_VELOCIDADD, 0);
 
                     velocidad3 = MathUtil.clamp(velocidad3, -1, 0);
-                    motorUD.set(ControlMode.PercentOutput, velocidad3);
+                    motorUD.set(velocidad3);
                 }).finallyDo(
                         interrupted -> {
-                            motorUD.set(ControlMode.PercentOutput, 0);
+                            motorUD.set( 0);
                         });
     }
 
@@ -111,15 +137,15 @@ public class Intake extends SubsystemBase {
     // subir
     public Command upAuto(){
         return this.runEnd(
-            () -> motorUD.set(ControlMode.PercentOutput, 1),
-            () -> motorUD.set(ControlMode.PercentOutput, 0)
+            () -> motorUD.set( 1),
+            () -> motorUD.set(0)
          ).withTimeout(0.5);
     }
 
     public Command downAuto(){
         return this.runEnd(
-            () -> motorUD.set(ControlMode.PercentOutput, -1),
-            () -> motorUD.set(ControlMode.PercentOutput, 0)
+            () -> motorUD.set(-1),
+            () -> motorUD.set( 0)
          ).withTimeout(0.5);
     }
 

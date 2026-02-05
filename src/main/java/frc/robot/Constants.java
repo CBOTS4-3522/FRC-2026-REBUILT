@@ -20,6 +20,11 @@ public final class Constants {
 	public static final class Intake {
         public static final int kMotorID = 60; // Ajusta este ID si es necesario
 		public static final int kMotorID2 = 61; // Ajusta este ID si es necesario
+		public static final byte kCanalEncoder = 0;
+		public static final double kEncoderOffset = 0.0;
+		private final double kTargetUp = 90.0;
+		private final double kTargetDown = 0.0;
+		private final double kP = 0.03;
 
 	}
 
