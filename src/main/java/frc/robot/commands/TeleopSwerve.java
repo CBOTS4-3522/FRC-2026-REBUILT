@@ -20,7 +20,7 @@ public class TeleopSwerve extends Command {
     private final DoubleSupplier turbo;
     private final BooleanSupplier toggleRobotCentric;
     private BooleanSupplier alignToMoveSup;
-    private PIDController headingController = new PIDController(1, 0.0, 0.0);
+    private PIDController headingController = new PIDController(0.01, 0.0, 0.0007);
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
 
