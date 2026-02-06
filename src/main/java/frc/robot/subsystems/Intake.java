@@ -2,21 +2,20 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants;
 import edu.wpi.first.math.MathUtil;
-
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-import com.revrobotics.spark.FeedbackSensor;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import java.lang.module.ModuleDescriptor.Requires;
-import java.lang.reflect.Type;
 
 
 import com.revrobotics.PersistMode;
@@ -24,136 +23,178 @@ import com.revrobotics.ResetMode;
 
 public class Intake extends SubsystemBase {
 
-    private final SparkMax motor;
-    private final SparkMax motorUD;
-    private final SparkAbsoluteEncoder encoder;
-    
-    private static final String KEY_VELOCIDADI = "Intake/VelocidadI";
-    private static final String KEY_VELOCIDADU = "Intake/UP";
-    private static final String KEY_VELOCIDADD = "Intake/DOWN";
+    // DEFINICIÓN DE HARDWARE
+    private final SparkMax motorRodillos;
+    private final SparkMax motorBrazo;
+    private final DutyCycleEncoder encoder;
+
+    // CONTROL
+    private final ProfiledPIDController pidController;
+    private double objetivoGrados; // La meta actual del brazo
+
+    // VARIABLES TUNEABLES
+    private double kP = Constants.Intake.kP;
+    private double kG = Constants.Intake.kG;
+
+    // VARIABLES PA' CONTAR
+    private int contadorPelotas = 0;
+    private final Trigger pelotaEntrando;
+
+    // OFFSET
+    private double encoderOffset = Constants.Intake.kEncoderOffset;
 
     public Intake() {
+        // INICIALIZACIÓN
+        pidController = new ProfiledPIDController(
+                kP, 0, 0,
+                new TrapezoidProfile.Constraints(300, 150) // Max Vel, Max Acel
+        );
 
-        
-        motor = new SparkMax(Constants.Intake.kMotorID, MotorType.kBrushless);
-        motorUD = new SparkMax(Constants.Intake.kMotorID2, MotorType.kBrushed);
+        encoder = new DutyCycleEncoder(Constants.Intake.kCanalEncoder);
+        encoder.setConnectedFrequencyThreshold(1);
 
-        
+        // Inicializamos el objetivo en la posición actual para que no de un latigazo al
+        // prender
+        objetivoGrados = leerEncoder();
+        pidController.reset(objetivoGrados);
 
-        SparkMaxConfig config = new SparkMaxConfig();
-        SparkMaxConfig config2 = new SparkMaxConfig();
-        
+        motorRodillos = new SparkMax(Constants.Intake.kMotorID, MotorType.kBrushless);
+        motorBrazo = new SparkMax(Constants.Intake.kMotorID2, MotorType.kBrushed);
 
-        // CONFIGURACIÓN
-        // Usamos la constante de IdleMode que ya tenías en SwerveConstants o definimos
-        // una aquí
-        // Usualmente Brake es mejor para pruebas, Coast para operación normal si no
-        // quieres que se trabe
-        config.idleMode(IdleMode.kCoast);
+        // CONFIGURACION SPARKS
+        SparkMaxConfig configRodillos = new SparkMaxConfig();
+        configRodillos.idleMode(IdleMode.kCoast); // Rodillos libres
+        configRodillos.smartCurrentLimit(40);
 
-        config.inverted(false); // Cambiar a true si gira al revés
+        SparkMaxConfig configBrazo = new SparkMaxConfig();
+        configBrazo.idleMode(IdleMode.kBrake); // Brazo frenado para que aguante
+        configBrazo.smartCurrentLimit(40);
+        configBrazo.inverted(false); // En caso que este al revez
 
-        // Limitamos la corriente para proteger el mecanismo (ej. 40 Amps)
-        config.smartCurrentLimit(50);
+        // Aplicar configs
+        motorRodillos.configure(configRodillos, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        motorBrazo.configure(configBrazo, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-        config2.idleMode(IdleMode.kBrake);
-        config2.inverted(false);
-        config2.smartCurrentLimit(50);
-        config2.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+        // Definicion del trigger
+        pelotaEntrando = new Trigger(
+            () -> motorRodillos.getOutputCurrent() > Constants.Intake.kUmbralCorriente &&
+            Math.abs(motorRodillos.getEncoder().getVelocity()) > 500
+        );
 
-        config2.absoluteEncoder.positionConversionFactor(180.0);
-        config2.absoluteEncoder.velocityConversionFactor(180/60);
-        config2.absoluteEncoder.inverted(false);
+        Trigger corrienteEstable = pelotaEntrando.debounce(0.1);
 
+        corrienteEstable.onTrue(
+                runOnce(
+                        () -> {
+                            contadorPelotas++;
+                        }));
 
-
-        // Aplicamos la configuración (API 2026)
-        motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-        motorUD.configure(config2, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-
-        encoder = motorUD.getAbsoluteEncoder();
+        // Dashboard
+        SmartDashboard.putNumber("Intake/kP", kP);
+        SmartDashboard.putNumber("Intake/kG", kG);
     }
 
+    // --- MÉTODOS AUXILIARES ---
+
+    public double leerEncoder() {
+        double lecturaRaw = encoder.get();
+        double gradosConOffset = lecturaRaw * 360;
+        double gradosReales = gradosConOffset - encoderOffset;
+        return gradosReales;
+    }
+
+    public void setZero() {
+        this.encoderOffset = encoder.get() *360;
+        System.out.println("new zero: " + this.encoderOffset);
+    }
+
+    // Establece objetivos
+    public void setObjetivo(double grados) {
+        // Limites de seguridad
+        this.objetivoGrados = MathUtil.clamp(grados, 0, 120);
+    }
+
+    public Trigger getTriggerPelota(){
+        return this.pelotaEntrando;
     
-
-    // JALAR
-    public void setPorcentaje(double porcentaje) {
-        motor.set(porcentaje);
     }
 
-    public void stop() {
-        motor.stopMotor();
+    public boolean estaEnMeta(){
+        return Math.abs(leerEncoder() - objetivoGrados) < Constants.Intake.kTolerancyDegrees;
     }
 
-    public Command runIntake() {
-        return run(
-                () -> {
-                    // Lee el valor de Elastic (Default 0.0)
-                    double velocidad = SmartDashboard.getNumber(KEY_VELOCIDADI, 0);
+    // --- COMANDOS ---
 
-                    velocidad = MathUtil.clamp(velocidad, -1.0, 1.0);
-
-                    setPorcentaje(velocidad);
-                }).finallyDo(
-                        interrupted -> {
-                            stop();
-                        });
+    // COMANDOS DEL BRAZO
+    public Command tragarPelotas() {
+        return this.run(
+                () -> motorRodillos.set(1)).finallyDo(() -> motorRodillos.stopMotor());
     }
 
-    
-
-    // SUBIR
-    public Command up() {
-        return run(
-                () -> {
-                    // Lee el valor de Elastic (Default 0.0)
-                    double velocidad2 = SmartDashboard.getNumber(KEY_VELOCIDADU, 0);
-
-                    velocidad2 = MathUtil.clamp(velocidad2, 0, 1.0);
-
-                    motorUD.set(velocidad2);
-                }).finallyDo(
-                        interrupted -> {
-                            motorUD.set( 0);
-                        });
+    public Command escupirPelotas() {
+        return this.run(
+                () -> motorRodillos.set(-1)).finallyDo(() -> motorRodillos.stopMotor());
     }
 
-    // BAJAR
-    public Command down() {
-        return run(
-                () -> {
-                    // Lee el valor de Elastic (Default 0.0)
-                    double velocidad3 = SmartDashboard.getNumber(KEY_VELOCIDADD, 0);
-
-                    velocidad3 = MathUtil.clamp(velocidad3, -1, 0);
-                    motorUD.set(velocidad3);
-                }).finallyDo(
-                        interrupted -> {
-                            motorUD.set( 0);
-                        });
+    // Comando universal
+    public Command irA(double grados) {
+        return runOnce(() -> setObjetivo(grados));
     }
 
-    // autocommands
-    // subir
-    public Command upAuto(){
-        return this.runEnd(
-            () -> motorUD.set( 1),
-            () -> motorUD.set(0)
-         ).withTimeout(0.5);
+    // Atajos rápidos
+    public Command subir() {
+        return irA(Constants.Intake.kTargetUp);
     }
 
-    public Command downAuto(){
-        return this.runEnd(
-            () -> motorUD.set(-1),
-            () -> motorUD.set( 0)
-         ).withTimeout(0.5);
+    public Command bajar() {
+        return irA(Constants.Intake.kTargetDown);
     }
+
+    // Secuencia de masticar
+    public Command masticar() {
+        return Commands.sequence(
+                irA(50), // Sube un poco
+                Commands.waitUntil(this::estaEnMeta), // Espera
+                irA(10), // Baja
+                Commands.waitUntil(this::estaEnMeta) // Espera
+        ).repeatedly();
+    }
+
+    // --- BUCLE DE CONTROL (EL CEREBRO) ---
 
     @Override
     public void periodic() {
-        // Opcional: Publicar temperatura o corriente a Elastic si gustas
-        SmartDashboard.putNumber("Intake/Corriente", motor.getOutputCurrent());
-        SmartDashboard.putNumber("Intake/Temperatura", motor.getMotorTemperature());
+        // 1. Tunear PID en vivo
+        double pDashboard = SmartDashboard.getNumber("Intake/kP", kP);
+        double gDashboard = SmartDashboard.getNumber("Intake/kG", kG);
 
+        if (pDashboard != kP || gDashboard != kG) {
+            kP = pDashboard;
+            kG = gDashboard;
+            pidController.setP(kP);
+        }
+
+        double posicionActual = leerEncoder();
+
+        boolean bajando = objetivoGrados == Constants.Intake.kTargetDown;
+
+        boolean estaAbajo = posicionActual < (Constants.Intake.kTargetDown + Constants.Intake.kTolerancyDegrees);
+
+        double voltajePID = pidController.calculate(posicionActual, objetivoGrados);
+
+        double feedforward = kG * Math.cos(Math.toRadians(pidController.getSetpoint().position));
+
+        if (bajando && estaAbajo) {
+            motorBrazo.stopMotor();
+          
+        } else {
+            motorBrazo.setVoltage(voltajePID + feedforward);
+        }
+        // Telemetría
+        SmartDashboard.putNumber("Intake/AnguloActual", leerEncoder());
+        SmartDashboard.putNumber("Intake/AnguloReal", encoder.get() * 360);
+        SmartDashboard.putNumber("Intake/Objetivo", objetivoGrados);
+        SmartDashboard.putNumber("Intake/CorrienteBrazo", motorBrazo.getOutputCurrent());
+        SmartDashboard.putBoolean("Intake/Descanso", bajando && estaAbajo);
     }
 }

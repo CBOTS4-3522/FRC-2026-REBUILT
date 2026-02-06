@@ -18,13 +18,24 @@ public final class Constants {
 	}
 
 	public static final class Intake {
-        public static final int kMotorID = 60; // Ajusta este ID si es necesario
-		public static final int kMotorID2 = 61; // Ajusta este ID si es necesario
+
+		//IDs
+        public static final int kMotorID = 60; 
+		public static final int kMotorID2 = 61;
+		
+		//Canales
 		public static final byte kCanalEncoder = 0;
+
+		//Logica del brazo
 		public static final double kEncoderOffset = 0.0;
-		private final double kTargetUp = 90.0;
-		private final double kTargetDown = 0.0;
-		private final double kP = 0.03;
+		public static final double kTargetUp = 80.0;
+		public static final double kTargetDown = 0.0;
+		public static final double kTolerancyDegrees = 5.0;
+		public static final double kP = 0.00;
+		public static final double kG = 0.0;
+
+		//Contador
+		public static final double kUmbralCorriente = 15.0;
 
 	}
 
