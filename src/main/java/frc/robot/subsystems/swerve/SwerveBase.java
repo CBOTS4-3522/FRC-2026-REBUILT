@@ -217,6 +217,7 @@ public class SwerveBase extends SubsystemBase {
         return updatedSpeeds;
     }
 
+//Sysld
     private final SysIdRoutine m_sysIdRoutine = new SysIdRoutine(
     new SysIdRoutine.Config(null, null, Seconds.of(30.0), null),
     new SysIdRoutine.Mechanism(
@@ -249,11 +250,9 @@ public class SwerveBase extends SubsystemBase {
 
     @Override
     public void periodic() { 
-        // Actualización de odometría (esto ya lo tienes)
+        // Actualización de odometría
         swerveOdometer.update(getYaw(), getModulePositions());
 
-
-    
     // 1. Log de la posición 2D del robot (Pose2d)
     Logger.recordOutput("Odometry/RobotPose", swerveOdometer.getEstimatedPosition());
 

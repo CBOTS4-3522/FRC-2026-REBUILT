@@ -14,7 +14,14 @@ public final class Constants {
 	public static final class OIConstants{
 		public static final double kStickDeadband = 0.08;
 		public static final int kDriver1Port = 0;
-		public static final int kDriver2Port = 0;
+		public static final int kDriver2Port = 1;
+	}
+
+	public static final class Indexer{
+		public static final int kMotorID = 53;
+		public static final double 	kVelocidad = 1;
+		
+
 	}
 
 	public static final class Intake {
@@ -27,12 +34,12 @@ public final class Constants {
 		public static final byte kCanalEncoder = 0;
 
 		//Logica del brazo
-		public static final double kEncoderOffset = 0.0;
-		public static final double kTargetUp = 80.0;
+		public static final double kEncoderOffset = 85.5;
+		public static final double kTargetUp = 97.0;
 		public static final double kTargetDown = 0.0;
 		public static final double kTolerancyDegrees = 5.0;
-		public static final double kP = 0.00;
-		public static final double kG = 0.0;
+		public static final double kP = 0.5;
+		public static final double kG = 0.5;
 
 		//Contador
 		public static final double kUmbralCorriente = 15.0;

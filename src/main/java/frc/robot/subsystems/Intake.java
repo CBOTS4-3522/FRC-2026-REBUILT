@@ -28,7 +28,7 @@ public class Intake extends SubsystemBase {
     private final SparkMax motorBrazo;
     private final DutyCycleEncoder encoder;
 
-    // CONTROL
+    // CONTROL BRAZO
     private final ProfiledPIDController pidController;
     private double objetivoGrados; // La meta actual del brazo
 
@@ -36,7 +36,7 @@ public class Intake extends SubsystemBase {
     private double kP = Constants.Intake.kP;
     private double kG = Constants.Intake.kG;
 
-    // VARIABLES PA' CONTAR
+    // VARIABLES PARA CONTAR PELOTAS
     private int contadorPelotas = 0;
     private final Trigger pelotaEntrando;
 
@@ -44,10 +44,10 @@ public class Intake extends SubsystemBase {
     private double encoderOffset = Constants.Intake.kEncoderOffset;
 
     public Intake() {
-        // INICIALIZACIÓN
+        // INICIALIZACIÓN PID
         pidController = new ProfiledPIDController(
                 kP, 0, 0,
-                new TrapezoidProfile.Constraints(300, 150) // Max Vel, Max Acel
+                new TrapezoidProfile.Constraints(500, 500) // Max Vel, Max Acel
         );
 
         encoder = new DutyCycleEncoder(Constants.Intake.kCanalEncoder);
@@ -71,7 +71,7 @@ public class Intake extends SubsystemBase {
         configBrazo.smartCurrentLimit(40);
         configBrazo.inverted(false); // En caso que este al revez
 
-        // Aplicar configs
+        // Configurar motores
         motorRodillos.configure(configRodillos, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         motorBrazo.configure(configBrazo, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
@@ -81,7 +81,7 @@ public class Intake extends SubsystemBase {
             Math.abs(motorRodillos.getEncoder().getVelocity()) > 500
         );
 
-        Trigger corrienteEstable = pelotaEntrando.debounce(0.1);
+        Trigger corrienteEstable = pelotaEntrando.debounce(0.1);// si dura mas de 0.1s cuenta el pico
 
         corrienteEstable.onTrue(
                 runOnce(
@@ -98,20 +98,20 @@ public class Intake extends SubsystemBase {
 
     public double leerEncoder() {
         double lecturaRaw = encoder.get();
-        double gradosConOffset = lecturaRaw * 360;
+        double lecturaInvertida = 1 - lecturaRaw;
+        double gradosConOffset = lecturaInvertida * 360;
         double gradosReales = gradosConOffset - encoderOffset;
         return gradosReales;
     }
 
     public void setZero() {
-        this.encoderOffset = encoder.get() *360;
-        System.out.println("new zero: " + this.encoderOffset);
+        this.encoderOffset = (1-encoder.get()) * 360;
     }
 
     // Establece objetivos
     public void setObjetivo(double grados) {
         // Limites de seguridad
-        this.objetivoGrados = MathUtil.clamp(grados, 0, 120);
+        this.objetivoGrados = MathUtil.clamp(grados, 0, 100);
     }
 
     public Trigger getTriggerPelota(){
@@ -191,10 +191,14 @@ public class Intake extends SubsystemBase {
             motorBrazo.setVoltage(voltajePID + feedforward);
         }
         // Telemetría
-        SmartDashboard.putNumber("Intake/AnguloActual", leerEncoder());
-        SmartDashboard.putNumber("Intake/AnguloReal", encoder.get() * 360);
-        SmartDashboard.putNumber("Intake/Objetivo", objetivoGrados);
-        SmartDashboard.putNumber("Intake/CorrienteBrazo", motorBrazo.getOutputCurrent());
-        SmartDashboard.putBoolean("Intake/Descanso", bajando && estaAbajo);
+        SmartDashboard.putNumber("Intake/Brazo/AnguloActual", leerEncoder());
+        SmartDashboard.putNumber("Intake/Rodillos/Contador", contadorPelotas);
+        SmartDashboard.putNumber("Intake/Brazo/AnguloReal", encoder.get() * 360);
+        SmartDashboard.putNumber("Intake/Brazo/AnguloInvertido", (1 - encoder.get()) * 360);
+        SmartDashboard.putNumber("Intake/Brazo/Objetivo", objetivoGrados);
+        SmartDashboard.putNumber("Intake/Rodillos/Corriente", motorRodillos.getOutputCurrent());
+        SmartDashboard.putNumber("Intake/Rodillos/Velocidad", motorRodillos.getEncoder().getVelocity());
+        SmartDashboard.putNumber("Intake/Brazo/Corriente", motorBrazo.getOutputCurrent());
+        SmartDashboard.putBoolean("Intake/Brazo/Descanso", bajando && estaAbajo);
     }
 }
