@@ -20,7 +20,7 @@ public class Robot extends  LoggedRobot{
     Logger.recordMetadata("ProjectName", "CBOTS4-2026"); 
 
     // Guardar logs en la memoria interna de la roboRIO (o USB si hay una)
-    Logger.addDataReceiver(new WPILOGWriter()); 
+    //Logger.addDataReceiver(new WPILOGWriter()); 
 
     // Enviar datos por la red para verlos en vivo en AdvantageScope
     Logger.addDataReceiver(new NT4Publisher()); 

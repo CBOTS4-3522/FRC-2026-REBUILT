@@ -2,7 +2,6 @@ package frc.robot;
 
 import java.util.Set;
 
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -18,137 +17,171 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.swerve.SwerveBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
 
 public class RobotContainer {
-    /* Shuffleboard */
-    public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
+        /* Shuffleboard */
+        public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
 
-    /* Controllers */
-    private final CommandXboxController driver1 = new CommandXboxController(Constants.OIConstants.kDriver1Port);
-    private final CommandXboxController driver2 = new CommandXboxController(Constants.OIConstants.kDriver2Port);
+        /* Controllers */
+        private final CommandXboxController driver1 = new CommandXboxController(Constants.OIConstants.kDriver1Port);
+        private final CommandXboxController driver2 = new CommandXboxController(Constants.OIConstants.kDriver2Port);
 
-    /* Subsystems */
-    private final SwerveBase s_Swerve;
-    private final Intake s_Intake;
-    private final Indexer s_Indexer;
+        /* Subsystems */
+        private final SwerveBase s_Swerve;
+        private final Intake s_Intake;
+        private final Indexer s_Indexer;
 
+        private final SendableChooser<Command> autoChooser;
 
+        public RobotContainer() {
+                s_Swerve = new SwerveBase();
+                // --- AQUÍ ESTÁ EL TRUCO ---
+                IntakeIO intakeIO; // 1. Declaramos la interfaz temporal
 
-    private final SendableChooser<Command> autoChooser;
+                if (RobotBase.isReal()) {
+                        // 2. Si es el robot de verdad, creamos la IO Real
+                        intakeIO = new IntakeIOReal();
+                } else {
+                        // 3. Si es simulador, usamos la IO Sim (o vacía por ahora si no la tienes)
+                        // Por ahora puedes poner: intakeIO = new IntakeIO() {};
+                        // O mejor aún, crea el archivo IntakeIOSim.java después.
+                        intakeIO = new IntakeIO() {
+                                @Override
+                                public void setVoltajeRodillos(double volts) {
+                                }
 
-    public RobotContainer() {
-        s_Swerve = new SwerveBase();
-        s_Intake = new Intake();
-        s_Indexer = new Indexer();
+                                @Override
+                                public void setVoltajeBrazo(double volts) {
+                                }
 
+                                @Override
+                                public void stopRodillos() {
+                                }
 
-        // System ID
-        ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
-        
+                                @Override
+                                public void stopBrazo() {
+                                }
+                        }; // IO "muda" para que no truene el sim
+                }
 
-        // USAR DEFERREDCOMMAND
+                // 4. ¡Ahora sí creamos el Intake pasándole el cuerpo!
+                s_Intake = new Intake(intakeIO);
+                s_Indexer = new Indexer();
 
-        diagTab.add("Quasistatic Forward",
-                new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(Direction.kForward), Set.of(s_Swerve)))
-                .withSize(2, 1).withPosition(0, 0);
+                // System ID
+                ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
 
-        diagTab.add("Quasistatic Reverse",
-                new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(Direction.kReverse), Set.of(s_Swerve)))
-                .withSize(2, 1).withPosition(2, 0);
+                // USAR DEFERREDCOMMAND
 
-        diagTab.add("Dynamic Forward",
-                new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kForward), Set.of(s_Swerve)))
-                .withSize(2, 1).withPosition(0, 1);
+                diagTab.add("Quasistatic Forward",
+                                new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(Direction.kForward),
+                                                Set.of(s_Swerve)))
+                                .withSize(2, 1).withPosition(0, 0);
 
-        diagTab.add("Dynamic Reverse",
-                new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kReverse), Set.of(s_Swerve)))
-                .withSize(2, 1).withPosition(2, 1);
+                diagTab.add("Quasistatic Reverse",
+                                new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(Direction.kReverse),
+                                                Set.of(s_Swerve)))
+                                .withSize(2, 1).withPosition(2, 0);
 
-        diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
-                .withSize(2, 2).withPosition(4, 0);
+                diagTab.add("Dynamic Forward",
+                                new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kForward), Set.of(s_Swerve)))
+                                .withSize(2, 1).withPosition(0, 1);
 
-        // Autos
-        autoChooser = AutoBuilder.buildAutoChooser();
+                diagTab.add("Dynamic Reverse",
+                                new DeferredCommand(() -> s_Swerve.sysIdDynamic(Direction.kReverse), Set.of(s_Swerve)))
+                                .withSize(2, 1).withPosition(2, 1);
 
-        SmartDashboard.putData("Auto Selector", autoChooser);
-        
+                diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
+                                .withSize(2, 2).withPosition(4, 0);
 
-        /* Swerve */
-        s_Swerve.setDefaultCommand(
-                new TeleopSwerve(
-                        s_Swerve,
-                        () -> -driver1.getLeftY(), // Traslación X (Adelante/Atrás)
-                        () -> -driver1.getLeftX(), // Traslación Y (Izquierda/Derecha)
-                        () -> -driver1.getRightX(), // Rotación
-                        () -> driver1.getLeftTriggerAxis(), // Turbo (Gatillo Izquierdo)
-                        () -> driver1.getHID().getLeftBumper() // Robot Centric (Botón LB)
+                // Autos
+                autoChooser = AutoBuilder.buildAutoChooser();
+
+                SmartDashboard.putData("Auto Selector", autoChooser);
+
+                /* Swerve */
+                s_Swerve.setDefaultCommand(
+                                new TeleopSwerve(
+                                                s_Swerve,
+                                                () -> -driver1.getLeftY(), // Traslación X (Adelante/Atrás)
+                                                () -> -driver1.getLeftX(), // Traslación Y (Izquierda/Derecha)
+                                                () -> -driver1.getRightX(), // Rotación
+                                                () -> driver1.getLeftTriggerAxis(), // Turbo (Gatillo Izquierdo)
+                                                () -> driver1.getHID().getLeftBumper() // Robot Centric (Botón LB)
+                                ));
+
+                // Elastic
+                if (RobotBase.isReal()) {
+                        SmartDashboard.putData("Calibracion/Quasistatic Forward",
+                                        new DeferredCommand(
+                                                        () -> s_Swerve.sysIdQuasistatic(
+                                                                        SysIdRoutine.Direction.kForward),
+                                                        Set.of(s_Swerve)));
+
+                        SmartDashboard.putData("Calibracion/Quasistatic Reverse",
+                                        new DeferredCommand(
+                                                        () -> s_Swerve.sysIdQuasistatic(
+                                                                        SysIdRoutine.Direction.kReverse),
+                                                        Set.of(s_Swerve)));
+
+                        SmartDashboard.putData("Calibracion/Dynamic Forward",
+                                        new DeferredCommand(
+                                                        () -> s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kForward),
+                                                        Set.of(s_Swerve)));
+
+                        SmartDashboard.putData("Calibracion/Dynamic Reverse",
+                                        new DeferredCommand(
+                                                        () -> s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse),
+                                                        Set.of(s_Swerve)));
+                }
+                // Configure the button bindings
+                configureButtonBindings();
+        }
+
+        public Command vibrarDriver(CommandXboxController driverM, XboxController.RumbleType tipo, double magnitud,
+                        double tiempo) {
+                return Commands.runEnd(
+                                () -> {
+                                        // Driver 1 (Ahora es fácil acceder al HID)
+                                        driverM.getHID().setRumble(tipo, magnitud);
+
+                                },
+                                () -> {
+                                        driverM.getHID().setRumble(tipo, 0);
+                                }).withTimeout(tiempo);
+        }
+
+        private void configureButtonBindings() {
+
+                // Reset Gyro
+                driver1.rightStick().onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+
+                s_Intake.getTriggerPelota().onTrue(Commands.parallel(
+                vibrarDriver(driver1, RumbleType.kBothRumble, 1,0.5),
+                vibrarDriver(driver2, RumbleType.kBothRumble, 1,0.5)
                 ));
 
-        // Elastic
-        if (RobotBase.isReal()) {
-            SmartDashboard.putData("Calibracion/Quasistatic Forward",
-                    new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kForward),
-                            Set.of(s_Swerve)));
+                // Intake
+                driver2.x().toggleOnTrue(Commands.parallel(
+                s_Intake.tragarPelotas()
+                //,s_Indexer.encender()
+                ));
+                driver2.y().whileTrue(s_Intake.escupirPelotas());
+                driver2.b().onTrue(s_Intake.subir());
+                driver2.a().onTrue(s_Intake.bajar());
+                driver2.rightBumper().toggleOnTrue(s_Indexer.encender());
+                driver2.leftBumper().toggleOnTrue(s_Intake.masticar());
 
-            SmartDashboard.putData("Calibracion/Quasistatic Reverse",
-                    new DeferredCommand(() -> s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kReverse),
-                            Set.of(s_Swerve)));
-
-            SmartDashboard.putData("Calibracion/Dynamic Forward",
-                    new DeferredCommand(() -> s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kForward),
-                            Set.of(s_Swerve)));
-
-            SmartDashboard.putData("Calibracion/Dynamic Reverse",
-                    new DeferredCommand(() -> s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse),
-                            Set.of(s_Swerve)));
         }
-        // Configure the button bindings
-        configureButtonBindings();
-    }
 
-    public Command vibrarDriver(CommandXboxController driverM, XboxController.RumbleType tipo, double magnitud, double tiempo) {
-        return Commands.runEnd(
-                () -> {
-                    // Driver 1 (Ahora es fácil acceder al HID)
-                    driverM.getHID().setRumble(tipo, magnitud);
-                    
-                   
-                },
-                () -> {
-                    driverM.getHID().setRumble(tipo, 0);
-                }).withTimeout(tiempo);
-    }
-
-
-    private void configureButtonBindings() {
-
-        // Reset Gyro
-        driver1.rightStick().onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-
-        s_Intake.getTriggerPelota().onTrue(Commands.parallel(
-            vibrarDriver(driver1, RumbleType.kBothRumble, 1,0.5),
-            vibrarDriver(driver2, RumbleType.kBothRumble, 1,0.5)
-            ));
-
-        // Intake
-        driver2.x().toggleOnTrue(Commands.parallel(
-            s_Intake.tragarPelotas()
-            //,s_Indexer.encender()
-            ));
-        driver2.y().whileTrue(s_Intake.escupirPelotas());
-        driver2.b().onTrue(s_Intake.subir());
-        driver2.a().onTrue(s_Intake.bajar());
-        driver2.rightBumper().toggleOnTrue(s_Indexer.encender());
-        driver2.leftBumper().whileTrue(s_Intake.masticar());
-
-    }
-
-    public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
-    }
+        public Command getAutonomousCommand() {
+                return autoChooser.getSelected();
+        }
 }
