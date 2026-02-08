@@ -2,7 +2,7 @@ package frc.robot;
 
 import java.util.Set;
 
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.Indenter;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
