@@ -17,8 +17,10 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.swerve.SwerveBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
@@ -40,7 +42,37 @@ public class RobotContainer {
 
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
-                s_Intake = new Intake();
+
+                IntakeIO intakeIO; // 1. Declaramos la interfaz temporal
+
+                if (RobotBase.isReal()) {
+                        // 2. Si es el robot de verdad, creamos la IO Real
+                        intakeIO = new IntakeIOReal();
+                } else {
+                        // 3. Si es simulador, usamos la IO Sim (o vacía por ahora si no la tienes)
+                        // Por ahora puedes poner: intakeIO = new IntakeIO() {};
+                        // O mejor aún, crea el archivo IntakeIOSim.java después.
+                        intakeIO = new IntakeIO() {
+                                @Override
+                                public void setVoltajeRodillos(double volts) {
+                                }
+
+                                @Override
+                                public void setVoltajeBrazo(double volts) {
+                                }
+
+                                @Override
+                                public void stopRodillos() {
+                                }
+
+                                @Override
+                                public void stopBrazo() {
+                                }
+                        }; // IO "muda" para que no truene el sim
+                }
+
+                // 4. ¡Ahora sí creamos el Intake pasándole el cuerpo!
+                s_Intake = new Intake(intakeIO);
                 s_Indexer = new Indexer();
 
                 // System ID
@@ -117,7 +149,7 @@ public class RobotContainer {
                         double tiempo) {
                 return Commands.runEnd(
                                 () -> {
-
+                                        
                                         driverM.getHID().setRumble(tipo, magnitud);
 
                                 },
@@ -144,7 +176,7 @@ public class RobotContainer {
                 driver2.b().onTrue(s_Intake.subir());
                 driver2.a().onTrue(s_Intake.bajar());
                 driver2.rightBumper().toggleOnTrue(s_Indexer.encender());
-                driver2.leftBumper().whileTrue(s_Intake.masticar());
+                driver2.leftBumper().toggleOnTrue(s_Intake.masticar());
 
         }
 
