@@ -38,7 +38,6 @@ public class RevSwerveModule implements SwerveModule {
 
     public RevSwerveModule(int moduleNumber, RevSwerveModuleConstants moduleConstants) {
         this.moduleNumber = moduleNumber;
-        
         this.angleOffset = moduleConstants.angleOffset;
 
         /* Angle Motor Config */
@@ -88,7 +87,6 @@ public class RevSwerveModule implements SwerveModule {
         mAngleConfig.closedLoop.feedForward.kA(Constants.Swerve.Angle.kA, ClosedLoopSlot.kSlot0);
         mAngleConfig.closedLoop.outputRange(-Constants.Swerve.kAnglePower, Constants.Swerve.kAnglePower);
         
-        // CORRECCION: Usar el límite de corriente de ANGLE, no de DRIVE
         mAngleConfig.smartCurrentLimit(Constants.Swerve.kAngleContinuousCurrentLimit);
 
         mAngleConfig.inverted(Constants.Swerve.kAngleMotorInvert);
@@ -184,7 +182,7 @@ public class RevSwerveModule implements SwerveModule {
     public double getOmega() {
         // Retorna la velocidad angular en grados por segundo (o la unidad que necesites)
         // OJO: Checar si 'getVelocity' de CANCoder retorna Rotaciones/Seg o Grados/Seg
-        // Usualmente Phoenix 6 retorna Rotaciones/Seg, por eso * 360 estaba en tu logica anterior
+        // Phoenix 6 retorna Rotaciones/Seg, por eso * 360 estaba en tu logica anterior
         return angleEncoder.getVelocity().getValueAsDouble() * 360; 
     }
 
