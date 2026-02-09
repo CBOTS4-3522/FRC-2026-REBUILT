@@ -42,7 +42,7 @@ public class RobotContainer {
 
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
-                // --- AQUÍ ESTÁ EL TRUCO ---
+
                 IntakeIO intakeIO; // 1. Declaramos la interfaz temporal
 
                 if (RobotBase.isReal()) {
@@ -114,7 +114,7 @@ public class RobotContainer {
                                                 () -> -driver1.getLeftX(), // Traslación Y (Izquierda/Derecha)
                                                 () -> -driver1.getRightX(), // Rotación
                                                 () -> driver1.getLeftTriggerAxis(), // Turbo (Gatillo Izquierdo)
-                                                () -> driver1.getHID().getLeftBumper() // Robot Centric (Botón LB)
+                                                () -> driver1.getHID().getLeftBumperButton() // Robot Centric (Botón LB)
                                 ));
 
                 // Elastic
@@ -149,7 +149,7 @@ public class RobotContainer {
                         double tiempo) {
                 return Commands.runEnd(
                                 () -> {
-                                        // Driver 1 (Ahora es fácil acceder al HID)
+                                        
                                         driverM.getHID().setRumble(tipo, magnitud);
 
                                 },
@@ -164,14 +164,13 @@ public class RobotContainer {
                 driver1.rightStick().onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
                 s_Intake.getTriggerPelota().onTrue(Commands.parallel(
-                vibrarDriver(driver1, RumbleType.kBothRumble, 1,0.5),
-                vibrarDriver(driver2, RumbleType.kBothRumble, 1,0.5)
-                ));
+                                vibrarDriver(driver1, RumbleType.kBothRumble, 1, 0.5),
+                                vibrarDriver(driver2, RumbleType.kBothRumble, 1, 0.5)));
 
                 // Intake
                 driver2.x().toggleOnTrue(Commands.parallel(
-                s_Intake.tragarPelotas()
-                //,s_Indexer.encender()
+                                s_Intake.tragarPelotas()
+                // ,s_Indexer.encender()
                 ));
                 driver2.y().whileTrue(s_Intake.escupirPelotas());
                 driver2.b().onTrue(s_Intake.subir());
