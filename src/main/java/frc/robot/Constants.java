@@ -23,6 +23,21 @@ public final class Constants {
 		
 
 	}
+	public static final class shooter {
+		public static final byte kLiderID = 50;
+		public static final byte kSeguidorID = 51;
+
+		public static final double kP = 0.0001;
+		public static final double kI = 0;
+		public static final double kD = 0;
+
+		public static final double kV = 0.00018;
+		public static final double kA = 0.000;
+		public static final double kS = 0.000;
+
+
+	}
+
 
 	public static final class Intake {
 
@@ -50,7 +65,11 @@ public final class Constants {
 
 
 	public static final class Swerve {
-		public static final double kSlewRateLimit = 1.5; // Unidades por segundo (de 0 a 1)
+
+
+		public static final double kSlewRateLimit = 3.0; // Unidades por segundo (de 0 a 1)
+		public static final boolean kIsOpenLoopTeleopSwerve = false;
+
 
 		// Spark Max Idle Modes
 		public static final SparkMaxConfig.IdleMode kDriveIdleMode = SparkMaxConfig.IdleMode.kBrake;
@@ -133,16 +152,14 @@ public final class Constants {
 
 		public static final class Drive {
 		/* Drive Motor PID Values */
-		public static final double kP = 0.23968;
+		public static final double kP = 0.02;
 		public static final double kI = 0.0;
-		public static final double kD = 0.00;
-		// private static final double K_F_FACTOR = 0.5;
-		// public static final double DRIVE_KFF = (1 / K_DRIVE_WHEEL_FREE_SPEED_RPS) * K_F_FACTOR;
-
+		public static final double kD = 0.01;
+		
 		/* Drive motor FeedForward Values */
-		public static final double kS = 0.21583; // Voltios para empezar a mover
-		public static final double kV = 2.5355; // Voltios por metro/segundo
-		public static final double kA = 0.23016; // Voltios por metro/segundo^2
+		public static final double kS = 0.1615675; // Voltios para empezar a mover
+		public static final double kV = 2.56015; // Voltios por metro/segundo
+		public static final double kA = 0.3928225; // Voltios por metro/segundo^2
 
 		}
 		/** Meters per Second */

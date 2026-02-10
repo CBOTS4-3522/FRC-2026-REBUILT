@@ -83,8 +83,7 @@ public class TeleopSwerve extends Command {
                     .times(Constants.Swerve.kMaxSpeed)
                     .times(speedCutoffVal ? 1 : 0.5),
             rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
-            !robotCentric,
-            true
+            !robotCentric, Constants.Swerve.kIsOpenLoopTeleopSwerve
         );
     }
 }

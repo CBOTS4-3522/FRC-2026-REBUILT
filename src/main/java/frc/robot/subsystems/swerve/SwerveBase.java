@@ -31,6 +31,8 @@ import frc.robot.subsystems.NavXGyro;
 
 public class SwerveBase extends SubsystemBase {
 
+    private double lastDriveKP = Constants.Swerve.Drive.kP;
+    private double lastDriveKD = Constants.Swerve.Drive.kD;
     // Objetos principales
     public SwerveDrivePoseEstimator swerveOdometer;
     public SwerveModule[] swerveMods;
@@ -40,6 +42,10 @@ public class SwerveBase extends SubsystemBase {
     private RobotConfig config;
 
     public SwerveBase() {
+
+        // cajas para calibrar pid drive
+        SmartDashboard.putNumber("Turning/Drive kP", Constants.Swerve.Drive.kP);
+        SmartDashboard.putNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
 
         SmartDashboard.putNumber("SysId/Tiempo Quasistatic", 7.0); // Necesita más tiempo
         SmartDashboard.putNumber("SysId/Tiempo Dynamic", 1.5); // Necesita poco tiempo
@@ -79,8 +85,8 @@ public class SwerveBase extends SubsystemBase {
                 },
 
                 new PPHolonomicDriveController(
-                        new PIDConstants(5.0, 0.0, 0.0),
-                        new PIDConstants(5.0, 0.0, 0.0)),
+                        new PIDConstants(7.0, 0.0, 0.0), //traslacion
+                        new PIDConstants(5.0, 0.0, 0.0) ), //rotacion
                 config,
                 () -> {
                     var alliance = DriverStation.getAlliance();
@@ -232,9 +238,45 @@ public class SwerveBase extends SubsystemBase {
                 .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
     }
 
+    public void simulationPeriodic() {
+        // 1. Correr la física de cada módulo
+        for (SwerveModule mod : swerveMods) {
+            // Hacemos cast porque la interfaz SwerveModule no tiene este método
+            if(mod instanceof RevSwerveModule) {
+                ((RevSwerveModule)mod).simulationPeriodic(0.02);
+            }
+        }
+
+        // 2. Calcular cómo se movió el chasis REALMENTE basado en las ruedas
+        // Usamos los estados ACTUALES (simulados), no los deseados.
+        SwerveModuleState[] realStates = getModuleStates();
+        ChassisSpeeds actualSpeeds = Constants.Swerve.kSwerveKinematics.toChassisSpeeds(realStates);
+
+        // 3. Actualizar el Giroscopio simulado
+        // Ahora el gyro gira porque las ruedas giraron al chasis (¡Física!)
+        // Multiplicamos por 1000ms/20ms = 50 o simplemente pasamos radianes/segundo si tu updateSimAngle lo soporta.
+        // Viendo tu código anterior, updateSimAngle recibe (dt, radsPerSec):
+        gyro.updateSimAngle(0.02, actualSpeeds.omegaRadiansPerSecond);
+    }
+
     @Override
-    public void periodic() {
-        // Actualización de odometría
+    public void periodic() { 
+        double currentKP = SmartDashboard.getNumber("Tuning/Drive kP", Constants.Swerve.Drive.kP);
+        double currentKD = SmartDashboard.getNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
+
+        // 2. ¿Hubo algún cambio?
+        if (currentKP != lastDriveKP || currentKD != lastDriveKD) {
+            lastDriveKP = currentKP;
+            lastDriveKD = currentKD;
+
+            // Actualizar los 4 módulos de un golpe
+            for (SwerveModule mod : swerveMods) {
+                // Necesitaremos crear este método en RevSwerveModule
+                ((RevSwerveModule) mod).updateDrivePID(currentKP, currentKD);
+            }
+            System.out.println("¡PID de Drive actualizado en vivo!");
+        }
+        // Actualización de odometría (esto ya lo tienes)
         swerveOdometer.update(getYaw(), getModulePositions());
 
         // 1. Log de la posición 2D del robot (Pose2d)
@@ -251,8 +293,29 @@ public class SwerveBase extends SubsystemBase {
         }
         Logger.recordOutput("Swerve/ModuleStates/Desired", desiredStates);
 
+        swerveOdometer.update(getYaw(), getModulePositions());
+
         SmartDashboard.putData("field", field);
         field.setRobotPose(getPose());
+
+        for (SwerveModule mod : swerveMods) {
+
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Cancoder",
+                    mod.getCanCoder().getDegrees());
+
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Integrated",
+                    mod.getPosition().angle.getDegrees());
+
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Velocity",
+                    mod.getState().speedMetersPerSecond);
+
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Objetivo",
+                    mod.getDesiredState().speedMetersPerSecond);
+
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Error de Velocidad",
+                    mod.getDesiredState().speedMetersPerSecond - mod.getState().speedMetersPerSecond);
+
+        }
 
     }
 }
