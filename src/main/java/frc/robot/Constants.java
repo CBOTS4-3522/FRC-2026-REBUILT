@@ -132,48 +132,6 @@ public final class Constants {
 
 		////////////// Swerve Module Constants////////////
 
-<<<<<<< HEAD
-		/* Front Left Module - Module 1 */
-		public static final class Mod0 {
-			public static final int kDriveMotorId = 11;
-			public static final int kAngleMotorId = 12;
-			public static final int kCanCoderId = 13;
-			public static final Rotation2d kAngleOffset = Rotation2d.fromDegrees(11.52);
-			public static final RevSwerveModuleConstants kConstants = new RevSwerveModuleConstants(kDriveMotorId,
-					kAngleMotorId, kCanCoderId, kAngleOffset);
-		}
-
-		/* Front Right Module - Module 2 */
-		public static final class Mod1 {
-			public static final int kDriveMotorId = 21;
-			public static final int kAngleMotorId = 22;
-			public static final int kCanCoderId = 23;
-			public static final Rotation2d kAngleOffset = Rotation2d.fromDegrees(-33.12);
-			public static final RevSwerveModuleConstants kConstants = new RevSwerveModuleConstants(kDriveMotorId,
-					kAngleMotorId, kCanCoderId, kAngleOffset);
-		}
-
-		/* Back Left Module - Module 3 */
-		public static final class Mod2 {
-			public static final int kDriveMotorId = 31;
-			public static final int kAngleMotorId = 32;
-			public static final int kCanCoderId = 33;
-			public static final Rotation2d kAngleOffset = Rotation2d.fromDegrees(-90.36);
-			public static final RevSwerveModuleConstants kConstants = new RevSwerveModuleConstants(kDriveMotorId,
-					kAngleMotorId, kCanCoderId, kAngleOffset);
-		}
-
-		/* Back Right Module - Module 4 */
-		public static final class Mod3 {
-			public static final int kDriveMotorId = 41;
-			public static final int kAngleMotorId = 42;
-			public static final int kCanCoderId = 43;
-			public static final Rotation2d kAngleOffset = Rotation2d.fromDegrees(158.4);
-			public static final RevSwerveModuleConstants kConstants = new RevSwerveModuleConstants(kDriveMotorId,
-					kAngleMotorId, kCanCoderId, kAngleOffset);
-		}
-
-=======
 			/* Front Left Module - Module 1 */
 			public static final class Mod0 {
 				public static final int kDriveMotorId = 11;
@@ -214,7 +172,6 @@ public final class Constants {
 						kAngleMotorId, kCanCoderId, kAngleOffset);
 			}
 		
->>>>>>> main
 	}
 
 	public static final class AutoConstants {
