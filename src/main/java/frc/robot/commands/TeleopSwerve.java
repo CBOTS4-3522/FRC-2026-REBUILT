@@ -49,7 +49,7 @@ public class TeleopSwerve extends Command {
         // 1. Leer valores de joystick con deadband
         double xRaw = MathUtil.applyDeadband(translationX.getAsDouble(), Constants.OIConstants.kStickDeadband);
         double yRaw = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
-        double rotationVal = MathUtil.applyDeadband(rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
+        double rotationVal = MathUtil.applyDeadband(-rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
 
         // 2. APLICAR EL FILTRO (Capacitor Digital)
         double xFiltered = xLimiter.calculate(xRaw);

@@ -66,31 +66,35 @@ public class SwerveBase extends SubsystemBase {
         }
 
         AutoBuilder.configure(
-                this::getPose,
-                this::resetOdometry,
-                this::getRobotRelativeSpeeds,
-
-                (speeds, feedforwards) -> {
-                    ChassisSpeeds fixedSpeeds = new ChassisSpeeds(
-                            speeds.vxMetersPerSecond,
-                            speeds.vyMetersPerSecond,
-                            -speeds.omegaRadiansPerSecond);
-                    driveRobotRelative(fixedSpeeds);
-                },
-
-                new PPHolonomicDriveController(
-                        new PIDConstants(5.0, 0.0, 0.0),
-                        new PIDConstants(5.0, 0.0, 0.0)),
-                config,
-                () -> {
-                    var alliance = DriverStation.getAlliance();
-                    if (alliance.isPresent()) {
-                        return alliance.get() == DriverStation.Alliance.Red;
-                    }
-                    return false;
-                },
-                this);
-
+            this::getPose,                
+            this::resetOdometry,          
+            this::getRobotRelativeSpeeds, 
+            
+    
+            (speeds, feedforwards) -> {
+                ChassisSpeeds fixedSpeeds = new ChassisSpeeds(
+                    speeds.vxMetersPerSecond,
+                    speeds.vyMetersPerSecond,
+                    speeds.omegaRadiansPerSecond
+                );
+                driveRobotRelative(fixedSpeeds);
+            },
+            
+            new PPHolonomicDriveController( 
+                    new PIDConstants(5.0, 0.0, 0.0), 
+                    new PIDConstants(5.0, 0.0, 0.0)  
+            ),
+            config, 
+            () -> {
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent()) {
+                    return alliance.get() == DriverStation.Alliance.Red;
+                }
+                return false;
+            },
+            this 
+        );
+        
     }
 
     // Método principal para Teleoperado
