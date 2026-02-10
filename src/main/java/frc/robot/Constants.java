@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Unit;
 import frc.lib.util.swerveUtil.SwerveConstants;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -13,10 +14,10 @@ import edu.wpi.first.apriltag.AprilTagFields;
 public final class Constants {
 
 	public static final class VisionConstants {
-		public static final String kCameraName = "OV5647"; // Cambia esto al nombre de tu cámara
+		public static final String kCameraName = "CAM_POSE"; // Cambia esto al nombre de tu cámara
 		public static final Transform3d kCameraOffset = new Transform3d(
-				new Translation3d(0.3, 0.0, 0.5), // X, Y, Z en metros
-				new Rotation3d(0.0, Units.degreesToRadians(30), 0.0) // Roll, Pitch, Yaw en radianes
+				new Translation3d(0.0, 0.0, Units.inchesToMeters(46)), // X, Y, Z en metros
+				new Rotation3d(0.0, Units.degreesToRadians(60), 0) // Roll, Pitch, Yaw en radianes
 		);
 		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 	}
