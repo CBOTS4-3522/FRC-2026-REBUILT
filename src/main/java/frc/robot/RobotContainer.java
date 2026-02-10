@@ -4,8 +4,7 @@ import java.util.Set;
 
 
 import com.pathplanner.lib.auto.AutoBuilder;
-
-
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -107,6 +106,14 @@ public class RobotContainer {
 
                 diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
                                 .withSize(2, 2).withPosition(4, 0);
+
+                NamedCommands.registerCommand("INTAKE_TRAGAR", s_Intake.tragarPelotas());
+                NamedCommands.registerCommand("INTAKE_ESCUPIR", s_Intake.escupirPelotas());
+                NamedCommands.registerCommand("INTAKE_BAJAR", s_Intake.bajar());
+                NamedCommands.registerCommand("INTAKE_SUBIR", s_Intake.subir());
+                NamedCommands.registerCommand("INDEXER_ENCENDER", s_Indexer.encender());
+                NamedCommands.registerCommand("INTAKE_MASTICAR", s_Intake.masticar());
+
 
                 // Autos
                 autoChooser = AutoBuilder.buildAutoChooser();

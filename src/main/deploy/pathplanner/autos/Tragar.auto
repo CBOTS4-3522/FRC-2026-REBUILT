@@ -7,32 +7,26 @@
         {
           "type": "named",
           "data": {
-            "name": "BAJAR INTAKE"
+            "name": "INTAKE_BAJAR"
           }
         },
         {
-          "type": "parallel",
+          "type": "deadline",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Frente"
+                  "pathName": "FRENTE LENTO"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "TRAGAR"
+                  "name": "INTAKE_TRAGAR"
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "LLENO"
           }
         }
       ]
