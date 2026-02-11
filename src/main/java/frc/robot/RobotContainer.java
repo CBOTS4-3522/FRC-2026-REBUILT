@@ -104,6 +104,9 @@ public class RobotContainer {
 
                 diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
                                 .withSize(2, 2).withPosition(4, 0);
+        
+                
+    
 
                 NamedCommands.registerCommand("INTAKE_TRAGAR", s_Intake.tragarPelotas());
                 NamedCommands.registerCommand("INTAKE_ESCUPIR", s_Intake.escupirPelotas());
@@ -125,7 +128,8 @@ public class RobotContainer {
                                                 () -> -driver1.getLeftX(), // Traslación Y (Izquierda/Derecha)
                                                 () -> driver1.getRightX(), // Rotación
                                                 () -> driver1.getLeftTriggerAxis(), // Turbo (Gatillo Izquierdo)
-                                                () -> driver1.getHID().getLeftBumperButton() // Robot Centric (Botón LB)
+                                                () -> driver1.getHID().getLeftBumperButton(), // Robot Centric (Botón LB)
+                                                () -> driver1.getHID().getRightBumperButton()
                                 ));
 
                 // Elastic

@@ -21,7 +21,7 @@
       },
       "prevControl": {
         "x": 1.0,
-        "y": 0.0
+        "y": 1.2246467991473532e-16
       },
       "nextControl": null,
       "isLocked": false,
@@ -35,11 +35,7 @@
       "minWaypointRelativePos": 0.0,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
-<<<<<<< HEAD
         "maxVelocity": 0.5,
-=======
-        "maxVelocity": 0.75,
->>>>>>> temp/path-intake
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
