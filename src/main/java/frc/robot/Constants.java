@@ -49,7 +49,7 @@ public final class Constants {
 		public static final byte kCanalEncoder = 0;
 
 		//Logica del brazo
-		public static final double kEncoderOffset = 147.7;
+		public static final double kEncoderOffset = 93.9;
 		public static final double kTargetUp = 97;
 		public static final double kTargetDown = 0.0;
 		public static final double kTolerancyDegrees = 5.0;

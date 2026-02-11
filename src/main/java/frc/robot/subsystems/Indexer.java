@@ -39,6 +39,17 @@ public class Indexer extends SubsystemBase {
             );
     }
 
+    public Command alRevez (){
+        return this.runEnd(
+            () -> {
+            double velocidadLeida = SmartDashboard.getNumber("Indexer/velocidad" ,-velocidad);
+                motor.set(velocidadLeida);
+            }
+            , () -> {
+                motor.stopMotor();
+            });
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Indexer/Corriente", motor.getOutputCurrent());

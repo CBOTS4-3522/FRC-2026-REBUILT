@@ -2,7 +2,6 @@ package frc.robot;
 
 import java.util.Set;
 
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -25,7 +24,6 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.commands.TeleopSwerve;
-
 
 import frc.robot.subsystems.swerve.SwerveBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -114,7 +112,6 @@ public class RobotContainer {
                 NamedCommands.registerCommand("INDEXER_ENCENDER", s_Indexer.encender());
                 NamedCommands.registerCommand("INTAKE_MASTICAR", s_Intake.masticar());
 
-
                 // Autos
                 autoChooser = AutoBuilder.buildAutoChooser();
 
@@ -126,7 +123,7 @@ public class RobotContainer {
                                                 s_Swerve,
                                                 () -> -driver1.getLeftY(), // Traslación X (Adelante/Atrás)
                                                 () -> -driver1.getLeftX(), // Traslación Y (Izquierda/Derecha)
-                                                () -> -driver1.getRightX(), // Rotación
+                                                () -> driver1.getRightX(), // Rotación
                                                 () -> driver1.getLeftTriggerAxis(), // Turbo (Gatillo Izquierdo)
                                                 () -> driver1.getHID().getLeftBumperButton() // Robot Centric (Botón LB)
                                 ));
@@ -163,7 +160,7 @@ public class RobotContainer {
                         double tiempo) {
                 return Commands.runEnd(
                                 () -> {
-                                        
+
                                         driverM.getHID().setRumble(tipo, magnitud);
 
                                 },
@@ -186,7 +183,8 @@ public class RobotContainer {
                                 s_Intake.tragarPelotas()
                 // ,s_Indexer.encender()
                 ));
-                driver2.y().whileTrue(s_Intake.escupirPelotas());
+                driver2.y().whileTrue(Commands.sequence(s_Intake.subir(), Commands.parallel(s_Intake.escupirPelotas(),
+                                s_Indexer.alRevez()))).onFalse(s_Intake.bajar());
                 driver2.b().onTrue(s_Intake.subir());
                 driver2.a().onTrue(s_Intake.bajar());
                 driver2.rightBumper().toggleOnTrue(s_Indexer.encender());
