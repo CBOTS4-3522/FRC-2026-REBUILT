@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.Indexer;
@@ -177,15 +177,15 @@ public class RobotContainer {
 
                 // Reset Gyro
                 driver1.rightStick().onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+                driver1.x().whileTrue(new RunCommand(()-> s_Swerve.wheelsIn()));
 
                 s_Intake.getTriggerPelota().onTrue(Commands.parallel(
                                 vibrarDriver(driver1, RumbleType.kBothRumble, 1, 0.5),
                                 vibrarDriver(driver2, RumbleType.kBothRumble, 1, 0.5)));
 
                 // Intake
-                driver2.x().toggleOnTrue(Commands.parallel(
-                                s_Intake.tragarPelotas()
-                // ,s_Indexer.encender()
+                driver2.x().toggleOnTrue(Commands.sequence(
+                               s_Intake.bajar(), s_Intake.tragarPelotas()
                 ));
                 driver2.y().whileTrue(Commands.sequence(s_Intake.subir(), Commands.parallel(s_Intake.escupirPelotas(),
                                 s_Indexer.alRevez()))).onFalse(s_Intake.bajar());

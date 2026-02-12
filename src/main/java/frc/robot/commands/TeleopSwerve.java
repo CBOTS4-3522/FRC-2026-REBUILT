@@ -20,12 +20,13 @@ public class TeleopSwerve extends Command {
     private final DoubleSupplier turbo;
     private final BooleanSupplier toggleRobotCentric;
     private BooleanSupplier alignToMoveSup;
-    private PIDController headingController = new PIDController(0.01, 0.0, 0.0007);
+    private PIDController headingController = new PIDController(0.022, 0.0, 0.0000);
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
 
     private boolean robotCentric = false;
     private boolean lastButtonState = false;
+    
 
     public TeleopSwerve(
             SwerveBase s_Swerve,
@@ -47,6 +48,7 @@ public class TeleopSwerve extends Command {
         this.alignToMoveSup = alignToMoveSup;
 
         headingController.enableContinuousInput(-180, 180);
+        SmartDashboard.putData("Swerve/HeadingPID", headingController);
     }
 
    @Override
