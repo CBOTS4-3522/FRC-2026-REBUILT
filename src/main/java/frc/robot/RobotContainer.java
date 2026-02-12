@@ -20,7 +20,9 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.TeleopSwerve;
-
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIO;
+import frc.robot.subsystems.shooter.ShooterIOSparkMax;
 import frc.robot.subsystems.swerve.SwerveBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj.RobotBase; // Para la condición if (RobotBase.isReal())
@@ -35,15 +37,23 @@ public class RobotContainer {
 
         /* Subsystems */
         private final SwerveBase s_Swerve;
+        private final Shooter s_Shooter;
+
+        /* Autos */
 
         private final SendableChooser<Command> autoChooser;
 
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
 
-                
-
-               
+                if (Robot.isReal()) {
+                        // Si es el robot real, usa los SparkMax
+                        s_Shooter = new Shooter(new ShooterIOSparkMax());
+                } else {
+                        // Si es simulación, podrías usar una clase ShooterIOSim (que haríamos después)
+                        // O un objeto vacío para que no truene:
+                        s_Shooter = new Shooter(new ShooterIO() {}){};
+                }
 
                 // System ID
                 ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
@@ -70,11 +80,6 @@ public class RobotContainer {
 
                 diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
                                 .withSize(2, 2).withPosition(4, 0);
-        
-                
-    
-
-              
 
                 // Autos
                 autoChooser = AutoBuilder.buildAutoChooser();
@@ -89,8 +94,7 @@ public class RobotContainer {
                                                 () -> -driver1.getLeftX(), // Traslación Y (Izquierda/Derecha)
                                                 () -> driver1.getRightX(), // Rotación
                                                 () -> driver1.getLeftTriggerAxis(), // Turbo (Gatillo Izquierdo)
-                                                () -> driver1.getHID().getLeftBumperButton()         
-                               ));
+                                                () -> driver1.getHID().getLeftBumperButton()));
 
                 // Elastic
                 if (RobotBase.isReal()) {
@@ -136,9 +140,7 @@ public class RobotContainer {
         private void configureButtonBindings() {
 
                 // Reset Gyro
-                driver1.rightStick().onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-
-                
+                driver1.rightStick().onTrue(new InstantCommand(s_Swerve::zeroGyro));
 
         }
 

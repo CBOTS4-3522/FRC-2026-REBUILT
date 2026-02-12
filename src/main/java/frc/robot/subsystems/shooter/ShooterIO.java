@@ -6,24 +6,29 @@ public interface ShooterIO {
     
     @AutoLog
     public static class ShooterIOInputs {
-        public double velocityRPM = 0.0;
-        public double appliedVolts = 0.0;
-        public double currentAmps = 0.0;
-        public double tempCelcius = 0.0;
+        // --- Flywheels ---
+        public double flywheelVelocityRPM = 0.0;
+        public double flywheelAppliedVolts = 0.0;
+        public double flywheelCurrentAmps = 0.0;
+        
+        // --- Pivot (Conectado al RIO) ---
+        public double pivotPositionDegrees = 0.0;
+        public double pivotVelocityDegPerSec = 0.0; // Velocidad en grados/seg
+        public double pivotAppliedVolts = 0.0;
+        public double pivotCurrentAmps = 0.0;
+        
+        // --- Seguridad ---
+        public boolean isLimitSwitchPressed = false; // Limit switch DIO 1
     }
 
-    /** Actualiza las variables de inputs con los datos de los sensores */
     public default void updateInputs(ShooterIOInputs inputs) {}
 
-    /** Control por voltaje (Open Loop) */
-    public default void setVoltage(double volts) {}
+    // Flywheel methods
+    public default void setFlywheelVoltage(double volts) {}
+    public default void setFlywheelVelocity(double rpm) {}
+    public default void stopFlywheel() {}
 
-    /** Control por velocidad (Closed Loop / PID) */
-    public default void setVelocity(double rpm) {}
-
-    /** Detener motores */
-    public default void stop() {}
-    
-    /** Configurar PID dinámicamente (opcional, pero útil) */
-    public default void configurePID(double kP, double kI, double kD) {}
+    // Pivot methods
+    public default void setPivotVoltage(double volts) {}
+    public default void stopPivot() {}
 }

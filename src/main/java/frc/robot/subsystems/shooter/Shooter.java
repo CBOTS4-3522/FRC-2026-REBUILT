@@ -25,12 +25,12 @@ public class Shooter extends SubsystemBase {
         m_sysIdRoutine = new SysIdRoutine(
             new SysIdRoutine.Config(),
             new SysIdRoutine.Mechanism(
-                (Voltage volts) -> io.setVoltage(volts.in(Volts)), // Manda voltaje a través de IO
+                (Voltage volts) -> io.setFlywheelVoltage(volts.in(Volts)), // Manda voltaje a través de IO
                 log -> {
                     // Loggea datos usando los inputs de AdvantageKit (ya leídos)
                     log.motor("shooter-flywheel")
-                        .voltage(Volts.of(inputs.appliedVolts))
-                        .angularVelocity(RPM.of(inputs.velocityRPM))
+                        .voltage(Volts.of(inputs.flywheelAppliedVolts))
+                        .angularVelocity(RPM.of(inputs.flywheelVelocityRPM))
                         .angularPosition(Rotations.of(0)); // Posición no es crítica en shooter de velocidad, pero se puede agregar
                 },
                 this
@@ -49,12 +49,12 @@ public class Shooter extends SubsystemBase {
 
     /** Comanda el shooter a una velocidad específica */
     public Command runShooterCommand(double rpm) {
-        return this.run(() -> io.setVelocity(rpm));
+        return this.run(() -> io.setFlywheelVelocity(rpm));
     }
     
     /** Detiene el shooter */
     public Command stopCommand() {
-        return this.runOnce(() -> io.stop());
+        return this.runOnce(() -> io.setFlywheelVelocity(0));
     }
 
     // Comandos de SysId
