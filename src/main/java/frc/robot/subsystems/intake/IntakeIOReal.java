@@ -32,7 +32,7 @@ public class IntakeIOReal implements IntakeIO {
         // CONFIGURACION SPARKS
         SparkMaxConfig configRodillos = new SparkMaxConfig();
         configRodillos.idleMode(IdleMode.kCoast); // Rodillos libres
-        configRodillos.smartCurrentLimit(40);
+        configRodillos.smartCurrentLimit(60);
 
         SparkMaxConfig configBrazo = new SparkMaxConfig();
         configBrazo.idleMode(IdleMode.kBrake); // Brazo frenado para que aguante

@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOReal;
@@ -40,12 +41,14 @@ public class RobotContainer {
         /* Subsystems */
         private final SwerveBase s_Swerve;
         private final Intake s_Intake;
+        private final Shooter s_Shooter;
         private final Indexer s_Indexer;
 
         private final SendableChooser<Command> autoChooser;
 
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
+                s_Shooter = new Shooter();
 
                 IntakeIO intakeIO; // 1. Declaramos la interfaz temporal
 
@@ -176,8 +179,11 @@ public class RobotContainer {
         private void configureButtonBindings() {
 
                 // Reset Gyro
-                driver1.rightStick().onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+                driver1.rightStick().onTrue(new InstantCommand(s_Swerve::zeroGyro));
                 driver1.x().whileTrue(new RunCommand(()-> s_Swerve.wheelsIn()));
+                driver1.a().whileTrue(s_Shooter.girarShooterAlrevez());
+                driver1.b().whileTrue(s_Shooter.girarShooter());
+                driver1.y().toggleOnTrue(s_Indexer.encender());
 
                 s_Intake.getTriggerPelota().onTrue(Commands.parallel(
                                 vibrarDriver(driver1, RumbleType.kBothRumble, 1, 0.5),
@@ -191,8 +197,12 @@ public class RobotContainer {
                                 s_Indexer.alRevez()))).onFalse(s_Intake.bajar());
                 driver2.b().onTrue(s_Intake.subir());
                 driver2.a().onTrue(s_Intake.bajar());
-                driver2.rightBumper().toggleOnTrue(s_Indexer.encender());
+                driver2.rightBumper().toggleOnTrue(s_Indexer.movimiento());
                 driver2.leftBumper().toggleOnTrue(s_Intake.masticar());
+                driver2.start().toggleOnTrue(s_Shooter.girarShooter());
+
+                
+
 
         }
 
