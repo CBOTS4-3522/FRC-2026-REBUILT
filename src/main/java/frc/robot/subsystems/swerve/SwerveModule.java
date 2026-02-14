@@ -5,7 +5,11 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public interface SwerveModule {
-    public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop);
+    public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean forceAngle);
+
+    default void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
+        setDesiredState(desiredState, isOpenLoop, false);
+    }
 
     public Rotation2d getCanCoder();
 
