@@ -31,4 +31,6 @@ public interface ShooterIO {
     // Pivot methods
     public default void setPivotVoltage(double volts) {}
     public default void stopPivot() {}
+    public default void setPivotZero() {}
+
 }
