@@ -25,6 +25,7 @@ public class Indexer extends SubsystemBase {
         motorConfig.idleMode(IdleMode.kCoast);
         motorConfig.smartCurrentLimit(65);
         motorConfig.inverted(false);
+        motorConfig.openLoopRampRate(0.25);
         motor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         SmartDashboard.putNumber("Indexer/Velocidad", velocidad);
     }
@@ -59,7 +60,7 @@ public class Indexer extends SubsystemBase {
 
     public Command OFF(){
         return this.runOnce(
-            ()-> motor.set(0)
+            ()-> motor.set(-0.5)
         );
     }
 
@@ -68,12 +69,19 @@ public class Indexer extends SubsystemBase {
             ON(),
             Commands.waitSeconds(2),
             OFF(),
-            Commands.waitSeconds(0.2)
+            Commands.waitSeconds(0.1)
             
         
             
         ).repeatedly().finallyDo(
             ()-> motor.set(0)
+        );
+    }
+
+    public Command pasandopelotas(){
+        return Commands.sequence(
+            movimiento().withTimeout(5),
+            encender()
         );
     }
 

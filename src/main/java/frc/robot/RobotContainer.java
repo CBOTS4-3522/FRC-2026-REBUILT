@@ -197,7 +197,7 @@ public class RobotContainer {
                                 s_Indexer.alRevez()))).onFalse(s_Intake.bajar());
                 driver2.b().onTrue(s_Intake.subir());
                 driver2.a().onTrue(s_Intake.bajar());
-                driver2.rightBumper().toggleOnTrue(s_Indexer.movimiento());
+                driver2.rightBumper().toggleOnTrue(s_Indexer.pasandopelotas());
                 driver2.leftBumper().toggleOnTrue(s_Intake.masticar());
                 driver2.start().toggleOnTrue(s_Shooter.girarShooter());
 
