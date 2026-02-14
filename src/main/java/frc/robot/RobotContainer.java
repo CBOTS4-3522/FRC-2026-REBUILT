@@ -52,7 +52,9 @@ public class RobotContainer {
                 } else {
                         // Si es simulación, podrías usar una clase ShooterIOSim (que haríamos después)
                         // O un objeto vacío para que no truene:
-                        s_Shooter = new Shooter(new ShooterIO() {}){};
+                        s_Shooter = new Shooter(new ShooterIO() {
+                        }) {
+                        };
                 }
 
                 // System ID
@@ -80,6 +82,40 @@ public class RobotContainer {
 
                 diagTab.add("Gyro", s_Swerve.gyro).withWidget(BuiltInWidgets.kGyro)
                                 .withSize(2, 2).withPosition(4, 0);
+
+                // ... (Código existente del Swerve SysId) ...
+
+                // ==========================================================
+                // BOTONES SYSID SHOOTER (FLYWHEEL)
+                // ==========================================================
+
+                // Quasistatic Forward (Rampa de voltaje suave positiva)
+                diagTab.add("Shooter QS Fwd",
+                                new DeferredCommand(() -> s_Shooter.sysIdQuasistatic(Direction.kForward),
+                                                Set.of(s_Shooter)))
+                                .withSize(2, 1)
+                                .withPosition(0, 2); // Fila 2, Columna 0
+
+                // Quasistatic Reverse (Rampa de voltaje suave negativa)
+                diagTab.add("Shooter QS Rev",
+                                new DeferredCommand(() -> s_Shooter.sysIdQuasistatic(Direction.kReverse),
+                                                Set.of(s_Shooter)))
+                                .withSize(2, 1)
+                                .withPosition(2, 2); // Fila 2, Columna 2
+
+                // Dynamic Forward (Salto de voltaje positivo - Step)
+                diagTab.add("Shooter Dyn Fwd",
+                                new DeferredCommand(() -> s_Shooter.sysIdDynamic(Direction.kForward),
+                                                Set.of(s_Shooter)))
+                                .withSize(2, 1)
+                                .withPosition(0, 3); // Fila 3, Columna 0
+
+                // Dynamic Reverse (Salto de voltaje negativo - Step)
+                diagTab.add("Shooter Dyn Rev",
+                                new DeferredCommand(() -> s_Shooter.sysIdDynamic(Direction.kReverse),
+                                                Set.of(s_Shooter)))
+                                .withSize(2, 1)
+                                .withPosition(2, 3); // Fila 3, Columna 2
 
                 // Autos
                 autoChooser = AutoBuilder.buildAutoChooser();

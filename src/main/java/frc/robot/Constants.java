@@ -30,7 +30,7 @@ public final class Constants {
 			public static final double kS = 0.000;
 		}
 
-		public static final class pivot {
+		public static final class azimuth {
 			public static final byte kID = 54;
 			public static final double kP = 0.0001;
 			public static final double kI = 0;

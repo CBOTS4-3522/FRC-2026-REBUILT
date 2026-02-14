@@ -20,15 +20,15 @@ public class ShooterIOSparkMax implements ShooterIO {
     private final SparkMax motorLider;
     private final SparkMax motorSeguidor;
     private final SparkClosedLoopController controladorFlywheel;
-    private final SparkMax motorPivot;
+    private final SparkMax motorAzimuth;
     
     // --- Sensores RIO ---
     private final DigitalInput limitSwitch; // DIO 1
-    private final DutyCycleEncoder pivotEncoder; // DIO 2
+    private final DutyCycleEncoder azimuthEncoder; // DIO 2
 
     // --- VARIABLES DE CÁLCULO (Software Encoder) ---
     private double lastRawPosition = 0.0; 
-    private double pivotTotalRotations = 0.0; 
+    private double azimuthTotalRotations = 0.0; 
     
     // Reducción: 1 vuelta de brazo = 6 vueltas de encoder
     private final double kEncoderGearRatio = 6.0; 
@@ -55,24 +55,24 @@ public class ShooterIOSparkMax implements ShooterIO {
         motorSeguidor.configure(configSeguidor, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
         // --- CONFIGURACIÓN PIVOTE ---
-        motorPivot = new SparkMax(Constants.shooter.pivot.kID, MotorType.kBrushless);
+        motorAzimuth = new SparkMax(Constants.shooter.azimuth.kID, MotorType.kBrushless);
         
         SparkMaxConfig configPivot = new SparkMaxConfig();
         configPivot.idleMode(IdleMode.kBrake); 
         configPivot.smartCurrentLimit(40);     
         configPivot.inverted(false);           
         
-        motorPivot.configure(configPivot, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        motorAzimuth.configure(configPivot, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
         // --- SENSORES ---
         limitSwitch = new DigitalInput(1);
-        pivotEncoder = new DutyCycleEncoder(2); 
+        azimuthEncoder = new DutyCycleEncoder(2); 
         
         // INICIALIZACIÓN
         // Al arrancar, asumimos que "lo que lee el encoder AHORA" es nuestro punto de partida.
         // Pero OJO: Si el robot arranca con el shooter levantado, esto marcará 0 ahí.
         // Lo ideal es arrancar siempre abajo
-        lastRawPosition = pivotEncoder.get();
+        lastRawPosition = azimuthEncoder.get();
         
         // Si tuviéramos un valor conocido de "Home" en Constants, lo aplicaríamos aquí.
         // Por ahora, asumimos que 0 = Posición de encendido.
@@ -82,32 +82,32 @@ public class ShooterIOSparkMax implements ShooterIO {
     @Override
     public void updateInputs(ShooterIOInputs inputs) {
         // 1. Leer valor crudo (0.0 a 1.0 siempre en 2025)
-        double currentRaw = pivotEncoder.get();
+        double currentRaw = azimuthEncoder.get();
         
         // 2. Detectar vueltas completas (Rollover)
         double diff = currentRaw - lastRawPosition;
         
         if (diff < -0.5) {
-            pivotTotalRotations += 1.0; // Pasó de 0.9 a 0.1 -> Sumar vuelta
+            azimuthTotalRotations += 1.0; // Pasó de 0.9 a 0.1 -> Sumar vuelta
         } else if (diff > 0.5) {
-            pivotTotalRotations -= 1.0; // Pasó de 0.1 a 0.9 -> Restar vuelta
+            azimuthTotalRotations -= 1.0; // Pasó de 0.1 a 0.9 -> Restar vuelta
         }
         
         lastRawPosition = currentRaw;
         
         // 3. Calcular vueltas totales ABSOLUTAS del encoder
-        double totalEncoderTurns = pivotTotalRotations + currentRaw;
+        double totalEncoderTurns = azimuthTotalRotations + currentRaw;
         
         // 4. Convertir a GRADOS del BRAZO
         // Grados = (VueltasEncoder / Ratio) * 360
         double rawDegrees = (totalEncoderTurns / kEncoderGearRatio) * 360.0;
         
         // 5. Aplicar Offset y guardar en inputs
-        inputs.pivotPositionDegrees = rawDegrees - angleOffset;
+        inputs.azimuthPositionDegrees = rawDegrees - angleOffset;
 
         // --- Resto de inputs ---
-        inputs.pivotAppliedVolts = motorPivot.getBusVoltage() * motorPivot.getAppliedOutput();
-        inputs.pivotCurrentAmps = motorPivot.getOutputCurrent();
+        inputs.pivotAppliedVolts = motorAzimuth.getBusVoltage() * motorAzimuth.getAppliedOutput();
+        inputs.pivotCurrentAmps = motorAzimuth.getOutputCurrent();
         inputs.isLimitSwitchPressed = limitSwitch.get(); 
         
         inputs.flywheelVelocityRPM = motorLider.getEncoder().getVelocity();
@@ -118,7 +118,7 @@ public class ShooterIOSparkMax implements ShooterIO {
     // Método extra para definir el Cero manualmente (puedes llamarlo desde un comando)
     public void setPivotZero() {
         // Calculamos cuánto vale el ángulo "bruto" ahora mismo
-        double currentRawDegrees = ( (pivotTotalRotations + lastRawPosition) / kEncoderGearRatio ) * 360.0;
+        double currentRawDegrees = ( (azimuthTotalRotations + lastRawPosition) / kEncoderGearRatio ) * 360.0;
         
         // Decimos que el offset es igual a ese valor
         // Entonces: Posición = ValorActual - Offset = 0
@@ -130,9 +130,9 @@ public class ShooterIOSparkMax implements ShooterIO {
         // Seguridad con Limit Switch (asumiendo switch cierra a true)
         // Y asumiendo que voltaje positivo (+) mueve hacia el switch
         if (limitSwitch.get() && volts > 0) { 
-            motorPivot.setVoltage(0);
+            motorAzimuth.setVoltage(0);
         } else {
-            motorPivot.setVoltage(volts);
+            motorAzimuth.setVoltage(volts);
         }
     }
     
@@ -148,8 +148,8 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     @Override
-    public void stopPivot() {
-        motorPivot.stopMotor();
+    public void stopAzimuth() {
+        motorAzimuth.stopMotor();
     }
     
     @Override

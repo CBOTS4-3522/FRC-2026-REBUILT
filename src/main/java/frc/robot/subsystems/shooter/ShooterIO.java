@@ -12,7 +12,7 @@ public interface ShooterIO {
         public double flywheelCurrentAmps = 0.0;
         
         // --- Pivot (Conectado al RIO) ---
-        public double pivotPositionDegrees = 0.0;
+        public double azimuthPositionDegrees = 0.0;
         public double pivotVelocityDegPerSec = 0.0; // Velocidad en grados/seg
         public double pivotAppliedVolts = 0.0;
         public double pivotCurrentAmps = 0.0;
@@ -30,7 +30,7 @@ public interface ShooterIO {
 
     // Pivot methods
     public default void setPivotVoltage(double volts) {}
-    public default void stopPivot() {}
+    public default void stopAzimuth() {}
     public default void setPivotZero() {}
 
 }
