@@ -44,6 +44,7 @@ public class ShooterIOSparkMax implements ShooterIO {
 
         SparkMaxConfig configFlywheel = new SparkMaxConfig();
         configFlywheel.idleMode(IdleMode.kBrake);
+        configFlywheel.inverted(true);
         configFlywheel.closedLoop.p(Constants.shooter.flywheels.kP);
         configFlywheel.closedLoop.feedForward.kV(Constants.shooter.flywheels.kV);
  

@@ -40,6 +40,7 @@ public final class Constants {
 			public static final double kA = 0.0;
 			public static final double kS = 0.0;
 		}
+	}
 			
 	public static final class Indexer {
 		public static final int kMotorID = 53;
@@ -233,6 +234,8 @@ public final class Constants {
 			public static final int kCanCoderId = 43;
 
 			public static final Rotation2d kAngleOffset = Rotation2d.fromDegrees(158.4);
+			public static final RevSwerveModuleConstants kConstants = new RevSwerveModuleConstants(kDriveMotorId,
+					kAngleMotorId, kCanCoderId, kAngleOffset);
 
 
 		}
@@ -254,5 +257,5 @@ public final class Constants {
 		public static final double kFreeSpeedRpm = 5676;
 	}
 
-	}
+	
 }

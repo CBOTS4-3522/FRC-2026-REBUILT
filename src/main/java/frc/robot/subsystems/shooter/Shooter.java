@@ -131,6 +131,11 @@ public class Shooter extends SubsystemBase {
         return this.runOnce(() -> io.stopFlywheel());
     }
 
+    public Command encendidoOpenLoop(){
+        return this.runEnd(
+            ()->io.setFlywheelVoltage(12), ()->io.setFlywheelVoltage(0)            );
+    }
+
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
         return m_sysIdRoutine.quasistatic(direction);
     }
