@@ -43,8 +43,8 @@ public class ShooterIOSparkMax implements ShooterIO {
         controladorFlywheel = motorLider.getClosedLoopController();
 
         SparkMaxConfig configFlywheel = new SparkMaxConfig();
-        configFlywheel.idleMode(IdleMode.kBrake);
-        configFlywheel.inverted(true);
+        configFlywheel.idleMode(IdleMode.kCoast);
+        configFlywheel.inverted(true); //AQUI MERITO LE MUEVEN PARA GIRAR AL OTRO LADO configFlywheel.inverted(false);
         configFlywheel.closedLoop.p(Constants.shooter.flywheels.kP);
         configFlywheel.closedLoop.feedForward.kV(Constants.shooter.flywheels.kV);
  
@@ -59,8 +59,8 @@ public class ShooterIOSparkMax implements ShooterIO {
         motorAzimuth = new SparkMax(Constants.shooter.azimuth.kID, MotorType.kBrushless);
         
         SparkMaxConfig configPivot = new SparkMaxConfig();
-        configPivot.idleMode(IdleMode.kBrake); 
-        configPivot.smartCurrentLimit(40);     
+        configPivot.idleMode(IdleMode.kCoast); 
+        configPivot.smartCurrentLimit(60);     
         configPivot.inverted(false);           
         
         motorAzimuth.configure(configPivot, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
@@ -111,9 +111,12 @@ public class ShooterIOSparkMax implements ShooterIO {
         inputs.pivotCurrentAmps = motorAzimuth.getOutputCurrent();
         inputs.isLimitSwitchPressed = limitSwitch.get(); 
         
-        inputs.flywheelVelocityRPM = motorLider.getEncoder().getVelocity();
+        inputs.flywheelVelocityRPMLider = motorLider.getEncoder().getVelocity();
+        inputs.flywheelVelocityRPMFollower = motorSeguidor.getEncoder().getVelocity();
         inputs.flywheelAppliedVolts = motorLider.getBusVoltage() * motorLider.getAppliedOutput();
         inputs.flywheelCurrentAmps = motorLider.getOutputCurrent();
+        inputs.flywheelTemplider = motorLider.getMotorTemperature();
+        inputs.flywheeltempFollower = motorSeguidor.getMotorTemperature();
     }
 
     // Método extra para definir el Cero manualmente (puedes llamarlo desde un comando)

@@ -73,7 +73,7 @@ public class Shooter extends SubsystemBase {
                         log -> {
                             log.motor("shooter-flywheel")
                                     .voltage(Volts.of(inputs.flywheelAppliedVolts))
-                                    .angularVelocity(RPM.of(inputs.flywheelVelocityRPM))
+                                    .angularVelocity(RPM.of(inputs.flywheelVelocityRPMLider))
                                     .angularPosition(Rotations.of(0)); // Posición no importa tanto en shooter de
                                                                        // velocidad
                         },

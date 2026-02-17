@@ -219,8 +219,9 @@ public class RobotContainer {
 
                 // Reset Gyro
                 driver1.rightStick().onTrue(new InstantCommand(s_Swerve::zeroGyro));
-                driver2.a().whileTrue(Commands.parallel(Commands.sequence(Commands.waitSeconds(2),s_Indexer.pasandopelotas()),s_Shooter.encendidoOpenLoop()));
-
+                driver2.a().whileTrue(Commands.parallel(Commands.sequence(Commands.waitSeconds(.5),s_Indexer.pasandopelotas()),s_Shooter.encendidoOpenLoop()));
+                driver2.y().whileTrue(s_Shooter.encendidoOpenLoop());
+                driver2.leftBumper().whileTrue(s_Indexer.pasandopelotas());
         }
 
         public Command getAutonomousCommand() {

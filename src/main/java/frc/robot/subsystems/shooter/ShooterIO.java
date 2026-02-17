@@ -7,9 +7,12 @@ public interface ShooterIO {
     @AutoLog
     public static class ShooterIOInputs {
         // --- Flywheels ---
-        public double flywheelVelocityRPM = 0.0;
+        public double flywheelVelocityRPMLider = 0.0;
+        public double flywheelVelocityRPMFollower = 0.0;
         public double flywheelAppliedVolts = 0.0;
         public double flywheelCurrentAmps = 0.0;
+        public double flywheelTemplider = 0.0;
+        public double flywheeltempFollower = 0.0;
         
         // --- Pivot (Conectado al RIO) ---
         public double azimuthPositionDegrees = 0.0;
