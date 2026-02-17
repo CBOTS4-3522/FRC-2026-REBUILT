@@ -25,14 +25,10 @@ public class Intake extends SubsystemBase {
     // DEFINICIÓN DE HARDWARE
 
     // CONTROL BRAZO
-    private final ProfiledPIDController pidController;
     private double objetivoGrados; // La meta actual del brazo
 
-    // VARIABLES TUNEABLES
-    private double kP = Constants.Intake.kP;
     private double kG = Constants.Intake.kG;
-    private double kI = Constants.Intake.kI;
-    private double kD = Constants.Intake.kD;
+    
 
     // VARIABLES PARA CONTAR PELOTAS
     private int contadorPelotas = 0;
@@ -44,12 +40,7 @@ public class Intake extends SubsystemBase {
     public Intake(IntakeIO io) {
         this.io = io;
 
-        // INICIALIZACIÓN PID
-        pidController = new ProfiledPIDController(
-                kP, kI, kD,
-                new TrapezoidProfile.Constraints(500, 500) // Max Vel, Max Acel
-        );
-
+        
         // Definicion del trigger
         pelotaEntrando = new Trigger(
                 () -> inputs.rodillosCorriente > Constants.Intake.kUmbralCorriente &&
@@ -64,11 +55,8 @@ public class Intake extends SubsystemBase {
                             contadorPelotas++;
                         }));
 
-        // Dashboard
-        SmartDashboard.putNumber("Intake/kP", kP);
         SmartDashboard.putNumber("Intake/kG", kG);
-        SmartDashboard.putNumber("Intake/kI", kI);
-        SmartDashboard.putNumber("Intake/kD", kD);
+  
     }
 
     // --- MÉTODOS AUXILIARES ---
@@ -144,58 +132,31 @@ public class Intake extends SubsystemBase {
 
     @Override
     public void periodic() {
-
         io.updateInputs(inputs);
-
-        // 2. Guardarlos en el log
         Logger.processInputs("Intake", inputs);
 
-        if (!inicializado) {
-            // Capturamos la posición real ACTUAL como objetivo
-            objetivoGrados = leerEncoder();
-            pidController.reset(objetivoGrados);
-
-            inicializado = true; // ¡Listo! Ya no entramos aquí de nuevo
-        }
-
-        // 1. Tunear PID en vivo
-        double pDashboard = SmartDashboard.getNumber("Intake/kP", kP);
+        // Sintonización en vivo (Opcional: Mandar nuevos PID al Spark si cambian)
         double gDashboard = SmartDashboard.getNumber("Intake/kG", kG);
-        double iDashboard = SmartDashboard.getNumber("Intake/kI", kI);
-        double dDashboard = SmartDashboard.getNumber("Intake/kD", kD);
+        if (gDashboard != kG) kG = gDashboard;
 
-        if (pDashboard != kP || gDashboard != kG || iDashboard != kI || dDashboard != kD) {
-            kP = pDashboard;
-            kG = gDashboard;
-            kI = iDashboard;
-            kD = dDashboard;
-            pidController.setP(kP);
-            pidController.setI(kI);
-            pidController.setD(kD);
-        }
-
+        // BUCLE DE CONTROL
         double posicionActual = leerEncoder();
+        
+        // 1. Calcular Feedforward (Gravedad) en el RIO
+        // Esto es lo único que el Spark no puede hacer solo
+        double feedforwardVolts = kG * Math.cos(Math.toRadians(posicionActual));
 
-        boolean bajando = objetivoGrados == Constants.Intake.kTargetDown;
-
-        boolean estaAbajo = posicionActual < (Constants.Intake.kTargetDown + Constants.Intake.kTolerancyDegrees);
-
-        double voltajePID = pidController.calculate(posicionActual, objetivoGrados);
-
-        double feedforward = kG * Math.cos(Math.toRadians(pidController.getSetpoint().position));
-
-        if (bajando && estaAbajo) {
-            io.stopBrazo();
-
+        // 2. Comandar al Spark Max
+        // Le decimos: "Ve a objetivoGrados usando tu perfil, y suma feedforwardVolts a tu salida"
+        if (objetivoGrados == Constants.Intake.kTargetDown && posicionActual < 5.0) {
+             io.stopBrazo(); // Descansar si está abajo
         } else {
-            io.setVoltajeBrazo(voltajePID + feedforward);
+             io.setBrazoPosicion(objetivoGrados + encoderOffset, feedforwardVolts);
         }
+
         // Telemetría
-        Logger.recordOutput("Intake/Brazo/AnguloActual", leerEncoder());
-        Logger.recordOutput("Intake/Rodillos/Contador", contadorPelotas);
-        Logger.recordOutput("Intake/Brazo/AnguloReal", inputs.brazoEncoderRaw * 360);
-        Logger.recordOutput("Intake/Brazo/AnguloInvertido", (1 - inputs.brazoEncoderRaw) * 360);
+        Logger.recordOutput("Intake/Brazo/AnguloActual", posicionActual);
         Logger.recordOutput("Intake/Brazo/Objetivo", objetivoGrados);
-        Logger.recordOutput("Intake/Brazo/Descanso", bajando && estaAbajo);
+        Logger.recordOutput("Intake/Brazo/FF_Volts", feedforwardVolts);
     }
 }
