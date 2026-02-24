@@ -20,9 +20,12 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.Indexer;
-import frc.robot.subsystems.intake.IntakeIO;
-import frc.robot.subsystems.intake.IntakeIOReal;
-import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeLiftIO;
+import frc.robot.subsystems.intake.IntakeLiftOIReal;
+import frc.robot.subsystems.intake.IntakeRollers;
+import frc.robot.subsystems.intake.IntakeRollersIO;
+import frc.robot.subsystems.intake.IntakeRollersIOReal;
+import frc.robot.subsystems.intake.IntakeLift;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
@@ -43,8 +46,8 @@ public class RobotContainer {
         private final SwerveBase s_Swerve;
         private final Shooter s_Shooter;
         private final Indexer s_Indexer;
-        private final Intake s_Intake;
-
+        private final IntakeLift s_IntakeLift;
+        private final IntakeRollers s_IntakeRollers;
 
         /* Autos */
 
@@ -53,10 +56,8 @@ public class RobotContainer {
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
                 s_Indexer = new Indexer();
-                
 
                 ShooterIO shooterIO; // 1. Declaramos la interfaz temporal
-
 
                 if (Robot.isReal()) {
                         // Si es el robot real, usa los SparkMax
@@ -69,16 +70,16 @@ public class RobotContainer {
                         };
                 }
 
-                IntakeIO intakeIO; // 1. Declaramos la interfaz temporal
+                IntakeLiftIO intakeLiftIO; // 1. Declaramos la interfaz temporal
 
                 if (RobotBase.isReal()) {
                         // 2. Si es el robot de verdad, creamos la IO Real
-                        intakeIO = new IntakeIOReal();
+                        intakeLiftIO = new IntakeLiftOIReal();
                 } else {
                         // 3. Si es simulador, usamos la IO Sim (o vacía por ahora si no la tienes)
                         // Por ahora puedes poner: intakeIO = new IntakeIO() {};
                         // O mejor aún, crea el archivo IntakeIOSim.java después.
-                        intakeIO = new IntakeIO() {
+                        intakeLiftIO = new IntakeLiftIO() {
                                 @Override
                                 public void setVoltajeRodillos(double volts) {
                                 }
@@ -96,10 +97,38 @@ public class RobotContainer {
                                 }
                         }; // IO "muda" para que no truene el sim
                 }
-                s_Intake = new Intake(intakeIO);
+                s_IntakeLift = new IntakeLift(intakeLiftIO);
+
+
+
+                IntakeRollersIO intakeRollersIO; // 1. Declaramos la interfaz temporal
+
+                if (RobotBase.isReal()) {
+                        // 2. Si es el robot de verdad, creamos la IO Real
+                        intakeRollersIO = new IntakeRollersIOReal();
+                } else {
+                        // 3. Si es simulador, usamos la IO Sim (o vacía por ahora si no la tienes)
+                        // Por ahora puedes poner: intakeIO = new IntakeIO() {};
+                        // O mejor aún, crea el archivo IntakeIOSim.java después.
+                        intakeRollersIO = new IntakeRollersIO() {
+                                @Override
+                                public void setVoltajeRodillos(double volts) {
+                                }
+
+                                
+
+                                @Override
+                                public void stopRodillos() {
+                                }
+
+                                
+                        }; // IO "muda" para que no truene el sim
+                }
+                s_IntakeRollers = new IntakeRollers(intakeRollersIO);
 
                 // System ID
                 ShuffleboardTab diagTab = Shuffleboard.getTab("Diagnóstico");
+                ShuffleboardTab intakeDiagtab = Shuffleboard.getTab("IntakeDiagnostico");
 
                 // USAR DEFERREDCOMMAND
 
@@ -158,6 +187,36 @@ public class RobotContainer {
                                 .withSize(2, 1)
                                 .withPosition(2, 3); // Fila 3, Columna 2
 
+                // ==========================================================
+                // BOTONES SYSID INTAKE (BRAZO)
+                // ==========================================================
+                intakeDiagtab.add("Intake QS Fwd",
+                                new DeferredCommand(() -> s_IntakeLift.sysIdQuasistatic(Direction.kForward),
+                                                Set.of(s_IntakeLift)))
+                                .withSize(2, 1)
+                                .withPosition(4, 2); // Acomodado a la derecha del Shooter
+
+                intakeDiagtab.add("Intake QS Rev",
+                                new DeferredCommand(() -> s_IntakeLift.sysIdQuasistatic(Direction.kReverse),
+                                                Set.of(s_IntakeLift)))
+                                .withSize(2, 1)
+                                .withPosition(6, 2);
+
+                intakeDiagtab.add("Intake Dyn Fwd",
+                                new DeferredCommand(() -> s_IntakeLift.sysIdDynamic(Direction.kForward),
+                                                Set.of(s_IntakeLift)))
+                                .withSize(2, 1)
+                                .withPosition(4, 3);
+
+                intakeDiagtab.add("Intake Dyn Rev",
+                                new DeferredCommand(() -> s_IntakeLift.sysIdDynamic(Direction.kReverse),
+                                                Set.of(s_IntakeLift)))
+                                .withSize(2, 1)
+                                .withPosition(6, 3);
+
+                // Agrega un botón a SmartDashboard/Elastic para activar y desactivar este modo
+                SmartDashboard.putData("Intake/Activar Control Slider", s_IntakeLift.controlPorSlider());
+
                 // Autos
                 autoChooser = AutoBuilder.buildAutoChooser();
 
@@ -172,7 +231,7 @@ public class RobotContainer {
                                                 () -> driver1.getRightX(), // Rotación
                                                 () -> driver1.getLeftTriggerAxis(), // Turbo (Gatillo Izquierdo)
                                                 () -> driver1.getHID().getLeftBumperButton(),
-                                                ()-> driver1.getHID().getRightBumperButton()));
+                                                () -> driver1.getHID().getRightBumperButton()));
 
                 // Elastic
                 if (RobotBase.isReal()) {
@@ -219,9 +278,15 @@ public class RobotContainer {
 
                 // Reset Gyro
                 driver1.rightStick().onTrue(new InstantCommand(s_Swerve::zeroGyro));
-                driver2.a().whileTrue(Commands.parallel(Commands.sequence(Commands.waitSeconds(.5),s_Indexer.pasandopelotas()),s_Shooter.encendidoOpenLoop()));
-                driver2.y().whileTrue(s_Shooter.encendidoOpenLoop());
-                driver2.leftBumper().whileTrue(s_Indexer.pasandopelotas());
+                driver2.a().whileTrue(
+                                Commands.parallel(Commands.sequence(Commands.waitSeconds(.5), s_Indexer.encender()),
+                                                s_Shooter.activarManual()));
+                //driver2.b().whileTrue(s_Shooter.activarManual());
+                driver2.leftBumper().whileTrue(s_Indexer.encender());
+                driver2.x().onTrue(s_IntakeLift.bajar());
+                driver2.y().onTrue(s_IntakeLift.subir());
+                driver2.rightBumper().whileTrue(s_IntakeRollers.tragarPelotas());
+                driver2.b().whileTrue(s_IntakeRollers.tragarPelotas());
         }
 
         public Command getAutonomousCommand() {

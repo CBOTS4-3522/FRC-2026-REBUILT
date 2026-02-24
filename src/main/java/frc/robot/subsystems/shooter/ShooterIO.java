@@ -14,26 +14,29 @@ public interface ShooterIO {
         public double flywheelTemplider = 0.0;
         public double flywheeltempFollower = 0.0;
         
-        // --- Pivot (Conectado al RIO) ---
+        // --- Azimuth (Torreta - Spark MAX) ---
         public double azimuthPositionDegrees = 0.0;
-        public double pivotVelocityDegPerSec = 0.0; // Velocidad en grados/seg
-        public double pivotAppliedVolts = 0.0;
-        public double pivotCurrentAmps = 0.0;
+        public double azimuthVelocityDegPerSec = 0.0; 
+        public double azimuthAppliedVolts = 0.0;
+        public double azimuthCurrentAmps = 0.0;
+        public boolean isAzimuthLimitSwitchPressed = false; 
         
-        // --- Seguridad ---
-        public boolean isLimitSwitchPressed = false; // Limit switch DIO 1
+        // --- Pivot (Chamfle - Servo PWM) ---
+        public double pivotAngleDegrees = 0.0; 
     }
 
     public default void updateInputs(ShooterIOInputs inputs) {}
 
-    // Flywheel methods
+    // Flywheel
     public default void setFlywheelVoltage(double volts) {}
     public default void setFlywheelVelocity(double rpm) {}
     public default void stopFlywheel() {}
 
-    // Pivot methods
-    public default void setPivotVoltage(double volts) {}
+    // Azimuth (Torreta)
+    public default void setAzimuthVoltage(double volts) {}
     public default void stopAzimuth() {}
-    public default void setPivotZero() {}
+    public default void setAzimuthZero() {}
 
+    // Pivot (Chamfle)
+    public default void setPivotAngle(double degrees) {}
 }

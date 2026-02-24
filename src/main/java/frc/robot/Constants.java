@@ -21,13 +21,14 @@ public final class Constants {
 		public static final class flywheels {
 			public static final byte kLiderID = 50;
 			public static final byte kSeguidorID = 51;
-			public static final double kP = 0.0001;
+			public static final double kP = 0.002;
 			public static final double kI = 0;
 			public static final double kD = 0;
 
-			public static final double kV = 0.00018;
-			public static final double kA = 0.000;
-			public static final double kS = 0.000;
+			public static final double kS = 0.18168;
+			public static final double kV = 0.12396;
+			public static final double kA = 0.045094;
+			
 		}
 
 		public static final class azimuth {
@@ -41,7 +42,7 @@ public final class Constants {
 			public static final double kS = 0.0;
 		}
 	}
-			
+
 	public static final class Indexer {
 		public static final int kMotorID = 53;
 		public static final double kVelocidad = 1;
@@ -50,42 +51,42 @@ public final class Constants {
 
 	// public static final class shooter {
 
-	// 	public static final class flywheel {
-	// 		public static final byte kLiderID = 50;
-	// 		public static final byte kSeguidorID = 51;
+	// public static final class flywheel {
+	// public static final byte kLiderID = 50;
+	// public static final byte kSeguidorID = 51;
 
-	// 		public static final double kP = 0.0001;
-	// 		public static final double kI = 0;
-	// 		public static final double kD = 0;
+	// public static final double kP = 0.0001;
+	// public static final double kI = 0;
+	// public static final double kD = 0;
 
-	// 		public static final double kV = 0.00018;
-	// 		public static final double kA = 0.000;
-	// 		public static final double kS = 0.000;
-	// 	}
-	// 	public static final class pivot {
-	// 		public static final byte kID = 54;
-	// 	}
+	// public static final double kV = 0.00018;
+	// public static final double kA = 0.000;
+	// public static final double kS = 0.000;
+	// }
+	// public static final class pivot {
+	// public static final byte kID = 54;
+	// }
 
 	// }
 
 	public static final class Intake {
 
 		// IDs
-		public static final int kMotorID = 60;
-		public static final int kMotorID2 = 61;
+		public static final int kMotorRollerID = 60;
+		public static final int kMotorLiftID = 61;
 
 		// Canales
 		public static final byte kCanalEncoder = 0;
 
 		// Logica del brazo
-		public static final double kEncoderOffset = 210.2;
-		public static final double kTargetUp = 97;
-		public static final double kTargetDown = 0.0;
+		public static final double kEncoderOffset = 109.8;
+		public static final double kTargetUp = 95;
+		public static final double kTargetDown = 1;
 		public static final double kTolerancyDegrees = 5.0;
-		public static final double kP = 0.4;
-		public static final double kG = 0.6;
-		public static final double kI = 1.0;
-		public static final double kD = 0.025;
+		public static final double kP = 0.01;
+		public static final double kG = 0.8;
+		public static final double kI = 0.0;
+		public static final double kD = 0;
 
 		// Contador
 		public static final double kUmbralCorriente = 15.0;
@@ -232,12 +233,9 @@ public final class Constants {
 			public static final int kDriveMotorId = 41;
 			public static final int kAngleMotorId = 42;
 			public static final int kCanCoderId = 43;
-
-			public static final Rotation2d kAngleOffset = Rotation2d.fromDegrees(158.4);
+			public static final Rotation2d kAngleOffset = Rotation2d.fromDegrees(0.36);
 			public static final RevSwerveModuleConstants kConstants = new RevSwerveModuleConstants(kDriveMotorId,
 					kAngleMotorId, kCanCoderId, kAngleOffset);
-
-
 		}
 	}
 
@@ -257,5 +255,4 @@ public final class Constants {
 		public static final double kFreeSpeedRpm = 5676;
 	}
 
-	
 }

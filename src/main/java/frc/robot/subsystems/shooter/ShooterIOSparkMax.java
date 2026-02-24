@@ -5,111 +5,109 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.ResetMode;
 import com.revrobotics.PersistMode;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.Servo;
 import frc.robot.Constants;
 
 public class ShooterIOSparkMax implements ShooterIO {
     
-    // --- Motores ---
+    // --- Motores y Sensores ---
     private final SparkMax motorLider;
     private final SparkMax motorSeguidor;
     private final SparkClosedLoopController controladorFlywheel;
-    private final SparkMax motorAzimuth;
     
-    // --- Sensores RIO ---
-    private final DigitalInput limitSwitch; // DIO 1
-    private final DutyCycleEncoder azimuthEncoder; // DIO 2
-
-    // --- VARIABLES DE CÁLCULO (Software Encoder) ---
+    private final SparkMax motorAzimuth;
+    private final SparkAbsoluteEncoder azimuthEncoder;
+    private final DigitalInput azimuthLimitSwitch; 
+    
+    private final Servo pivotServo; // NUEVO: Servo para el chamfle
+    
+    // --- Lógica de Vueltas Infinitas (Rollover) ---
     private double lastRawPosition = 0.0; 
     private double azimuthTotalRotations = 0.0; 
-    
-    // Reducción: 1 vuelta de brazo = 6 vueltas de encoder
     private final double kEncoderGearRatio = 6.0; 
-    
-    // Offset: Ajuste para definir el cero
     private double angleOffset = 0.0;
 
     public ShooterIOSparkMax() {
-        // --- CONFIGURACIÓN FLYWHEELS (Igual) ---
+        // --- CONFIGURACIÓN FLYWHEELS ---
         motorLider = new SparkMax(Constants.shooter.flywheels.kLiderID, MotorType.kBrushless);
         motorSeguidor = new SparkMax(Constants.shooter.flywheels.kSeguidorID, MotorType.kBrushless);
         controladorFlywheel = motorLider.getClosedLoopController();
 
         SparkMaxConfig configFlywheel = new SparkMaxConfig();
         configFlywheel.idleMode(IdleMode.kCoast);
-        configFlywheel.inverted(true); //AQUI MERITO LE MUEVEN PARA GIRAR AL OTRO LADO configFlywheel.inverted(false);
+        configFlywheel.inverted(true); 
         configFlywheel.closedLoop.p(Constants.shooter.flywheels.kP);
+        // configFlywheel.closedLoop.i(Constants.shooter.flywheels.kI);
+        // configFlywheel.closedLoop.d(Constants.shooter.flywheels.kD);
+        configFlywheel.closedLoop.feedForward.kA(Constants.shooter.flywheels.kA);
+        configFlywheel.closedLoop.feedForward.kS(Constants.shooter.flywheels.kS);
         configFlywheel.closedLoop.feedForward.kV(Constants.shooter.flywheels.kV);
- 
+
         
         SparkMaxConfig configSeguidor = new SparkMaxConfig();
+        configSeguidor.idleMode(IdleMode.kCoast);
         configSeguidor.follow(motorLider, true);
 
         motorLider.configure(configFlywheel, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         motorSeguidor.configure(configSeguidor, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-        // --- CONFIGURACIÓN PIVOTE ---
+        // --- CONFIGURACIÓN AZIMUTH (TORRETA) ---
         motorAzimuth = new SparkMax(Constants.shooter.azimuth.kID, MotorType.kBrushless);
+        // Leemos el encoder desde el puerto del adaptador de REV
+        azimuthEncoder = motorAzimuth.getAbsoluteEncoder(); 
         
-        SparkMaxConfig configPivot = new SparkMaxConfig();
-        configPivot.idleMode(IdleMode.kCoast); 
-        configPivot.smartCurrentLimit(60);     
-        configPivot.inverted(false);           
+        SparkMaxConfig configAzimuth = new SparkMaxConfig();
+        configAzimuth.idleMode(IdleMode.kBrake); // Mejor Brake para la torreta
+        configAzimuth.smartCurrentLimit(40);     // Bajamos el límite para seguridad
+        configAzimuth.inverted(false);           
         
-        motorAzimuth.configure(configPivot, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        motorAzimuth.configure(configAzimuth, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        // --- SENSORES ---
-        limitSwitch = new DigitalInput(1);
-        azimuthEncoder = new DutyCycleEncoder(2); 
+        // --- SENSORES RIO ---
+        azimuthLimitSwitch = new DigitalInput(1);
         
-        // INICIALIZACIÓN
-        // Al arrancar, asumimos que "lo que lee el encoder AHORA" es nuestro punto de partida.
-        // Pero OJO: Si el robot arranca con el shooter levantado, esto marcará 0 ahí.
-        // Lo ideal es arrancar siempre abajo
-        lastRawPosition = azimuthEncoder.get();
-        
-        // Si tuviéramos un valor conocido de "Home" en Constants, lo aplicaríamos aquí.
-        // Por ahora, asumimos que 0 = Posición de encendido.
-        angleOffset = 0.0; 
+        // --- SERVO PIVOT ---
+        // Asumiendo que lo conectas al puerto PWM 0 de la RoboRIO
+        pivotServo = new Servo(0); 
+
+        // INICIALIZACIÓN DE VUELTAS
+        // azimuthEncoder.getPosition() nos da un valor limpio de 0.0 a 1.0 por defecto
+        lastRawPosition = azimuthEncoder.getPosition();
     }
 
     @Override
     public void updateInputs(ShooterIOInputs inputs) {
-        // 1. Leer valor crudo (0.0 a 1.0 siempre en 2025)
-        double currentRaw = azimuthEncoder.get();
+        // 1. Leer valor crudo del adaptador (0.0 a 1.0)
+        double currentRaw = azimuthEncoder.getPosition();
         
-        // 2. Detectar vueltas completas (Rollover)
+        // 2. Detectar vueltas completas del pequeño piñón
         double diff = currentRaw - lastRawPosition;
-        
         if (diff < -0.5) {
-            azimuthTotalRotations += 1.0; // Pasó de 0.9 a 0.1 -> Sumar vuelta
+            azimuthTotalRotations += 1.0; 
         } else if (diff > 0.5) {
-            azimuthTotalRotations -= 1.0; // Pasó de 0.1 a 0.9 -> Restar vuelta
+            azimuthTotalRotations -= 1.0; 
         }
-        
         lastRawPosition = currentRaw;
         
-        // 3. Calcular vueltas totales ABSOLUTAS del encoder
+        // 3. Calcular grados absolutos de la torreta
         double totalEncoderTurns = azimuthTotalRotations + currentRaw;
-        
-        // 4. Convertir a GRADOS del BRAZO
-        // Grados = (VueltasEncoder / Ratio) * 360
         double rawDegrees = (totalEncoderTurns / kEncoderGearRatio) * 360.0;
         
-        // 5. Aplicar Offset y guardar en inputs
         inputs.azimuthPositionDegrees = rawDegrees - angleOffset;
 
         // --- Resto de inputs ---
-        inputs.pivotAppliedVolts = motorAzimuth.getBusVoltage() * motorAzimuth.getAppliedOutput();
-        inputs.pivotCurrentAmps = motorAzimuth.getOutputCurrent();
-        inputs.isLimitSwitchPressed = limitSwitch.get(); 
+        inputs.azimuthAppliedVolts = motorAzimuth.getBusVoltage() * motorAzimuth.getAppliedOutput();
+        inputs.azimuthCurrentAmps = motorAzimuth.getOutputCurrent();
+        inputs.isAzimuthLimitSwitchPressed = azimuthLimitSwitch.get(); 
+        
+        inputs.pivotAngleDegrees = pivotServo.getAngle(); // Para el log
         
         inputs.flywheelVelocityRPMLider = motorLider.getEncoder().getVelocity();
         inputs.flywheelVelocityRPMFollower = motorSeguidor.getEncoder().getVelocity();
@@ -119,28 +117,27 @@ public class ShooterIOSparkMax implements ShooterIO {
         inputs.flywheeltempFollower = motorSeguidor.getMotorTemperature();
     }
 
-    // Método extra para definir el Cero manualmente (puedes llamarlo desde un comando)
-    public void setPivotZero() {
-        // Calculamos cuánto vale el ángulo "bruto" ahora mismo
+    @Override
+    public void setAzimuthZero() {
         double currentRawDegrees = ( (azimuthTotalRotations + lastRawPosition) / kEncoderGearRatio ) * 360.0;
-        
-        // Decimos que el offset es igual a ese valor
-        // Entonces: Posición = ValorActual - Offset = 0
         this.angleOffset = currentRawDegrees;
     }
 
     @Override
-    public void setPivotVoltage(double volts) {
-        // Seguridad con Limit Switch (asumiendo switch cierra a true)
-        // Y asumiendo que voltaje positivo (+) mueve hacia el switch
-        if (limitSwitch.get() && volts > 0) { 
+    public void setAzimuthVoltage(double volts) {
+        if (azimuthLimitSwitch.get() && volts > 0) { 
             motorAzimuth.setVoltage(0);
         } else {
             motorAzimuth.setVoltage(volts);
         }
     }
     
-    // ... Resto de métodos (flywheel, stop, etc) ...
+    @Override
+    public void setPivotAngle(double degrees) {
+        // Los servos estándar de FRC aceptan de 0 a 180 grados
+        pivotServo.setAngle(degrees);
+    }
+
     @Override
     public void setFlywheelVelocity(double rpm) {
         controladorFlywheel.setSetpoint(rpm, ControlType.kVelocity, ClosedLoopSlot.kSlot0);
