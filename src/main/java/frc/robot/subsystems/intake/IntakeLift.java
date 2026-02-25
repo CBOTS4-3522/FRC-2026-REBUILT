@@ -38,8 +38,6 @@ public class IntakeLift extends SubsystemBase {
     public IntakeLift(IntakeLiftIO io) {
         this.io = io;
 
-       
-
         SmartDashboard.putNumber("Intake/kG", kG);
         // Publicar PID inicial al dashboard
         SmartDashboard.putNumber("Intake/kP", kP);
@@ -77,16 +75,15 @@ public class IntakeLift extends SubsystemBase {
     // COMANDOS ELASTIC
     public Command controlPorSlider() {
         return Commands.sequence(
-            // 1. Al iniciar, empatamos el slider con la realidad para evitar un latigazo
-            this.runOnce(() -> {
-                SmartDashboard.putNumber("Intake/Slider_Objetivo", leerEncoder());
-            }),
-            // 2. Bucle continuo persiguiendo el número del dashboard
-            this.run(() -> {
-                double setpoint = SmartDashboard.getNumber("Intake/Slider_Objetivo", leerEncoder());
-                setObjetivo(setpoint);
-            })
-        );
+                // 1. Al iniciar, empatamos el slider con la realidad para evitar un latigazo
+                this.runOnce(() -> {
+                    SmartDashboard.putNumber("Intake/Slider_Objetivo", leerEncoder());
+                }),
+                // 2. Bucle continuo persiguiendo el número del dashboard
+                this.run(() -> {
+                    double setpoint = SmartDashboard.getNumber("Intake/Slider_Objetivo", leerEncoder());
+                    setObjetivo(setpoint);
+                }));
     }
 
     // --- MÉTODOS AUXILIARES ---
@@ -102,13 +99,11 @@ public class IntakeLift extends SubsystemBase {
         this.objetivoGrados = MathUtil.clamp(grados, 0, 100);
     }
 
-
     public boolean estaEnMeta() {
         return Math.abs(leerEncoder() - objetivoGrados) < Constants.Intake.kTolerancyDegrees;
     }
 
     // --- COMANDOS ---
-
 
     // Comando universal
     public Command irA(double grados) {
@@ -173,11 +168,11 @@ public class IntakeLift extends SubsystemBase {
         double error = objetivoGrados - posicionActual;
         double kS = 2.2; // La fricción de tus poleas
 
-        // Usamos una pequeña zona muerta (ej. 1.5 grados) para evitar que 
+        // Usamos una pequeña zona muerta (ej. 1.5 grados) para evitar que
         // inyecte los 2.2V cuando ya está prácticamente en la meta y empiece a vibrar.
-        if (Math.abs(error) > 1.5) { 
+        if (Math.abs(error) > 1.5) {
             // Math.signum da 1 si sube, o -1 si baja.
-            feedforwardVolts += Math.signum(error) * kS; 
+            feedforwardVolts += Math.signum(error) * kS;
         }
 
         io.setBrazoPosicion(objetivoGrados + encoderOffset, feedforwardVolts);

@@ -99,8 +99,6 @@ public class RobotContainer {
                 }
                 s_IntakeLift = new IntakeLift(intakeLiftIO);
 
-
-
                 IntakeRollersIO intakeRollersIO; // 1. Declaramos la interfaz temporal
 
                 if (RobotBase.isReal()) {
@@ -115,13 +113,10 @@ public class RobotContainer {
                                 public void setVoltajeRodillos(double volts) {
                                 }
 
-                                
-
                                 @Override
                                 public void stopRodillos() {
                                 }
 
-                                
                         }; // IO "muda" para que no truene el sim
                 }
                 s_IntakeRollers = new IntakeRollers(intakeRollersIO);
@@ -231,7 +226,8 @@ public class RobotContainer {
                                                 () -> driver1.getRightX(), // Rotación
                                                 () -> driver1.getLeftTriggerAxis(), // Turbo (Gatillo Izquierdo)
                                                 () -> driver1.getHID().getLeftBumperButton(),
-                                                () -> driver1.getHID().getRightBumperButton()));
+                                                () -> driver1.getHID().getRightBumperButton(),
+                                                () -> driver1.getHID().getPOV()));
 
                 // Elastic
                 if (RobotBase.isReal()) {
@@ -278,15 +274,25 @@ public class RobotContainer {
 
                 // Reset Gyro
                 driver1.rightStick().onTrue(new InstantCommand(s_Swerve::zeroGyro));
-                driver2.a().whileTrue(
-                                Commands.parallel(Commands.sequence(Commands.waitSeconds(.5), s_Indexer.encender()),
-                                                s_Shooter.activarManual()));
-                //driver2.b().whileTrue(s_Shooter.activarManual());
+                driver2.a().toggleOnTrue(s_IntakeRollers.tragarPelotas());
+                driver2.b().whileTrue(s_Shooter.runShooterCommand(4000));
                 driver2.leftBumper().whileTrue(s_Indexer.encender());
                 driver2.x().onTrue(s_IntakeLift.bajar());
                 driver2.y().onTrue(s_IntakeLift.subir());
-                driver2.rightBumper().whileTrue(s_IntakeRollers.tragarPelotas());
-                driver2.b().whileTrue(s_IntakeRollers.tragarPelotas());
+                driver2.rightTrigger().whileTrue(
+                                // 1. Prende el Shooter a 2000 RPM (Se queda corriendo)
+                                s_Shooter.testShooterDesdeDashboard()
+                                                .alongWith(
+                                                                // 2. EN PARALELO: Vigila y dispara
+                                                                Commands.sequence(
+                                                                                Commands.waitUntil(
+                                                                                                s_Shooter::estaEnVelocidad), // Espera
+                                                                                                s_Indexer.encender()                        // pacientemente...
+                                                                                 // ¡Fuego!
+                                                                )));
+                
+                driver2.rightBumper().whileTrue(s_IntakeRollers.movimiento());
+                // driver2.b().toggleOnTrue(s_IntakeRollers.tragarPelotas());
         }
 
         public Command getAutonomousCommand() {

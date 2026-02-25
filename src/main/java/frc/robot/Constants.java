@@ -21,8 +21,8 @@ public final class Constants {
 		public static final class flywheels {
 			public static final byte kLiderID = 50;
 			public static final byte kSeguidorID = 51;
-			public static final double kP = 0.002;
-			public static final double kI = 0;
+			public static final double kP = 0.0001;
+			public static final double kI = 0.00000001;
 			public static final double kD = 0;
 
 			public static final double kS = 0.18168;

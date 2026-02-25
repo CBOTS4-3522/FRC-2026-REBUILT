@@ -33,6 +33,7 @@ public class ShooterIOSparkMax implements ShooterIO {
     private double azimuthTotalRotations = 0.0; 
     private final double kEncoderGearRatio = 6.0; 
     private double angleOffset = 0.0;
+    SparkMaxConfig configFlywheel = new SparkMaxConfig();
 
     public ShooterIOSparkMax() {
         // --- CONFIGURACIÓN FLYWHEELS ---
@@ -40,15 +41,14 @@ public class ShooterIOSparkMax implements ShooterIO {
         motorSeguidor = new SparkMax(Constants.shooter.flywheels.kSeguidorID, MotorType.kBrushless);
         controladorFlywheel = motorLider.getClosedLoopController();
 
-        SparkMaxConfig configFlywheel = new SparkMaxConfig();
+        
         configFlywheel.idleMode(IdleMode.kCoast);
         configFlywheel.inverted(true); 
+        configFlywheel.closedLoopRampRate(0.5);
         configFlywheel.closedLoop.p(Constants.shooter.flywheels.kP);
-        // configFlywheel.closedLoop.i(Constants.shooter.flywheels.kI);
-        // configFlywheel.closedLoop.d(Constants.shooter.flywheels.kD);
-        configFlywheel.closedLoop.feedForward.kA(Constants.shooter.flywheels.kA);
-        configFlywheel.closedLoop.feedForward.kS(Constants.shooter.flywheels.kS);
-        configFlywheel.closedLoop.feedForward.kV(Constants.shooter.flywheels.kV);
+        configFlywheel.closedLoop.i(Constants.shooter.flywheels.kI);
+        configFlywheel.closedLoop.d(Constants.shooter.flywheels.kD);
+    
 
         
         SparkMaxConfig configSeguidor = new SparkMaxConfig();
@@ -118,6 +118,17 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     @Override
+    public void setPID(double p, double i, double d) {
+        // Actualizamos Slot 0 (Subir)
+        configFlywheel.closedLoop.p(p);
+        configFlywheel.closedLoop.i(i);
+        configFlywheel.closedLoop.d(d);
+
+
+        motorLider.configure(configFlywheel, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+    }
+
+    @Override
     public void setAzimuthZero() {
         double currentRawDegrees = ( (azimuthTotalRotations + lastRawPosition) / kEncoderGearRatio ) * 360.0;
         this.angleOffset = currentRawDegrees;
@@ -139,8 +150,9 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     @Override
-    public void setFlywheelVelocity(double rpm) {
-        controladorFlywheel.setSetpoint(rpm, ControlType.kVelocity, ClosedLoopSlot.kSlot0);
+    public void setFlywheelVelocity(double rpm, double ffVolts) {
+        // Le decimos: "Ve a estas RPM, y aquí tienes ffVolts de ayuda"
+        controladorFlywheel.setSetpoint(rpm, ControlType.kVelocity, ClosedLoopSlot.kSlot0, ffVolts);
     }
     
     @Override

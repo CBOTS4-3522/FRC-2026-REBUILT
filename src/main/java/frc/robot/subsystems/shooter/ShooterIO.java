@@ -29,7 +29,7 @@ public interface ShooterIO {
 
     // Flywheel
     public default void setFlywheelVoltage(double volts) {}
-    public default void setFlywheelVelocity(double rpm) {}
+    public default void setFlywheelVelocity(double rpm, double ffVolts) {}
     public default void stopFlywheel() {}
 
     // Azimuth (Torreta)
@@ -39,4 +39,7 @@ public interface ShooterIO {
 
     // Pivot (Chamfle)
     public default void setPivotAngle(double degrees) {}
+    
+    //PID flywheels
+    public default void setPID(double p, double i, double d) {}
 }
