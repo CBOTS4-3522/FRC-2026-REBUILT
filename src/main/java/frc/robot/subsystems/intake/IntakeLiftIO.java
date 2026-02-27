@@ -2,6 +2,8 @@ package frc.robot.subsystems.intake;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import com.fasterxml.jackson.databind.ser.std.StdKeySerializers.Default;
+
 public interface IntakeLiftIO {
     
     @AutoLog
@@ -16,23 +18,27 @@ public interface IntakeLiftIO {
         public double brazoCorriente = 0.0;
         public double brazoVoltajeAplicado = 0.0;
     }
-
+    /**
+     * Actualiza las entradas del sistema.
+     * @param inputs Entradas del sistema.
+     */
     public default void updateInputs(IntakeLiftIOInputs inputs) {}
 
-    public default void setVoltajeRodillos(double volts) {}
+    /**
+     * Inyecta un voltaje al motor del brazo.
+     * @param volts Volts a inyectar.
+     */
+    public default void setVoltajeLift(double volts) {}
     
-    public default void stopRodillos() {}
-
-    public default void setVoltajeBrazo(double volts) {}
     
     /**
-     * Mueve el brazo usando Smart Motion en el Spark Max.
-     * @param grados Objetivo en grados.
-     * @param ffVolts Voltaje arbitrario (Feedforward de gravedad) para ayudar al motor.
+     * Detiene el brazo.
+     *
      */
-    public default void setBrazoPosicion(double grados, double ffVolts) {}
+    public default void stopLift() {}
 
-    public default void stopBrazo() {}
-
-    public default void setPID(double p, double i, double d) {}
+    /**
+     * Reinicia el encoder del brazo a la posición inicial. 
+     */
+    public default void resetEncoder() {}
 }

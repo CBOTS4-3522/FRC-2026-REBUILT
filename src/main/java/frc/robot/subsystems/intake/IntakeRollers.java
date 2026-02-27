@@ -2,19 +2,13 @@ package frc.robot.subsystems.intake;
 
 import frc.robot.Constants;
 
-import edu.wpi.first.math.MathUtil;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj.DriverStation;
-import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.units.measure.Voltage;
-import static edu.wpi.first.units.Units.*;
+import org.littletonrobotics.junction.Logger;
 
 public class IntakeRollers extends SubsystemBase {
 
@@ -47,35 +41,7 @@ public class IntakeRollers extends SubsystemBase {
                         }));
 
 
-        // // CONFIGURACIÓN DE SYSID (Brazo)
-        // m_sysIdRoutine = new SysIdRoutine(
-        //         new SysIdRoutine.Config(
-        //                 Volts.per(Second).of(1.0), // Rampa suave de 1V por segundo
-        //                 Volts.of(6.0), // CUIDADO: Límite de 6V para no romper el mecanismo
-        //                 Seconds.of(10), // Tiempo máximo
-        //                 null),
-        //         new SysIdRoutine.Mechanism(
-        //                 (Voltage volts) -> io.setVoltajeBrazo(volts.in(Volts)),
-        //                 log -> {
-        //                     log.motor("intake-brazo")
-        //                             .voltage(Volts.of(inputs.brazoVoltajeAplicado))
-        //                             .angularPosition(Degrees.of(inputs.brazoPosicionGrados))
-        //                             .angularVelocity(DegreesPerSecond.of(inputs.brazoVelocidadGradosPorSeg));
-        //                 },
-        //                 this));
-
     }
-
-    // COMMANDOS DE SYSID
-    // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    //     return m_sysIdRoutine.quasistatic(direction);
-    // }
-
-    // public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    //     return m_sysIdRoutine.dynamic(direction);
-    // }
-
-    
 
     // --- MÉTODOS AUXILIARES ---
 

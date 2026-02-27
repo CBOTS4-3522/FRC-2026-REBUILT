@@ -81,19 +81,13 @@ public class RobotContainer {
                         // O mejor aún, crea el archivo IntakeIOSim.java después.
                         intakeLiftIO = new IntakeLiftIO() {
                                 @Override
-                                public void setVoltajeRodillos(double volts) {
+                                public void setVoltajeLift(double volts) {
                                 }
 
-                                @Override
-                                public void setVoltajeBrazo(double volts) {
-                                }
+                                
 
                                 @Override
-                                public void stopRodillos() {
-                                }
-
-                                @Override
-                                public void stopBrazo() {
+                                public void stopLift() {
                                 }
                         }; // IO "muda" para que no truene el sim
                 }
@@ -182,35 +176,8 @@ public class RobotContainer {
                                 .withSize(2, 1)
                                 .withPosition(2, 3); // Fila 3, Columna 2
 
-                // ==========================================================
-                // BOTONES SYSID INTAKE (BRAZO)
-                // ==========================================================
-                intakeDiagtab.add("Intake QS Fwd",
-                                new DeferredCommand(() -> s_IntakeLift.sysIdQuasistatic(Direction.kForward),
-                                                Set.of(s_IntakeLift)))
-                                .withSize(2, 1)
-                                .withPosition(4, 2); // Acomodado a la derecha del Shooter
+               
 
-                intakeDiagtab.add("Intake QS Rev",
-                                new DeferredCommand(() -> s_IntakeLift.sysIdQuasistatic(Direction.kReverse),
-                                                Set.of(s_IntakeLift)))
-                                .withSize(2, 1)
-                                .withPosition(6, 2);
-
-                intakeDiagtab.add("Intake Dyn Fwd",
-                                new DeferredCommand(() -> s_IntakeLift.sysIdDynamic(Direction.kForward),
-                                                Set.of(s_IntakeLift)))
-                                .withSize(2, 1)
-                                .withPosition(4, 3);
-
-                intakeDiagtab.add("Intake Dyn Rev",
-                                new DeferredCommand(() -> s_IntakeLift.sysIdDynamic(Direction.kReverse),
-                                                Set.of(s_IntakeLift)))
-                                .withSize(2, 1)
-                                .withPosition(6, 3);
-
-                // Agrega un botón a SmartDashboard/Elastic para activar y desactivar este modo
-                SmartDashboard.putData("Intake/Activar Control Slider", s_IntakeLift.controlPorSlider());
 
                 // Autos
                 autoChooser = AutoBuilder.buildAutoChooser();
@@ -274,12 +241,15 @@ public class RobotContainer {
 
                 // Reset Gyro
                 driver1.rightStick().onTrue(new InstantCommand(s_Swerve::zeroGyro));
-                driver2.a().toggleOnTrue(s_IntakeRollers.tragarPelotas());
-                driver2.b().whileTrue(s_Shooter.runShooterCommand(4000));
+
+
+
+                driver2.x().toggleOnTrue(s_IntakeRollers.tragarPelotas());
+                // driver2.b().whileTrue(s_Shooter.runShooterCommand(4000));
                 driver2.leftBumper().whileTrue(s_Indexer.encender());
-                driver2.x().onTrue(s_IntakeLift.bajar());
-                driver2.y().onTrue(s_IntakeLift.subir());
-                driver2.rightTrigger().whileTrue(
+                driver2.a().onTrue(s_IntakeLift.bajarProtegido());
+                driver2.b().onTrue(s_IntakeLift.subirProtegido());
+                driver2.y().whileTrue(
                                 // 1. Prende el Shooter a 2000 RPM (Se queda corriendo)
                                 s_Shooter.testShooterDesdeDashboard()
                                                 .alongWith(
@@ -290,7 +260,6 @@ public class RobotContainer {
                                                                                                 s_Indexer.encender()                        // pacientemente...
                                                                                  // ¡Fuego!
                                                                 )));
-                
                 driver2.rightBumper().whileTrue(s_IntakeRollers.movimiento());
                 // driver2.b().toggleOnTrue(s_IntakeRollers.tragarPelotas());
         }

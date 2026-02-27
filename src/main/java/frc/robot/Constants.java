@@ -25,9 +25,11 @@ public final class Constants {
 			public static final double kI = 0.00000001;
 			public static final double kD = 0;
 
-			public static final double kS = 0.18168;
-			public static final double kV = 0.12396;
-			public static final double kA = 0.045094;
+			public static final double kS = 0.31309;
+			public static final double kV = 0.12884;
+			public static final double kA = 0.041118;
+
+			public static final double relationMotor = 4/3;
 			
 		}
 

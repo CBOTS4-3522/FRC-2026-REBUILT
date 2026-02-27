@@ -78,7 +78,7 @@ public class Shooter extends SubsystemBase {
         // Asegurarnos de que no dispare si el objetivo es 0
         if (objetivoRPMLlanta == 0.0) return false;
 
-        double rpmReales = inputs.flywheelVelocityRPMLider * 1.5;
+        double rpmReales = inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor;
         double error = Math.abs(objetivoRPMLlanta - rpmReales);
         
         return error < 30.0; // Tolerancia de 30 RPM
@@ -104,8 +104,8 @@ public class Shooter extends SubsystemBase {
 
         SmartDashboard.putNumber("Shooter/Azimuth_CurrentAngle", inputs.azimuthPositionDegrees);
         SmartDashboard.putNumber("Shooter/RPMObjetivo", objetivoRPMLlanta);
-        SmartDashboard.putNumber("SHooter/ObjetivoMotores", objetivoRPMLlanta/1.5);
-        Logger.recordOutput("Shooter/FlywheelRPM_Real", inputs.flywheelVelocityRPMLider * 1.5);
+        SmartDashboard.putNumber("SHooter/ObjetivoMotores", objetivoRPMLlanta/Constants.shooter.flywheels.relationMotor);
+        Logger.recordOutput("Shooter/FlywheelRPM_Real", inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor);
     }
 
     // ==========================================================
@@ -147,7 +147,7 @@ public class Shooter extends SubsystemBase {
             objetivoRPMLlanta = rpmLlanta; 
 
             // 2. Las matemáticas del motor
-            double rpmMotor = rpmLlanta / 1.5;
+            double rpmMotor = rpmLlanta / (Constants.shooter.flywheels.relationMotor);
             double rpsMotor = rpmMotor / 60.0;
             double ffVolts = feedforward.calculate(rpsMotor);
             
@@ -168,7 +168,7 @@ public class Shooter extends SubsystemBase {
             objetivoRPMLlanta = rpmDeseado; 
 
             // C) Las mismas matemáticas perfectas que ya hicimos
-            double rpmMotor = rpmDeseado / 1.5;
+            double rpmMotor = rpmDeseado / Constants.shooter.flywheels.relationMotor;
             double rpsMotor = rpmMotor / 60.0;
             double ffVolts = feedforward.calculate(rpsMotor);
             
