@@ -8,8 +8,6 @@ import static edu.wpi.first.units.Units.Volts;
 
 import org.littletonrobotics.junction.Logger;
 
-import com.fasterxml.jackson.databind.ser.std.StdKeySerializers.Default;
-
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -24,13 +22,12 @@ public class ShooterFlywheels extends SubsystemBase {
     private final ShooterFlywheelsIOInputsAutoLogged inputs = new ShooterFlywheelsIOInputsAutoLogged();
 
     private final SysIdRoutine m_sysIdRoutine;
- 
+
     private double objetivoRPMLlanta = 0.0;
     private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(
-        Constants.shooter.flywheels.kS,
-        Constants.shooter.flywheels.kV,
-        Constants.shooter.flywheels.kA
-    );
+            Constants.shooter.flywheels.kS,
+            Constants.shooter.flywheels.kV,
+            Constants.shooter.flywheels.kA);
 
     private double kP = Constants.shooter.flywheels.kP;
     private double kD = Constants.shooter.flywheels.kD;
@@ -38,34 +35,32 @@ public class ShooterFlywheels extends SubsystemBase {
 
     public ShooterFlywheels(ShooterFlywheelsIO io) {
         this.io = io;
-/*
- * 1m 2750rpm
- * 
- */
+        /*
+         * 1m 2750rpm
+         * 
+         */
         SmartDashboard.putNumber("Shooter/kP", kP);
         SmartDashboard.putNumber("Shooter/kI", kI);
         SmartDashboard.putNumber("Shooter/kD", kD);
 
         SmartDashboard.setDefaultNumber("Shooter/RPM_Test", Constants.shooter.flywheels.defaultRPM);
-       
 
         // -----------------------------------------------------------
         // CONFIGURACIÓN DE SYSID (Flywheel)
         // -----------------------------------------------------------
         m_sysIdRoutine = new SysIdRoutine(
                 new SysIdRoutine.Config(
-                        Volts.per(Second).of(1.0), 
-                        Volts.of(7.0), 
-                        Seconds.of(10), 
-                        null 
-                ),
+                        Volts.per(Second).of(1.0),
+                        Volts.of(7.0),
+                        Seconds.of(10),
+                        null),
                 new SysIdRoutine.Mechanism(
                         (Voltage volts) -> io.setFlywheelVoltage(volts.in(Volts)),
                         log -> {
                             log.motor("shooter-flywheel")
                                     .voltage(Volts.of(inputs.flywheelAppliedVolts))
                                     .angularVelocity(RPM.of(inputs.flywheelVelocityRPMLider))
-                                    .angularPosition(Rotations.of(0)); 
+                                    .angularPosition(Rotations.of(0));
                         },
                         this));
     }
@@ -73,11 +68,12 @@ public class ShooterFlywheels extends SubsystemBase {
     // Devuelve TRUE si ya estamos a +-30 RPM de la meta
     public boolean estaEnVelocidad() {
         // Asegurarnos de que no dispare si el objetivo es 0
-        if (objetivoRPMLlanta == 0.0) return false;
+        if (objetivoRPMLlanta == 0.0)
+            return false;
 
         double rpmReales = inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor;
         double error = Math.abs(objetivoRPMLlanta - rpmReales);
-        
+
         return error < 30.0; // Tolerancia de 30 RPM
     }
 
@@ -99,37 +95,35 @@ public class ShooterFlywheels extends SubsystemBase {
             io.setPID(kP, kI, kD);
         }
 
-
         SmartDashboard.putNumber("Shooter/RPMObjetivo", objetivoRPMLlanta);
-        SmartDashboard.putNumber("SHooter/ObjetivoMotores", objetivoRPMLlanta/Constants.shooter.flywheels.relationMotor);
-        Logger.recordOutput("Shooter/FlywheelRPM_Real", inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor);
+        SmartDashboard.putNumber("SHooter/ObjetivoMotores",
+                objetivoRPMLlanta / Constants.shooter.flywheels.relationMotor);
+        Logger.recordOutput("Shooter/FlywheelRPM_Real",
+                inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor);
     }
 
     // ==========================================================
     // COMANDOS DE AZIMUTH (Torreta)
     // ==========================================================
 
-   
-
-  
     // ==========================================================
-    // COMANDOS DE FLYWHEEL & SYSID 
+    // COMANDOS DE FLYWHEEL & SYSID
     // ==========================================================
 
     public Command runShooterCommand(double rpmLlanta) {
         return this.run(() -> {
             // 1. GUARDAMOS EL OBJETIVO para que lo vea el dashboard
-            objetivoRPMLlanta = rpmLlanta; 
+            objetivoRPMLlanta = rpmLlanta;
 
             // 2. Las matemáticas del motor
             double rpmMotor = rpmLlanta / (Constants.shooter.flywheels.relationMotor);
             double rpsMotor = rpmMotor / 60.0;
             double ffVolts = feedforward.calculate(rpsMotor);
-            
+
             io.setFlywheelVelocity(rpmMotor, ffVolts);
         }).finallyDo(() -> {
             // Cuando el comando se cancele o termine, el objetivo vuelve a 0
-            objetivoRPMLlanta = 0.0; 
+            objetivoRPMLlanta = 0.0;
             io.stopFlywheel();
         });
     }
@@ -138,17 +132,18 @@ public class ShooterFlywheels extends SubsystemBase {
         return this.run(() -> {
             // A) Leer el número que los mecánicos escribieron en Elastic
             double rpmDeseado = SmartDashboard.getNumber("Shooter/RPM_Test", Constants.shooter.flywheels.defaultRPM);
-            
-            // B) Guardamos el objetivo para que tu gráfica de AdvantageScope siga funcionando
-            objetivoRPMLlanta = rpmDeseado; 
+
+            // B) Guardamos el objetivo para que tu gráfica de AdvantageScope siga
+            // funcionando
+            objetivoRPMLlanta = rpmDeseado;
 
             // C) Las mismas matemáticas perfectas que ya hicimos
             double rpmMotor = rpmDeseado / Constants.shooter.flywheels.relationMotor;
             double rpsMotor = rpmMotor / 60.0;
             double ffVolts = feedforward.calculate(rpsMotor);
-            
+
             io.setFlywheelVelocity(rpmMotor, ffVolts);
-            
+
         }).finallyDo(() -> {
             objetivoRPMLlanta = 0.0; // Reiniciamos al soltar el botón
             io.stopFlywheel();
@@ -159,15 +154,14 @@ public class ShooterFlywheels extends SubsystemBase {
         return this.runOnce(() -> {
             objetivoRPMLlanta = 0.0; // Reiniciamos el objetivo
             io.stopFlywheel();
-            
+
         });
     }
 
-    public Command activarManual(){
+    public Command activarManual() {
         return this.runEnd(
-            ()-> io.setFlywheelVoltage(5),
-            () -> io.stopFlywheel()
-        );
+                () -> io.setFlywheelVoltage(5),
+                () -> io.stopFlywheel());
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
