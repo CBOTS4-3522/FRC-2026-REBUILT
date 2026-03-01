@@ -24,7 +24,7 @@ public class Robot extends  LoggedRobot{
 
     // Enviar datos por la red para verlos en vivo en AdvantageScope
     Logger.addDataReceiver(new NT4Publisher()); 
-
+    
     // ¡esta es la linea magica! Sin esto no se guarda nada
     Logger.start();
 

@@ -10,13 +10,13 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import static edu.wpi.first.units.Units.*;
-
 import edu.wpi.first.wpilibj2.command.Command;
 // import edu.wpi.first.units.measure.;
 
@@ -31,6 +31,8 @@ import frc.robot.subsystems.NavXGyro;
 
 public class SwerveBase extends SubsystemBase {
 
+    private double lastDriveKP = Constants.Swerve.Drive.kP;
+    private double lastDriveKD = Constants.Swerve.Drive.kD;
     // Objetos principales
     public SwerveDrivePoseEstimator swerveOdometer;
     public SwerveModule[] swerveMods;
@@ -41,8 +43,15 @@ public class SwerveBase extends SubsystemBase {
 
     public SwerveBase() {
 
+        // cajas para calibrar pid drive
+        SmartDashboard.putNumber("Turning/Drive kP", Constants.Swerve.Drive.kP);
+        SmartDashboard.putNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
+
         SmartDashboard.putNumber("SysId/Tiempo Quasistatic", 7.0); // Necesita más tiempo
         SmartDashboard.putNumber("SysId/Tiempo Dynamic", 1.5); // Necesita poco tiempo
+
+        SmartDashboard.putNumber("Meneito/Amplitud", 1.0);
+        SmartDashboard.putNumber("Meneito/Frecuencia", 10);
 
         swerveMods = new RevSwerveModule[] {
                 new RevSwerveModule(0, Constants.Swerve.Mod0.kConstants),
@@ -66,35 +75,31 @@ public class SwerveBase extends SubsystemBase {
         }
 
         AutoBuilder.configure(
-            this::getPose,                
-            this::resetOdometry,          
-            this::getRobotRelativeSpeeds, 
-            
-    
-            (speeds, feedforwards) -> {
-                ChassisSpeeds fixedSpeeds = new ChassisSpeeds(
-                    speeds.vxMetersPerSecond,
-                    speeds.vyMetersPerSecond,
-                    speeds.omegaRadiansPerSecond
-                );
-                driveRobotRelative(fixedSpeeds);
-            },
-            
-            new PPHolonomicDriveController( 
-                    new PIDConstants(5.0, 0.0, 0.0), 
-                    new PIDConstants(5.0, 0.0, 0.0)  
-            ),
-            config, 
-            () -> {
-                var alliance = DriverStation.getAlliance();
-                if (alliance.isPresent()) {
-                    return alliance.get() == DriverStation.Alliance.Red;
-                }
-                return false;
-            },
-            this 
-        );
-        
+                this::getPose,
+                this::resetOdometry,
+                this::getRobotRelativeSpeeds,
+
+                (speeds, feedforwards) -> {
+                    ChassisSpeeds fixedSpeeds = new ChassisSpeeds(
+                            speeds.vxMetersPerSecond,
+                            speeds.vyMetersPerSecond,
+                            speeds.omegaRadiansPerSecond);
+                    driveRobotRelative(fixedSpeeds);
+                },
+
+                new PPHolonomicDriveController(
+                        new PIDConstants(7.0, 0.0, 0.0), //traslacion
+                        new PIDConstants(5.0, 0.0, 0.0) ), //rotacion
+                config,
+                () -> {
+                    var alliance = DriverStation.getAlliance();
+                    if (alliance.isPresent()) {
+                        return alliance.get() == DriverStation.Alliance.Red;
+                    }
+                    return false;
+                },
+                this);
+
     }
 
     // Método principal para Teleoperado
@@ -180,10 +185,10 @@ public class SwerveBase extends SubsystemBase {
     // --- UTILIDADES ---
 
     public void wheelsIn() {
-        swerveMods[0].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)), false);
-        swerveMods[1].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(135)), false);
-        swerveMods[2].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)), false);
-        swerveMods[3].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-135)), false);
+        swerveMods[0].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)), false, true);
+        swerveMods[1].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(135)), false,true);
+        swerveMods[2].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)), false,true);
+        swerveMods[3].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-135)), false,true);
     }
 
     public void stop() {
@@ -206,6 +211,7 @@ public class SwerveBase extends SubsystemBase {
         return updatedSpeeds;
     }
 
+    // Sysld
     private final SysIdRoutine m_sysIdRoutine = new SysIdRoutine(
             new SysIdRoutine.Config(null, null, Seconds.of(30.0), null),
             new SysIdRoutine.Mechanism(
@@ -239,8 +245,63 @@ public class SwerveBase extends SubsystemBase {
         swerveOdometer.addVisionMeasurement(visionPose, timestamp);
     }
 
+    public Command sacudirChasis() {
+        return this.run(() -> {
+            // Obtenemos el tiempo actual del reloj de la roboRIO
+            double tiempo = Timer.getFPGATimestamp();
+            double frecuencia = SmartDashboard.getNumber("Meneito/Frecuencia", 10.0);
+            double amplitud = SmartDashboard.getNumber("Meneito/Amplitud", 1.0);
+            
+            // Magia matemática:
+            // Multiplicar el tiempo (ej. * 40) cambia qué tan rápido vibra (Frecuencia).
+            // Multiplicar por fuera (ej. * 4.0) cambia qué tan fuerte gira (Amplitud en rad/s).
+            double velocidadVibracion = Math.sin(tiempo * frecuencia) * amplitud; 
+            
+            // Le mandamos 0 en X y Y, y la vibración directa a la rotación (Robot Céntrico)
+            drive(new Translation2d(0, 0), velocidadVibracion, false, true);
+        })
+        // Cuando suelten el botón, detenemos los motores de inmediato por seguridad
+        .finallyDo(() -> stop()); 
+    }
+
+    public void simulationPeriodic() {
+        // 1. Correr la física de cada módulo
+        for (SwerveModule mod : swerveMods) {
+            // Hacemos cast porque la interfaz SwerveModule no tiene este método
+            if(mod instanceof RevSwerveModule) {
+                ((RevSwerveModule)mod).simulationPeriodic(0.02);
+            }
+        }
+
+        // 2. Calcular cómo se movió el chasis REALMENTE basado en las ruedas
+        // Usamos los estados ACTUALES (simulados), no los deseados.
+        SwerveModuleState[] realStates = getModuleStates();
+        ChassisSpeeds actualSpeeds = Constants.Swerve.kSwerveKinematics.toChassisSpeeds(realStates);
+
+        // 3. Actualizar el Giroscopio simulado
+        // Ahora el gyro gira porque las ruedas giraron al chasis (¡Física!)
+        // Multiplicamos por 1000ms/20ms = 50 o simplemente pasamos radianes/segundo si tu updateSimAngle lo soporta.
+        // Viendo tu código anterior, updateSimAngle recibe (dt, radsPerSec):
+        gyro.updateSimAngle(0.02, actualSpeeds.omegaRadiansPerSecond);
+    }
+
     @Override
-    public void periodic() {
+    public void periodic() { 
+        double currentKP = SmartDashboard.getNumber("Tuning/Drive kP", Constants.Swerve.Drive.kP);
+        double currentKD = SmartDashboard.getNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
+
+        // 2. ¿Hubo algún cambio?
+        if (currentKP != lastDriveKP || currentKD != lastDriveKD) {
+            lastDriveKP = currentKP;
+            lastDriveKD = currentKD;
+
+            // Actualizar los 4 módulos de un golpe
+            for (SwerveModule mod : swerveMods) {
+                // Necesitaremos crear este método en RevSwerveModule
+                ((RevSwerveModule) mod).updateDrivePID(currentKP, currentKD);
+            }
+            System.out.println("¡PID de Drive actualizado en vivo!");
+        }
         // Actualización de odometría (esto ya lo tienes)
         swerveOdometer.update(getYaw(), getModulePositions());
 
@@ -255,30 +316,16 @@ public class SwerveBase extends SubsystemBase {
         SwerveModuleState[] desiredStates = new SwerveModuleState[4];
         for (SwerveModule mod : swerveMods) {
             desiredStates[mod.getModuleNumber()] = mod.getDesiredState();
-        }
+        
         Logger.recordOutput("Swerve/ModuleStates/Desired", desiredStates);
+
+        swerveOdometer.update(getYaw(), getModulePositions());
 
         SmartDashboard.putData("field", field);
         field.setRobotPose(getPose());
 
-        for (SwerveModule mod : swerveMods) {
+        
 
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Cancoder",
-                    mod.getCanCoder().getDegrees());
-
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Integrated",
-                    mod.getPosition().angle.getDegrees());
-
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Velocity",
-                    mod.getState().speedMetersPerSecond);
-
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Objetivo",
-                    mod.getDesiredState().speedMetersPerSecond);
-
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Error de Velocidad",
-                    mod.getDesiredState().speedMetersPerSecond - mod.getState().speedMetersPerSecond);
-
-        }
-
+    }
     }
 }
