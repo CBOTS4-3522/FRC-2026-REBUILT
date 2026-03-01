@@ -293,7 +293,7 @@ public class RevSwerveModule implements SwerveModule {
         double accelerationSetpoint = (velocitySetpoint - lastVelocitySetpoint) / dt;
         lastVelocitySetpoint = velocitySetpoint;
 
-        // CÁLCULO DE VOLTAJE DE DRIVE
+        //Calculo de voltaje ff
         // Feedforward: kS (Fricción) + kV (Velocidad) + kA (Aceleración)
         double driveVoltage = 0.0;
         if (Math.abs(velocitySetpoint) > 0.01) {
@@ -312,7 +312,7 @@ public class RevSwerveModule implements SwerveModule {
         double velocityError = velocitySetpoint - currentSimVelocity;
         driveVoltage += velocityError * (Constants.Swerve.Drive.kP * 12.0); 
 
-        // CÁLCULO DE VOLTAJE DE ANGLE (Giro)
+        // calculo de voltaje de giro
         double angleErrorDegrees = desiredState.angle.minus(getAngle()).getDegrees();
         // Asumiendo que kP de Angle también está ajustado para SparkMax (0-1)
         double angleVoltage = angleErrorDegrees * (Constants.Swerve.Angle.kP * 12.0);
@@ -323,7 +323,7 @@ public class RevSwerveModule implements SwerveModule {
         angleVoltage = MathUtil.clamp(angleVoltage, -12.0, 12.0);
 
 
-        // --- 2. FÍSICA DEL MUNDO REAL (DCMotorSim) ---
+        // --- 2. FISICA DEL MUNDO REAL (DCMotorSim) ---
         // Le mandamos los voltios calculados al motor virtual
         mDriveSim.setInputVoltage(driveVoltage);
         mAngleSim.setInputVoltage(angleVoltage);

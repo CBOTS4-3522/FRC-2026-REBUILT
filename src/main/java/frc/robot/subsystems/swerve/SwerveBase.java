@@ -18,6 +18,9 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 // import edu.wpi.first.units.measure.;
 
 // Importaciones de PathPlanner
@@ -178,7 +181,7 @@ public class SwerveBase extends SubsystemBase {
                 : gyro.getRotation2d();
     }
 
-    public double getPitch() {
+    public double getRoll() {
         return gyro.getRoll();
     }
 
@@ -241,9 +244,10 @@ public class SwerveBase extends SubsystemBase {
                 .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
     }
 
-    public void addVisionMeasurement(Pose2d visionPose, double timestamp) {
-        swerveOdometer.addVisionMeasurement(visionPose, timestamp);
-    }
+  public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
+    // Ahora le pasamos los 3 parámetros al odómetro (o PoseEstimator)
+    swerveOdometer.addVisionMeasurement(visionPose, timestamp, stdDevs);
+}
 
     public Command sacudirChasis() {
         return this.run(() -> {

@@ -24,7 +24,7 @@ public final class Constants {
             new Translation3d(0.0, 0.0, Units.inchesToMeters(46.0)), // X, Y, Z (46 pulgadas de alto)
             new Rotation3d(0.0, Units.degreesToRadians(-60.0), 0.0)  // Roll, Pitch, Yaw
         );
-		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
 	}
 
 
