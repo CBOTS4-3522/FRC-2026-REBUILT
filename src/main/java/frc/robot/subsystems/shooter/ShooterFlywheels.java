@@ -1,27 +1,30 @@
 package frc.robot.subsystems.shooter;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import org.littletonrobotics.junction.Logger;
 
-public class Shooter extends SubsystemBase {
+import com.fasterxml.jackson.databind.ser.std.StdKeySerializers.Default;
 
-    private final ShooterIO io;
-    private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants;
+
+public class ShooterFlywheels extends SubsystemBase {
+
+    private final ShooterFlywheelsIO io;
+    private final ShooterFlywheelsIOInputsAutoLogged inputs = new ShooterFlywheelsIOInputsAutoLogged();
 
     private final SysIdRoutine m_sysIdRoutine;
-    private final ProfiledPIDController azimuthPID;
+ 
     private double objetivoRPMLlanta = 0.0;
     private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(
         Constants.shooter.flywheels.kS,
@@ -33,24 +36,18 @@ public class Shooter extends SubsystemBase {
     private double kD = Constants.shooter.flywheels.kD;
     private double kI = Constants.shooter.flywheels.kI;
 
-    public Shooter(ShooterIO io) {
+    public ShooterFlywheels(ShooterFlywheelsIO io) {
         this.io = io;
-
+/*
+ * 1m 2750rpm
+ * 
+ */
         SmartDashboard.putNumber("Shooter/kP", kP);
         SmartDashboard.putNumber("Shooter/kI", kI);
         SmartDashboard.putNumber("Shooter/kD", kD);
 
-        SmartDashboard.setDefaultNumber("Shooter/RPM_Test", 2000.0);
-        // -----------------------------------------------------------
-        // CONFIGURACIÓN DEL AZIMUTH (Torreta)
-        // -----------------------------------------------------------
-        azimuthPID = new ProfiledPIDController(
-                0.015, 0.0, 0.0, 
-                new TrapezoidProfile.Constraints(180, 100) 
-        );
-        azimuthPID.setTolerance(1.0); 
-
-        SmartDashboard.putData("Shooter/Azimuth_PID", azimuthPID);
+        SmartDashboard.setDefaultNumber("Shooter/RPM_Test", Constants.shooter.flywheels.defaultRPM);
+       
 
         // -----------------------------------------------------------
         // CONFIGURACIÓN DE SYSID (Flywheel)
@@ -87,7 +84,7 @@ public class Shooter extends SubsystemBase {
     @Override
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.processInputs("Shooter", inputs);
+        Logger.processInputs("Shooter/Flywheels", inputs);
 
         double pDashboard = SmartDashboard.getNumber("Shooter/kP", kP);
         double iDashboard = SmartDashboard.getNumber("Shooter/kI", kI);
@@ -102,7 +99,7 @@ public class Shooter extends SubsystemBase {
             io.setPID(kP, kI, kD);
         }
 
-        SmartDashboard.putNumber("Shooter/Azimuth_CurrentAngle", inputs.azimuthPositionDegrees);
+
         SmartDashboard.putNumber("Shooter/RPMObjetivo", objetivoRPMLlanta);
         SmartDashboard.putNumber("SHooter/ObjetivoMotores", objetivoRPMLlanta/Constants.shooter.flywheels.relationMotor);
         Logger.recordOutput("Shooter/FlywheelRPM_Real", inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor);
@@ -112,31 +109,9 @@ public class Shooter extends SubsystemBase {
     // COMANDOS DE AZIMUTH (Torreta)
     // ==========================================================
 
-    public Command setAzimuthAngleCommand(double targetDegrees) {
-        return this.run(() -> {
-            double pidOutput = azimuthPID.calculate(inputs.azimuthPositionDegrees, targetDegrees);
-            io.setAzimuthVoltage(pidOutput);
-        })
-        .finallyDo(() -> io.stopAzimuth());
-    }
+   
 
-    public Command resetAzimuthEncoder() {
-        return runOnce(() -> io.setAzimuthZero());
-    }
-
-    public Command manualAzimuthCommand(double volts) {
-        return run(() -> io.setAzimuthVoltage(volts));
-    }
-
-    // ==========================================================
-    // COMANDOS DE PIVOT (Chamfle con Servo)
-    // ==========================================================
-
-    public Command setPivotAngleCommand(double targetDegrees) {
-        // targetDegrees normalmente va de 0 a 180 para un servo estándar
-        return this.runOnce(() -> io.setPivotAngle(targetDegrees));
-    }
-
+  
     // ==========================================================
     // COMANDOS DE FLYWHEEL & SYSID 
     // ==========================================================
@@ -162,7 +137,7 @@ public class Shooter extends SubsystemBase {
     public Command testShooterDesdeDashboard() {
         return this.run(() -> {
             // A) Leer el número que los mecánicos escribieron en Elastic
-            double rpmDeseado = SmartDashboard.getNumber("Shooter/RPM_Test", 0.0);
+            double rpmDeseado = SmartDashboard.getNumber("Shooter/RPM_Test", Constants.shooter.flywheels.defaultRPM);
             
             // B) Guardamos el objetivo para que tu gráfica de AdvantageScope siga funcionando
             objetivoRPMLlanta = rpmDeseado; 

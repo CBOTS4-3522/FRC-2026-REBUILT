@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -48,6 +49,9 @@ public class SwerveBase extends SubsystemBase {
 
         SmartDashboard.putNumber("SysId/Tiempo Quasistatic", 7.0); // Necesita más tiempo
         SmartDashboard.putNumber("SysId/Tiempo Dynamic", 1.5); // Necesita poco tiempo
+
+        SmartDashboard.putNumber("Meneito/Amplitud", 1.0);
+        SmartDashboard.putNumber("Meneito/Frecuencia", 10);
 
         swerveMods = new RevSwerveModule[] {
                 new RevSwerveModule(0, Constants.Swerve.Mod0.kConstants),
@@ -235,6 +239,25 @@ public class SwerveBase extends SubsystemBase {
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
         return m_sysIdRoutine.dynamic(direction)
                 .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
+    }
+
+    public Command sacudirChasis() {
+        return this.run(() -> {
+            // Obtenemos el tiempo actual del reloj de la roboRIO
+            double tiempo = Timer.getFPGATimestamp();
+            double frecuencia = SmartDashboard.getNumber("Meneito/Frecuencia", 10.0);
+            double amplitud = SmartDashboard.getNumber("Meneito/Amplitud", 1.0);
+            
+            // Magia matemática:
+            // Multiplicar el tiempo (ej. * 40) cambia qué tan rápido vibra (Frecuencia).
+            // Multiplicar por fuera (ej. * 4.0) cambia qué tan fuerte gira (Amplitud en rad/s).
+            double velocidadVibracion = Math.sin(tiempo * frecuencia) * amplitud; 
+            
+            // Le mandamos 0 en X y Y, y la vibración directa a la rotación (Robot Céntrico)
+            drive(new Translation2d(0, 0), velocidadVibracion, false, true);
+        })
+        // Cuando suelten el botón, detenemos los motores de inmediato por seguridad
+        .finallyDo(() -> stop()); 
     }
 
     public void simulationPeriodic() {

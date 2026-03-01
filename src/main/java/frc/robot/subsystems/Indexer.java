@@ -34,7 +34,7 @@ public class Indexer extends SubsystemBase {
     public Command encender (){
         return this.runEnd(
             () -> {
-                double velocidadLeida = SmartDashboard.getNumber("Indexer/velocidad", velocidad);
+                double velocidadLeida = SmartDashboard.getNumber("Indexer/Velocidad", velocidad);
                 motor.set(velocidadLeida);
             },
             () -> motor.stopMotor() 
@@ -44,7 +44,7 @@ public class Indexer extends SubsystemBase {
     public Command alRevez (){
         return this.runEnd(
             () -> {
-            double velocidadLeida = SmartDashboard.getNumber("Indexer/velocidad" ,-velocidad);
+            double velocidadLeida = -SmartDashboard.getNumber("Indexer/Velocidad" ,velocidad);
                 motor.set(velocidadLeida);
             }
             , () -> {
@@ -88,7 +88,7 @@ public class Indexer extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Indexer/Corriente", motor.getOutputCurrent());
-        SmartDashboard.putNumber("Indexer/Velocidad", motor.getEncoder().getVelocity());
+        SmartDashboard.putNumber("Indexer/VelocidadReal", motor.getEncoder().getVelocity());
         SmartDashboard.putNumber("Indexer/Posicion", motor.getEncoder().getPosition());
         
     }

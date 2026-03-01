@@ -1,12 +1,14 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.*;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import frc.lib.util.swerveUtil.SwerveConstants;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import frc.lib.util.swerveUtil.SwerveConstants;
 
 public final class Constants {
 
@@ -21,15 +23,17 @@ public final class Constants {
 		public static final class flywheels {
 			public static final byte kLiderID = 50;
 			public static final byte kSeguidorID = 51;
-			public static final double kP = 0.0001;
-			public static final double kI = 0.00000001;
-			public static final double kD = 0;
+			public static final double kP = 0.0003;
+			public static final double kI = 0.000000022;
+			public static final double kD = 0.001;
 
 			public static final double kS = 0.31309;
 			public static final double kV = 0.12884;
 			public static final double kA = 0.041118;
 
-			public static final double relationMotor = 4/3;
+			public static final double relationMotor = 4.0/3.0;
+
+			public static final double defaultRPM = 2750;
 			
 		}
 
@@ -47,29 +51,11 @@ public final class Constants {
 
 	public static final class Indexer {
 		public static final int kMotorID = 53;
-		public static final double kVelocidad = 1;
+		public static final double kVelocidad = 0.85;
 
 	}
 
-	// public static final class shooter {
-
-	// public static final class flywheel {
-	// public static final byte kLiderID = 50;
-	// public static final byte kSeguidorID = 51;
-
-	// public static final double kP = 0.0001;
-	// public static final double kI = 0;
-	// public static final double kD = 0;
-
-	// public static final double kV = 0.00018;
-	// public static final double kA = 0.000;
-	// public static final double kS = 0.000;
-	// }
-	// public static final class pivot {
-	// public static final byte kID = 54;
-	// }
-
-	// }
+	
 
 	public static final class Intake {
 

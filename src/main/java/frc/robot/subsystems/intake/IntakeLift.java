@@ -1,19 +1,9 @@
 package frc.robot.subsystems.intake;
 
-import frc.robot.Constants;
-
-import edu.wpi.first.math.MathUtil;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.DriverStation;
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.units.measure.Voltage;
-import static edu.wpi.first.units.Units.*;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeLift extends SubsystemBase {
 
@@ -25,20 +15,16 @@ public class IntakeLift extends SubsystemBase {
     public IntakeLift(IntakeLiftIO io) {
         this.io = io;
 
-        
-
-        
-
     }
 
    public Command bajarProtegido() {
         return this.run(() -> {
-            io.setVoltajeLift(-12); // Voltaje normal de bajada
+            io.setVoltajeLift(-8); // Voltaje normal de bajada
         })
         // LA PROTECCIÓN: Si choca contra el piso ANTES de los 0.8s, se apaga.
         // O si ya estaba en el piso al presionar el botón, se apaga en 0.1s.
-        .until(() -> inputs.brazoCorriente > 30.0) // (Usa un amperaje un poco más alto aquí)
-        .withTimeout(0.8) // Freno de seguridad por tiempo
+        .until(() -> inputs.brazoCorriente > 15.0) // (Usa un amperaje un poco más alto aquí)
+        .withTimeout(1.5) // Freno de seguridad por tiempo
         .finallyDo(() -> io.stopLift());
     }
 
@@ -48,7 +34,7 @@ public class IntakeLift extends SubsystemBase {
         })
         // LA PROTECCIÓN: Si choca arriba, corta la energía fuerte y pasa a sostenimiento
         .until(() -> inputs.brazoCorriente > 25.0) 
-        .withTimeout(1.0) 
+        .withTimeout(0.7) 
         .finallyDo(() -> io.setVoltajeLift(-0.5)); // Voltaje para que no se caiga
     }
 
@@ -70,18 +56,10 @@ public class IntakeLift extends SubsystemBase {
         });
     }
 
-    
-    
-
     @Override
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Intake", inputs);
-
-       
-        
-
-        
 
     }
 }

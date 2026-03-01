@@ -2,18 +2,10 @@ package frc.robot.subsystems.shooter;
 
 import org.littletonrobotics.junction.AutoLog;
 
-public interface ShooterIO {
+public interface ShooterAzimuthIO {
     
     @AutoLog
-    public static class ShooterIOInputs {
-        // --- Flywheels ---
-        public double flywheelVelocityRPMLider = 0.0;
-        public double flywheelVelocityRPMFollower = 0.0;
-        public double flywheelAppliedVolts = 0.0;
-        public double flywheelCurrentAmps = 0.0;
-        public double flywheelTemplider = 0.0;
-        public double flywheeltempFollower = 0.0;
-        
+    public static class ShooterAzimuthIOInputs {
         // --- Azimuth (Torreta - Spark MAX) ---
         public double azimuthPositionDegrees = 0.0;
         public double azimuthVelocityDegPerSec = 0.0; 
@@ -25,12 +17,7 @@ public interface ShooterIO {
         public double pivotAngleDegrees = 0.0; 
     }
 
-    public default void updateInputs(ShooterIOInputs inputs) {}
-
-    // Flywheel
-    public default void setFlywheelVoltage(double volts) {}
-    public default void setFlywheelVelocity(double rpm, double ffVolts) {}
-    public default void stopFlywheel() {}
+    public default void updateInputs(ShooterAzimuthIOInputs inputs) {}
 
     // Azimuth (Torreta)
     public default void setAzimuthVoltage(double volts) {}
@@ -40,6 +27,5 @@ public interface ShooterIO {
     // Pivot (Chamfle)
     public default void setPivotAngle(double degrees) {}
     
-    //PID flywheels
-    public default void setPID(double p, double i, double d) {}
+
 }
