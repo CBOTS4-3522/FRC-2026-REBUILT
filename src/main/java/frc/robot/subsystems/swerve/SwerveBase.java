@@ -36,7 +36,7 @@ public class SwerveBase extends SubsystemBase {
 
     private double lastDriveKP = Constants.Swerve.Drive.kP;
     private double lastDriveKD = Constants.Swerve.Drive.kD;
-    // Objetos principales
+    
     public SwerveDrivePoseEstimator swerveOdometer;
     public SwerveModule[] swerveMods;
     public NavXGyro gyro = NavXGyro.getInstance();
@@ -244,10 +244,29 @@ public class SwerveBase extends SubsystemBase {
                 .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
     }
 
-  public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
-    // Ahora le pasamos los 3 parámetros al odómetro (o PoseEstimator)
-    swerveOdometer.addVisionMeasurement(visionPose, timestamp, stdDevs);
-}
+
+//Vision Measurement
+   public void addVisionMeasurement(Pose2d visionRobotPose, double timestampSeconds, Matrix<N3, N1> visionMeasurementStdDevs) {
+        
+        // Obtener velocidad angular actual del chasis
+        ChassisSpeeds speeds = Constants.Swerve.kSwerveKinematics.toChassisSpeeds(getModuleStates());
+        double velocidadAngular = Math.abs(speeds.omegaRadiansPerSecond);
+
+        //Definir el umbral (Ajustable: 7.0 rad/s es un buen punto de partida)
+        double maxVelocidadAngular = 7.0; 
+
+        // Lógica de rechazo
+        if (velocidadAngular > maxVelocidadAngular) {
+            //Medición rechazada
+            Logger.recordOutput("Vision/RejectedByVelocity", true);
+            Logger.recordOutput("Vision/RejectionReason", "Giro demasiado rápido: " + velocidadAngular);
+            return; // Salimos sin aplicar la medición
+        }
+
+        //Medición segura
+        Logger.recordOutput("Vision/RejectedByVelocity", false);
+        swerveOdometer.addVisionMeasurement(visionRobotPose, timestampSeconds, visionMeasurementStdDevs);
+    }
 
     public Command sacudirChasis() {
         return this.run(() -> {
@@ -256,7 +275,6 @@ public class SwerveBase extends SubsystemBase {
             double frecuencia = SmartDashboard.getNumber("Meneito/Frecuencia", 10.0);
             double amplitud = SmartDashboard.getNumber("Meneito/Amplitud", 1.0);
             
-            // Magia matemática:
             // Multiplicar el tiempo (ej. * 40) cambia qué tan rápido vibra (Frecuencia).
             // Multiplicar por fuera (ej. * 4.0) cambia qué tan fuerte gira (Amplitud en rad/s).
             double velocidadVibracion = Math.sin(tiempo * frecuencia) * amplitud; 
@@ -289,47 +307,37 @@ public class SwerveBase extends SubsystemBase {
         gyro.updateSimAngle(0.02, actualSpeeds.omegaRadiansPerSecond);
     }
 
-    @Override
+  @Override
     public void periodic() { 
+        // 1. Actualización de PID dinámico desde SmartDashboard
         double currentKP = SmartDashboard.getNumber("Tuning/Drive kP", Constants.Swerve.Drive.kP);
         double currentKD = SmartDashboard.getNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
 
-        // 2. ¿Hubo algún cambio?
         if (currentKP != lastDriveKP || currentKD != lastDriveKD) {
             lastDriveKP = currentKP;
             lastDriveKD = currentKD;
-
-            // Actualizar los 4 módulos de un golpe
             for (SwerveModule mod : swerveMods) {
-                // Necesitaremos crear este método en RevSwerveModule
                 ((RevSwerveModule) mod).updateDrivePID(currentKP, currentKD);
             }
-            System.out.println("¡PID de Drive actualizado en vivo!");
         }
-        // Actualización de odometría (esto ya lo tienes)
+
+        // 2. ACTUALIZACIÓN ÚNICA DE ODOMETRÍA (IMPORTANTE)
         swerveOdometer.update(getYaw(), getModulePositions());
 
-        // 1. Log de la posición 2D del robot (Pose2d)
+        // 3. TELEMETRÍA Y LOGS
         Logger.recordOutput("Odometry/RobotPose", swerveOdometer.getEstimatedPosition());
-
-        // 2. Log de los estados de los módulos (Real vs Deseado)
-        // Esto enviará un arreglo que AdvantageScope puede dibujar en 3D
         Logger.recordOutput("Swerve/ModuleStates/Real", getModuleStates());
 
-        // Necesitamos obtener los estados deseados de todos los módulos
+        // Corregido: Obtener estados deseados correctamente
         SwerveModuleState[] desiredStates = new SwerveModuleState[4];
         for (SwerveModule mod : swerveMods) {
             desiredStates[mod.getModuleNumber()] = mod.getDesiredState();
+        } // <--- Aquí faltaba cerrar este for correctamente
         
         Logger.recordOutput("Swerve/ModuleStates/Desired", desiredStates);
 
-        swerveOdometer.update(getYaw(), getModulePositions());
-
-        SmartDashboard.putData("field", field);
+        // Field2d para el simulador y Dashboard
         field.setRobotPose(getPose());
-
-        
-
-    }
-    }
+        SmartDashboard.putData("field", field);
+    } // Cierre de periodic
 }

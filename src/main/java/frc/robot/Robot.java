@@ -9,26 +9,23 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 
-public class Robot extends  LoggedRobot{
+public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
   RobotContainer m_robotContainer;
 
-  
   @Override
   public void robotInit() {
     // Indica el nombre del proyecto
-    Logger.recordMetadata("ProjectName", "CBOTS4-2026"); 
+    Logger.recordMetadata("ProjectName", "CBOTS4-2026");
 
     // Guardar logs en la memoria interna de la roboRIO (o USB si hay una)
-    Logger.addDataReceiver(new WPILOGWriter()); 
+    Logger.addDataReceiver(new WPILOGWriter());
 
     // Enviar datos por la red para verlos en vivo en AdvantageScope
-    Logger.addDataReceiver(new NT4Publisher()); 
-    
+    Logger.addDataReceiver(new NT4Publisher());
+
     // ¡esta es la linea magica! Sin esto no se guarda nada
     Logger.start();
-
- 
 
     m_robotContainer = new RobotContainer();
 
@@ -37,8 +34,7 @@ public class Robot extends  LoggedRobot{
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-    
-  
+
   }
 
   @Override
@@ -49,7 +45,7 @@ public class Robot extends  LoggedRobot{
 
   @Override
   public void testPeriodic() {
-    
+
   }
 
   @Override
@@ -63,12 +59,10 @@ public class Robot extends  LoggedRobot{
 
   @Override
   public void teleopInit() {
-    
+
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
   }
 
-  
-  
 }
