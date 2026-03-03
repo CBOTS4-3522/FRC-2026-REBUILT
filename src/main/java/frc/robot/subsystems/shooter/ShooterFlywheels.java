@@ -6,9 +6,12 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.DoubleSupplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,6 +23,7 @@ public class ShooterFlywheels extends SubsystemBase {
 
     private final ShooterFlywheelsIO io;
     private final ShooterFlywheelsIOInputsAutoLogged inputs = new ShooterFlywheelsIOInputsAutoLogged();
+    private final InterpolatingDoubleTreeMap mapaRPM = new InterpolatingDoubleTreeMap();
 
     private final SysIdRoutine m_sysIdRoutine;
 
@@ -35,6 +39,8 @@ public class ShooterFlywheels extends SubsystemBase {
 
     public ShooterFlywheels(ShooterFlywheelsIO io) {
         this.io = io;
+
+        mapaRPM.put(1.0, 2750.0);
         /*
          * 1m 2750rpm
          * 
@@ -75,6 +81,19 @@ public class ShooterFlywheels extends SubsystemBase {
         double error = Math.abs(objetivoRPMLlanta - rpmReales);
 
         return error < 30.0; // Tolerancia de 30 RPM
+    }
+
+    public void setObjetivoRPM(double rpm) {
+        objetivoRPMLlanta = rpm;
+        double rpmMotor = rpm / Constants.shooter.flywheels.relationMotor;
+        double rpsMotor = rpmMotor / 60.0;
+        double ffVolts = feedforward.calculate(rpsMotor);
+        io.setFlywheelVelocity(rpmMotor, ffVolts);
+    }
+
+    public void detener() {
+        objetivoRPMLlanta = 0.0;
+        io.stopFlywheel();
     }
 
     @Override
@@ -162,6 +181,30 @@ public class ShooterFlywheels extends SubsystemBase {
         return this.runEnd(
                 () -> io.setFlywheelVoltage(5),
                 () -> io.stopFlywheel());
+    }
+
+    public Command dispararConMapa(DoubleSupplier distanciaMetrosSupplier) {
+        return this.run(() -> {
+            // 1. Obtenemos la distancia actual
+            double distanciaActual = distanciaMetrosSupplier.getAsDouble();
+
+            // 2. Le preguntamos al mapa cuántas RPM necesitamos para esa distancia
+            double rpmDeseado = mapaRPM.get(distanciaActual);
+
+            // 3. Lo guardamos para que AdvantageScope y estaEnVelocidad() lo vean
+            objetivoRPMLlanta = rpmDeseado;
+
+            // 4. Matemáticas de motores (Idénticas a tu otro comando)
+            double rpmMotor = rpmDeseado / Constants.shooter.flywheels.relationMotor;
+            double rpsMotor = rpmMotor / 60.0;
+            double ffVolts = feedforward.calculate(rpsMotor);
+
+            io.setFlywheelVelocity(rpmMotor, ffVolts);
+
+        }).finallyDo(() -> {
+            objetivoRPMLlanta = 0.0;
+            io.stopFlywheel();
+        });
     }
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

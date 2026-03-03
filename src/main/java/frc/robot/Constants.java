@@ -20,6 +20,28 @@ public final class Constants {
 
 	public static final class shooter {
 
+		// ... dentro de public static final class shooter { ...
+
+		// 1. El pequeño offset medido en Onshape (Desde el Módulo 3 hacia el Shooter)
+		// NOTA DE SIGNOS WPILib: +X es hacia el FRENTE del robot, +Y es hacia la
+		// IZQUIERDA.
+		// Si el shooter está "hacia el frente" y "hacia el centro (derecha)" respecto a
+		// la llanta trasera-izquierda:
+		public static final Translation2d kOffsetDesdeModulo = new Translation2d(
+				Units.inchesToMeters(3.663), // X: Distancia hacia el frente
+				Units.inchesToMeters(-4.564) // Y: Distancia hacia el centro (Derecha es negativo en WPILib)
+		);
+
+		// 2. El Offset Total (Centro del Robot -> Shooter)
+		// Literalmente le decimos: "Ve a la llanta trasera-izquierda, y súmale el
+		// offset de Onshape"
+		public static final Translation2d kShooterOffset = new Translation2d(
+				-Constants.Swerve.kWheelBase / 2.0,
+				Constants.Swerve.kTrackWidth / 2.0).plus(kOffsetDesdeModulo);
+
+		// Coordenada exacta del Núcleo (Juego: Rebuilt)
+		public static final Translation2d kPosicionMeta = new Translation2d(4.625, 4.034);
+
 		public static final class flywheels {
 			public static final byte kLiderID = 50;
 			public static final byte kSeguidorID = 51;
@@ -31,10 +53,10 @@ public final class Constants {
 			public static final double kV = 0.12884;
 			public static final double kA = 0.041118;
 
-			public static final double relationMotor = 4.0/3.0;
+			public static final double relationMotor = 4.0 / 3.0;
 
 			public static final double defaultRPM = 2750;
-			
+
 		}
 
 		public static final class azimuth {
@@ -54,8 +76,6 @@ public final class Constants {
 		public static final double kVelocidad = 0.85;
 
 	}
-
-	
 
 	public static final class Intake {
 

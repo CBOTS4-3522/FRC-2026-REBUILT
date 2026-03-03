@@ -20,7 +20,7 @@ public class IntakeRollersIOReal implements IntakeRollersIO {
 
         SparkMaxConfig configRodillos = new SparkMaxConfig();
         configRodillos.idleMode(IdleMode.kCoast);
-        configRodillos.smartCurrentLimit(60);
+        configRodillos.smartCurrentLimit(35);
 
         
 

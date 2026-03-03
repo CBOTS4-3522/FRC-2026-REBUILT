@@ -19,7 +19,7 @@ public class ShooterAzimuth extends SubsystemBase {
 
     private final ProfiledPIDController azimuthPID;
   
-
+    
     
 
    
@@ -81,7 +81,7 @@ public class ShooterAzimuth extends SubsystemBase {
             double valChamfle = MathUtil.applyDeadband(ejeChamfle.getAsDouble(), 0.1);
             
             // Si mueven la palanca, le sumamos grados a la memoria (ej. 1.5 grados cada 20ms)
-            anguloChamfleManual += valChamfle * 1.5; 
+            anguloChamfleManual += valChamfle * 5; 
             
             // Límite duro de software para no tronar el servo mecánicamente
             anguloChamfleManual = MathUtil.clamp(anguloChamfleManual, 0.0, 180.0);
@@ -102,6 +102,15 @@ public class ShooterAzimuth extends SubsystemBase {
         return this.runEnd(() -> io.setAzimuthVoltage(volts), ()-> io.stopAzimuth());
     }
 
+    public void setObjetivo( double targetChamfle) {
+        
+        
+        io.setPivotAngle(targetChamfle);
+    }
+
+    public void detener() {
+        io.stopAzimuth();
+    }
     
 
     // ==========================================================
