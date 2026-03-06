@@ -49,21 +49,21 @@ public final class Constants {
 			public static final double kI = 0.000000022;
 			public static final double kD = 0.001;
 
-			public static final double kS = 0.31309;
-			public static final double kV = 0.12884;
-			public static final double kA = 0.041118;
+			public static final double kS = 0.25941;
+			public static final double kV = 0.125;
+			public static final double kA = 0.040438;
 
 			public static final double relationMotor = 4.0 / 3.0;
 
-			public static final double defaultRPM = 2750;
+			public static final double defaultRPM = 3000;
 
 		}
 
 		public static final class azimuth {
 			public static final byte kID = 54;
-			public static final double kP = 0.0001;
+			public static final double kP = 0.5;
 			public static final double kI = 0;
-			public static final double kD = 0;
+			public static final double kD = 0.01;
 
 			public static final double kV = 0.0;
 			public static final double kA = 0.0;
@@ -72,8 +72,10 @@ public final class Constants {
 	}
 
 	public static final class Indexer {
-		public static final int kMotorID = 53;
-		public static final double kVelocidad = 0.85;
+		public static final int kMotorBandasID = 53;
+		public static final int kMotorMecanumID = 55;
+		public static final double kVelocidadBandas = 1;
+		public static final double kVelocidadMecanum = 0.5;
 
 	}
 

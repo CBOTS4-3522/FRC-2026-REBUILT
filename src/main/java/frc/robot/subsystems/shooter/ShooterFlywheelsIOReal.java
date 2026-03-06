@@ -29,7 +29,7 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
 
         // Motor líder
         configFlywheel.idleMode(IdleMode.kBrake);
-        configFlywheel.inverted(true);
+        configFlywheel.inverted(false);
         configFlywheel.closedLoopRampRate(0.5);
         configFlywheel.closedLoop.p(Constants.shooter.flywheels.kP);
         configFlywheel.closedLoop.i(Constants.shooter.flywheels.kI);

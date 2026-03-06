@@ -36,9 +36,11 @@ public class ShooterAzimuthIOReal implements ShooterAzimuthIO {
         SparkMaxConfig configAzimuth = new SparkMaxConfig();
         configAzimuth.idleMode(IdleMode.kBrake); // Mejor Brake para la torreta
         configAzimuth.smartCurrentLimit(40); // Bajamos el límite para seguridad
-        configAzimuth.inverted(false);
-        configAzimuth.limitSwitch.forwardLimitSwitchType(Type.kNormallyClosed);
+        configAzimuth.inverted(true);
+        configAzimuth.limitSwitch.forwardLimitSwitchType(Type.kNormallyOpen);
         configAzimuth.limitSwitch.reverseLimitSwitchType(Type.kNormallyClosed);
+
+        configAzimuth.absoluteEncoder.inverted(true); // (O false)
 
         motorAzimuth.configure(configAzimuth, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -70,6 +72,7 @@ public class ShooterAzimuthIOReal implements ShooterAzimuthIO {
         double rawDegrees = (totalEncoderTurns / kEncoderGearRatio) * 360.0;
 
         inputs.azimuthPositionDegrees = rawDegrees - angleOffset;
+        inputs.isAzimuthLimitSwitchPressed = motorAzimuth.getReverseLimitSwitch().isPressed();
 
         // --- Resto de inputs ---
         inputs.azimuthAppliedVolts = motorAzimuth.getBusVoltage() * motorAzimuth.getAppliedOutput();
@@ -94,6 +97,12 @@ public class ShooterAzimuthIOReal implements ShooterAzimuthIO {
     public void setPivotAngle(double degrees) {
         // Los servos estándar de FRC aceptan de 0 a 180 grados
         pivotServo.setAngle(degrees);
+    }
+
+    @Override
+    public void setAzimuthPosition(double degrees){
+        double currentRawDegrees = ((azimuthTotalRotations + lastRawPosition) / kEncoderGearRatio) * 360.0;
+        this.angleOffset = currentRawDegrees - degrees;
     }
 
     @Override

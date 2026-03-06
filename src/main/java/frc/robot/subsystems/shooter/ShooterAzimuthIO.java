@@ -22,6 +22,7 @@ public interface ShooterAzimuthIO {
     // Azimuth (Torreta)
     public default void setAzimuthVoltage(double volts) {}
     public default void stopAzimuth() {}
+    public default void setAzimuthPosition(double degrees) {}
     public default void setAzimuthZero() {}
 
     // Pivot (Chamfle)

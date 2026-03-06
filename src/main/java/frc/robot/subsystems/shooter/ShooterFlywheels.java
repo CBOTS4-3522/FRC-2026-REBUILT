@@ -16,6 +16,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 
@@ -36,11 +37,12 @@ public class ShooterFlywheels extends SubsystemBase {
     private double kP = Constants.shooter.flywheels.kP;
     private double kD = Constants.shooter.flywheels.kD;
     private double kI = Constants.shooter.flywheels.kI;
+    // Variables para contar pelotas
+
 
     public ShooterFlywheels(ShooterFlywheelsIO io) {
         this.io = io;
 
-        mapaRPM.put(1.0, 2750.0);
         /*
          * 1m 2750rpm
          * 
@@ -83,6 +85,7 @@ public class ShooterFlywheels extends SubsystemBase {
         return error < 30.0; // Tolerancia de 30 RPM
     }
 
+
     public void setObjetivoRPM(double rpm) {
         objetivoRPMLlanta = rpm;
         double rpmMotor = rpm / Constants.shooter.flywheels.relationMotor;
@@ -101,6 +104,7 @@ public class ShooterFlywheels extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Shooter/Flywheels", inputs);
 
+   
         double pDashboard = SmartDashboard.getNumber("Shooter/kP", kP);
         double iDashboard = SmartDashboard.getNumber("Shooter/kI", kI);
         double dDashboard = SmartDashboard.getNumber("Shooter/kD", kD);
@@ -167,6 +171,23 @@ public class ShooterFlywheels extends SubsystemBase {
             objetivoRPMLlanta = 0.0; // Reiniciamos al soltar el botón
             io.stopFlywheel();
         });
+    }
+
+    public boolean detectoBajonPelota() {
+        if (objetivoRPMLlanta == 0.0) return false;
+        
+        double rpmReales = inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor;
+        
+        // Calculamos qué tan caídas están las RPM respecto al objetivo
+        double bajon = objetivoRPMLlanta - rpmReales;
+        
+        // Lo mandamos al dashboard para que veas exactamente cuánto caen al disparar
+        SmartDashboard.putNumber("Shooter/BajonRPM", bajon);
+        
+        // Si las RPM caen más de 150 de golpe, asumimos que una pelota acaba de pasar.
+        // (Durante el arranque, este valor también será alto, lo cual es bueno porque 
+        // mantendrá el timer reseteado hasta que las llantas lleguen a su velocidad).
+        return bajon > 100.0; 
     }
 
     public Command stopShooterCommand() {

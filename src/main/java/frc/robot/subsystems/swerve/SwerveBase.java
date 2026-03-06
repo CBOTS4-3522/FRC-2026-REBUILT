@@ -54,7 +54,7 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("SysId/Tiempo Dynamic", 1.5); 
 
         SmartDashboard.putNumber("Meneito/Amplitud", 1.0);
-        SmartDashboard.putNumber("Meneito/Frecuencia", 10);
+        SmartDashboard.putNumber("Meneito/Frecuencia", 15);
 
         swerveMods = new RevSwerveModule[] {
                 new RevSwerveModule(0, Constants.Swerve.Mod0.kConstants),
@@ -89,7 +89,7 @@ public class SwerveBase extends SubsystemBase {
                     driveRobotRelative(fixedSpeeds);
                 },
                 new PPHolonomicDriveController(
-                        new PIDConstants(7.0, 0.0, 0.0),
+                        new PIDConstants(5.0, 0.0, 0.0),
                         new PIDConstants(5.0, 0.0, 0.0) ), 
                 config,
                 () -> {

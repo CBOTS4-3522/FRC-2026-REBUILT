@@ -5,11 +5,13 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+
+
 
 public class ShooterAzimuth extends SubsystemBase {
 
@@ -17,9 +19,12 @@ public class ShooterAzimuth extends SubsystemBase {
     private final ShooterAzimuthIOInputsAutoLogged inputs = new ShooterAzimuthIOInputsAutoLogged();
 
 
-    private final ProfiledPIDController azimuthPID;
+    private final PIDController azimuthPID;
   
-    
+    // private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(
+    //     Constants.shooter.azimuth.kS, 
+    //     Constants.shooter.azimuth.kV
+    // );
     
 
    
@@ -31,10 +36,7 @@ public class ShooterAzimuth extends SubsystemBase {
      
 
    
-        azimuthPID = new ProfiledPIDController(
-                0.015, 0.0, 0.0, 
-                new TrapezoidProfile.Constraints(180, 100) 
-        );
+        azimuthPID = new PIDController(Constants.shooter.azimuth.kP, Constants.shooter.azimuth.kI, Constants.shooter.azimuth.kD);
         azimuthPID.setTolerance(1.0); 
 
         SmartDashboard.putData("Shooter/Azimuth_PID", azimuthPID);
@@ -58,10 +60,20 @@ public class ShooterAzimuth extends SubsystemBase {
     // COMANDOS DE AZIMUTH (Torreta)
     // ==========================================================
 
-    public Command setAzimuthAngleCommand(double targetDegrees) {
+    public Command setAzimuthAngleCommand() {
         return this.run(() -> {
-            double pidOutput = azimuthPID.calculate(inputs.azimuthPositionDegrees, targetDegrees);
-            io.setAzimuthVoltage(pidOutput);
+            // 1. PID puro: Da todo el voltaje posible basado en qué tan lejos está
+            double pidOutput = azimuthPID.calculate(inputs.azimuthPositionDegrees);
+            
+            // 2. Fricción estática (kS): Solo si estamos fuera de tolerancia, inyectamos ese empujoncito
+            double ffOutput = 0.0;
+            if (!azimuthPID.atSetpoint()) {
+                ffOutput = Math.signum(pidOutput) * Constants.shooter.azimuth.kS;
+            }
+            
+            // 3. ¡Todo el poder al motor!
+            io.setAzimuthVoltage(pidOutput + ffOutput);
+            
         })
         .finallyDo(() -> io.stopAzimuth());
     }
@@ -94,6 +106,27 @@ public class ShooterAzimuth extends SubsystemBase {
         });
     }
 
+    public Command autoApuntar(DoubleSupplier anguloCalculado) {
+        return this.run(() -> {
+            // 1. Leemos la matemática en vivo y limitamos al rango seguro (0 a 120)
+            double targetSeguro = MathUtil.clamp(anguloCalculado.getAsDouble(), 0.0, 120.0);
+            
+            // 2. Calculamos el PID agresivo
+            double pidOutput = azimuthPID.calculate(inputs.azimuthPositionDegrees, targetSeguro);
+            
+            // 3. Fricción estática
+            double ffOutput = 0.0;
+            if (!azimuthPID.atSetpoint()) {
+                ffOutput = Math.signum(pidOutput) * Constants.shooter.azimuth.kS;
+            }
+            
+            // 4. Mover
+            io.setAzimuthVoltage(pidOutput + ffOutput);
+            SmartDashboard.putNumber("AutoAim/Turret_Target", targetSeguro);
+            
+        }).finallyDo(() -> io.stopAzimuth());
+    }
+
     public Command resetAzimuthEncoder() {
         return runOnce(() -> io.setAzimuthZero());
     }
@@ -120,6 +153,19 @@ public class ShooterAzimuth extends SubsystemBase {
     public Command setPivotAngleCommand(double targetDegrees) {
         // targetDegrees normalmente va de 0 a 180 para un servo estándar
         return this.runOnce(() -> io.setPivotAngle(targetDegrees));
+    }
+
+    public Command homingCero() {
+        return this.run(() -> {
+            // Giramos hacia la derecha (CW / Negativo) para buscar el 0
+            io.setAzimuthVoltage(-1.5); 
+        })
+        .until(() -> inputs.isAzimuthLimitSwitchPressed) // Se detiene al tocar el límite de reversa
+        .finallyDo(() -> {
+            io.stopAzimuth();
+ 
+            io.setAzimuthZero();
+        });
     }
 
  
