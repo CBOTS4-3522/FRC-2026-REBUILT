@@ -2,15 +2,31 @@ package frc.robot;
 
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import frc.lib.util.swerveUtil.SwerveConstants;
 
+
 public final class Constants {
+
+	public static final class VisionConstants {
+		public static final String kCameraName = "CAM_POSE"; // Cambia esto al nombre de tu cámara
+		public static final Transform3d kCameraOffset = new Transform3d(
+            new Translation3d(0.0, 0.0, Units.inchesToMeters(46.0)), // X, Y, Z (46 pulgadas de alto)
+            new Rotation3d(0.0, Units.degreesToRadians(-60.0), 0.0)  // Roll, Pitch, Yaw
+        );
+		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
+	}
+
 
 	public static final class OIConstants {
 		public static final double kStickDeadband = 0.08;
@@ -187,7 +203,6 @@ public final class Constants {
 				/ kDriveGearRatio;
 
 		public static final class Drive {
-			/* Drive Motor PID Values */
 			public static final double kP = 0.02;
 			public static final double kI = 0.0;
 			public static final double kD = 0.01;

@@ -1,32 +1,50 @@
 package frc.robot.subsystems; 
 
-// Importaciones específicas de STUDICA
 import com.studica.frc.AHRS;
-
+import com.studica.frc.AHRS.NavXComType; // Asegúrate de que el enum kUSB1 esté importado correctamente
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotBase;
 
-public class NavXGyro extends AHRS {
+public class NavXGyro {
 
     private static NavXGyro instance;
+    
+    // En lugar de heredar, creamos la instancia aquí adentro (Composición)
+    private AHRS ahrs; 
+
     public static double zeroHeading;
     public static double zeroAngle;
     private double simAngle = 0.0;
 
     private NavXGyro() {
-        // En la librería de Studica, se usa NavXComType, no SPI.Port
-        super(NavXComType.kMXP_SPI);
+        System.out.println("Iniciando conexión con NavX...");
+        
+        // 1. Intentamos conectar por SPI primero
+        ahrs = new AHRS(NavXComType.kMXP_SPI);
+        
+        // Espera de seguridad para que el sensor bootee
+        esperar(100);
 
-        // Espera de seguridad para inicialización
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        // 2. Lógica de Fallback: Si no hay conexión, cambiamos a USB
+        if (!ahrs.isConnected()) {
+            System.out.println("ALERTA: Fallo en el puerto SPI. Intentando conexión por USB...");
+            
+            // Re-instanciamos usando el puerto USB 
+            // (Verifica si en Studica es kUSB1 o kUSB)
+            ahrs = new AHRS(NavXComType.kUSB1); 
+            esperar(100);
+        }
+
+        // 3. Verificación final
+        if (ahrs.isConnected()) {
+            System.out.println("✅ NavX conectado exitosamente.");
+        } else {
+            System.err.println("❌ ERROR CRITICO: El NavX no responde ni por SPI ni por USB.");
         }
 
         zeroHeading = getNavHeading(); 
         zeroAngle = getNavAngle();
-        System.out.println("Setup ZeroAngle " + zeroAngle);
+        System.out.println("Setup ZeroAngle: " + zeroAngle);
     }
 
     public static NavXGyro getInstance() {
@@ -36,17 +54,31 @@ public class NavXGyro extends AHRS {
         return instance;
     }
 
+    // Método auxiliar para limpiar el Thread.sleep
+    private void esperar(int milisegundos) {
+        try {
+            Thread.sleep(milisegundos);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     public double getNavHeading() {
-        // En Studica a veces devuelve float, aseguramos el cast a double
-        return (double) getFusedHeading();
+        // Ahora llamamos a los métodos a través de nuestro objeto 'ahrs'
+        return (double) ahrs.getFusedHeading();
     }
 
     public double getNavAngle() {
-        return (double) getAngle();
+        return (double) ahrs.getAngle();
     }
 
+    public double getRoll() {
+        return (double) ahrs.getRoll();
+    }
+
+
     public void zeroNavHeading() {
-        reset();
+        ahrs.reset();
         zeroHeading = getNavHeading();
         zeroAngle = getNavAngle();
     }
@@ -60,26 +92,23 @@ public class NavXGyro extends AHRS {
     }
 
     public void updateSimAngle(double dtSeconds, double radiansPerSecond){
-        // Convertimos de radianes a grados y sumamos
         double degreesPerSecond = Math.toDegrees(radiansPerSecond);
         simAngle += degreesPerSecond * dtSeconds;
-        
-        // Normalizamos entre 0 y 360 si quieres, aunque Rotation2d lo maneja solo
     }
-    
 
     public double getHeading() {
         return getRotation2d().getDegrees();
     }
 
-    @Override
     public Rotation2d getRotation2d() {
-        // 3. Si es simulación, regresamos la variable fantasma
         if (RobotBase.isSimulation()) {
-            // En simulación usualmente CCW es positivo directo
             return Rotation2d.fromDegrees(simAngle);
         }
-        // Si es real, usamos la NavX
         return Rotation2d.fromDegrees(-getNavAngle());
+    }
+    
+    // Te agrego este método por si la odometría necesita saber si el giroscopio está vivo
+    public boolean isConnected() {
+        return ahrs.isConnected();
     }
 }

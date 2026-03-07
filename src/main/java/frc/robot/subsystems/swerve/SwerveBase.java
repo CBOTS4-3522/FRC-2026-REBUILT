@@ -19,6 +19,13 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj2.command.Command;
+<<<<<<< HEAD
+=======
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+// import edu.wpi.first.units.measure.;
+>>>>>>> feature/vision
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -200,7 +207,7 @@ public class SwerveBase extends SubsystemBase {
                 : gyro.getRotation2d();
     }
 
-    public double getPitch() {
+    public double getRoll() {
         return gyro.getRoll();
     }
 
@@ -256,6 +263,11 @@ public class SwerveBase extends SubsystemBase {
                 .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
     }
 
+  public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
+    // Ahora le pasamos los 3 parámetros al odómetro (o PoseEstimator)
+    swerveOdometer.addVisionMeasurement(visionPose, timestamp, stdDevs);
+}
+
     public Command sacudirChasis() {
         return this.run(() -> {
             double tiempo = Timer.getFPGATimestamp();
@@ -297,12 +309,13 @@ public class SwerveBase extends SubsystemBase {
         SwerveModuleState[] desiredStates = new SwerveModuleState[4];
         for (SwerveModule mod : swerveMods) {
             desiredStates[mod.getModuleNumber()] = mod.getDesiredState();
-        }
+        
         Logger.recordOutput("Swerve/ModuleStates/Desired", desiredStates);
 
         SmartDashboard.putData("field", field);
         field.setRobotPose(getPose());
 
+<<<<<<< HEAD
         for (SwerveModule mod : swerveMods) {
             SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Cancoder",
                     mod.getCanCoder().getDegrees());
@@ -315,6 +328,9 @@ public class SwerveBase extends SubsystemBase {
             SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Error de Velocidad",
                     mod.getDesiredState().speedMetersPerSecond - mod.getState().speedMetersPerSecond);
         }
+=======
+        
+>>>>>>> feature/vision
 
         // ==========================================================
         // TELEMETRÍA PARA EL WIDGET SWERVE DE ELASTIC
@@ -336,5 +352,6 @@ public class SwerveBase extends SubsystemBase {
         double velocidadTotal = Math.hypot(getRobotRelativeSpeeds().vxMetersPerSecond,
                 getRobotRelativeSpeeds().vyMetersPerSecond);
         SmartDashboard.putNumber("Elastic/Velocidad", velocidadTotal);
+    }
     }
 }

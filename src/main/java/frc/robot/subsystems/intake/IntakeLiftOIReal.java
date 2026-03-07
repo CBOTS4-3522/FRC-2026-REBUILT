@@ -27,8 +27,7 @@ public class IntakeLiftOIReal implements IntakeLiftIO {
         configBrazo.inverted(false);
         
         encoderRelativo = motorBrazo.getEncoder();
-        // Aplicar configuraciones al motor (AQUÍ ES DONDE DABA EL CRASH, ya no debería
-        // darlo)
+      
         motorBrazo.configure(configBrazo, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 

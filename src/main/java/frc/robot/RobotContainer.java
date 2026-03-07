@@ -26,9 +26,14 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.TeleopSwerve;
+<<<<<<< HEAD
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOReal;
+=======
+import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Vision;
+>>>>>>> feature/vision
 import frc.robot.subsystems.intake.IntakeLift;
 import frc.robot.subsystems.intake.IntakeLiftIO;
 import frc.robot.subsystems.intake.IntakeLiftOIReal;
@@ -49,10 +54,16 @@ public class RobotContainer {
         private final CommandXboxController driver1 = new CommandXboxController(Constants.OIConstants.kDriver1Port);
         private final CommandXboxController driver2 = new CommandXboxController(Constants.OIConstants.kDriver2Port);
 
+<<<<<<< HEAD
         private final InterpolatingDoubleTreeMap mapaRPM = new InterpolatingDoubleTreeMap();
         private final InterpolatingDoubleTreeMap mapaTiempo = new InterpolatingDoubleTreeMap();
         private final InterpolatingDoubleTreeMap mapaChamfle = new InterpolatingDoubleTreeMap();
 
+=======
+        private final Vision s_Vision;
+
+        /* Subsystems */
+>>>>>>> feature/vision
         private final SwerveBase s_Swerve;
         private final ShooterAzimuth s_ShooterAzimuth;
         private final ShooterFlywheels s_ShooterFlywheels;
@@ -66,6 +77,7 @@ public class RobotContainer {
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
 
+<<<<<<< HEAD
                 // -------------------------------------------------------------------
                 // MAPAS DE INTERPOLACIÓN
                 // -------------------------------------------------------------------
@@ -76,6 +88,11 @@ public class RobotContainer {
                 mapaRPM.put(3.5, 3400.0); mapaTiempo.put(3.5, 1.45); mapaChamfle.put(3.5, 100.0);
                 mapaRPM.put(4.0, 3600.0); mapaTiempo.put(4.0, 1.58); mapaChamfle.put(4.0, 120.0);
                 mapaRPM.put(4.5, 3800.0); mapaTiempo.put(4.5, 1.75); mapaChamfle.put(4.5, 140.0);
+=======
+                s_Vision = new Vision(s_Swerve);
+
+                // ShooterIO shooterIO; // 1. Declaramos la interfaz temporal
+>>>>>>> feature/vision
 
                 // -------------------------------------------------------------------
                 // INICIALIZACIÓN DE SUBSISTEMAS (REAL VS SIMULADO)
