@@ -6,12 +6,11 @@ import java.util.function.DoubleSupplier;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
@@ -26,9 +25,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.Constants.shooter.azimuth;
 import frc.robot.commands.TeleopSwerve;
-import frc.robot.subsystems.LedSubsystem;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOReal;
@@ -39,8 +36,8 @@ import frc.robot.subsystems.intake.IntakeRollers;
 import frc.robot.subsystems.intake.IntakeRollersIO;
 import frc.robot.subsystems.intake.IntakeRollersIOReal;
 import frc.robot.subsystems.shooter.ShooterAzimuth;
-import frc.robot.subsystems.shooter.ShooterAzimuthIOReal;
 import frc.robot.subsystems.shooter.ShooterAzimuthIO;
+import frc.robot.subsystems.shooter.ShooterAzimuthIOReal;
 import frc.robot.subsystems.shooter.ShooterFlywheels;
 import frc.robot.subsystems.shooter.ShooterFlywheelsIO;
 import frc.robot.subsystems.shooter.ShooterFlywheelsIOReal;
@@ -62,13 +59,12 @@ public class RobotContainer {
         private final Indexer s_Indexer;
         private final IntakeLift s_IntakeLift;
         private final IntakeRollers s_IntakeRollers;
-        private final LedSubsystem s_LedSubsystem;
+     
 
         private final SendableChooser<Command> autoChooser;
 
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
-                s_LedSubsystem = new LedSubsystem();
 
                 // -------------------------------------------------------------------
                 // MAPAS DE INTERPOLACIÓN

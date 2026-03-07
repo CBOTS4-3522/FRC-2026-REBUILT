@@ -24,6 +24,8 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.config.PIDConstants;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 
 import frc.robot.Constants;
 import frc.robot.subsystems.NavXGyro;
@@ -32,7 +34,7 @@ public class SwerveBase extends SubsystemBase {
 
     private double lastDriveKP = Constants.Swerve.Drive.kP;
     private double lastDriveKD = Constants.Swerve.Drive.kD;
-    
+
     public SwerveDrivePoseEstimator swerveOdometer;
     public SwerveModule[] swerveMods;
     public NavXGyro gyro = NavXGyro.getInstance();
@@ -50,8 +52,8 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("Turning/Drive kP", Constants.Swerve.Drive.kP);
         SmartDashboard.putNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
 
-        SmartDashboard.putNumber("SysId/Tiempo Quasistatic", 7.0); 
-        SmartDashboard.putNumber("SysId/Tiempo Dynamic", 1.5); 
+        SmartDashboard.putNumber("SysId/Tiempo Quasistatic", 7.0);
+        SmartDashboard.putNumber("SysId/Tiempo Dynamic", 1.5);
 
         SmartDashboard.putNumber("Meneito/Amplitud", 1.0);
         SmartDashboard.putNumber("Meneito/Frecuencia", 15);
@@ -90,7 +92,7 @@ public class SwerveBase extends SubsystemBase {
                 },
                 new PPHolonomicDriveController(
                         new PIDConstants(5.0, 0.0, 0.0),
-                        new PIDConstants(5.0, 0.0, 0.0) ), 
+                        new PIDConstants(5.0, 0.0, 0.0)),
                 config,
                 () -> {
                     var alliance = DriverStation.getAlliance();
@@ -100,6 +102,35 @@ public class SwerveBase extends SubsystemBase {
                     return false;
                 },
                 this);
+
+                // ==========================================================
+        // WIDGET CUSTOMIZADO PARA ELASTIC (Swerve Drive)
+        // ==========================================================
+        SmartDashboard.putData("Elastic/Swerve Nativo", new Sendable() {
+            @Override
+            public void initSendable(SendableBuilder builder) {
+                builder.setSmartDashboardType("SwerveDrive");
+
+                // Módulo 0 (Front Left)
+                builder.addDoubleProperty("Front Left Angle", () -> swerveMods[0].getState().angle.getRadians(), null);
+                builder.addDoubleProperty("Front Left Velocity", () -> swerveMods[0].getState().speedMetersPerSecond, null);
+
+                // Módulo 1 (Front Right)
+                builder.addDoubleProperty("Front Right Angle", () -> swerveMods[1].getState().angle.getRadians(), null);
+                builder.addDoubleProperty("Front Right Velocity", () -> swerveMods[1].getState().speedMetersPerSecond, null);
+
+                // Módulo 2 (Back Left)
+                builder.addDoubleProperty("Back Left Angle", () -> swerveMods[2].getState().angle.getRadians(), null);
+                builder.addDoubleProperty("Back Left Velocity", () -> swerveMods[2].getState().speedMetersPerSecond, null);
+
+                // Módulo 3 (Back Right)
+                builder.addDoubleProperty("Back Right Angle", () -> swerveMods[3].getState().angle.getRadians(), null);
+                builder.addDoubleProperty("Back Right Velocity", () -> swerveMods[3].getState().speedMetersPerSecond, null);
+
+                // Ángulo general del Robot
+                builder.addDoubleProperty("Robot Angle", () -> getYaw().getRadians(), null);
+            }
+        });
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
@@ -110,7 +141,8 @@ public class SwerveBase extends SubsystemBase {
 
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
 
-        SwerveModuleState[] swerveModuleStates = Constants.Swerve.kSwerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+        SwerveModuleState[] swerveModuleStates = Constants.Swerve.kSwerveKinematics
+                .toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.kMaxSpeed);
 
         for (SwerveModule mod : swerveMods) {
@@ -131,7 +163,9 @@ public class SwerveBase extends SubsystemBase {
         }
     }
 
-    public Pose2d getPose() { return swerveOdometer.getEstimatedPosition(); }
+    public Pose2d getPose() {
+        return swerveOdometer.getEstimatedPosition();
+    }
 
     public void resetOdometry(Pose2d pose) {
         swerveOdometer.resetPosition(getYaw(), getModulePositions(), pose);
@@ -139,13 +173,17 @@ public class SwerveBase extends SubsystemBase {
 
     public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
-        for (SwerveModule mod : swerveMods) { states[mod.getModuleNumber()] = mod.getState(); }
+        for (SwerveModule mod : swerveMods) {
+            states[mod.getModuleNumber()] = mod.getState();
+        }
         return states;
     }
 
     public SwerveModulePosition[] getModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
-        for (SwerveModule mod : swerveMods) { positions[mod.getModuleNumber()] = mod.getPosition(); }
+        for (SwerveModule mod : swerveMods) {
+            positions[mod.getModuleNumber()] = mod.getPosition();
+        }
         return positions;
     }
 
@@ -153,19 +191,24 @@ public class SwerveBase extends SubsystemBase {
         return Constants.Swerve.kSwerveKinematics.toChassisSpeeds(getModuleStates());
     }
 
-    public void zeroGyro() { gyro.zeroNavHeading(); }
-
-    public Rotation2d getYaw() {
-        return (Constants.Swerve.kInvertGyro) ? Rotation2d.fromDegrees(360).minus(gyro.getRotation2d()) : gyro.getRotation2d();
+    public void zeroGyro() {
+        gyro.zeroNavHeading();
     }
 
-    public double getPitch() { return gyro.getRoll(); }
+    public Rotation2d getYaw() {
+        return (Constants.Swerve.kInvertGyro) ? Rotation2d.fromDegrees(360).minus(gyro.getRotation2d())
+                : gyro.getRotation2d();
+    }
+
+    public double getPitch() {
+        return gyro.getRoll();
+    }
 
     public void wheelsIn() {
         swerveMods[0].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)), false, true);
-        swerveMods[1].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(135)), false,true);
-        swerveMods[2].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)), false,true);
-        swerveMods[3].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-135)), false,true);
+        swerveMods[1].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(135)), false, true);
+        swerveMods[2].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)), false, true);
+        swerveMods[3].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-135)), false, true);
     }
 
     public void stop() {
@@ -181,33 +224,36 @@ public class SwerveBase extends SubsystemBase {
                 originalSpeeds.vyMetersPerSecond * LOOP_TIME_S,
                 Rotation2d.fromRadians(originalSpeeds.omegaRadiansPerSecond * LOOP_TIME_S));
         Twist2d twistForPose = new Pose2d().log(futureRobotPose);
-        return new ChassisSpeeds(twistForPose.dx / LOOP_TIME_S, twistForPose.dy / LOOP_TIME_S, twistForPose.dtheta / LOOP_TIME_S);
+        return new ChassisSpeeds(twistForPose.dx / LOOP_TIME_S, twistForPose.dy / LOOP_TIME_S,
+                twistForPose.dtheta / LOOP_TIME_S);
     }
 
     private final SysIdRoutine m_sysIdRoutine = new SysIdRoutine(
             new SysIdRoutine.Config(null, null, Seconds.of(30.0), null),
             new SysIdRoutine.Mechanism(
-                    (voltage) -> { 
+                    (voltage) -> {
                         for (SwerveModule mod : swerveMods) {
-                            mod.setDriveVoltage(voltage.in(Volts)); 
+                            mod.setDriveVoltage(voltage.in(Volts));
                             mod.lockAngle();
                         }
                     },
                     log -> {
                         for (SwerveModule mod : swerveMods) {
                             log.motor("drive-" + mod.getModuleNumber())
-                                    .voltage(Volts.of(mod.getDriveVoltage())) 
+                                    .voltage(Volts.of(mod.getDriveVoltage()))
                                     .linearPosition(Meters.of(mod.getPosition().distanceMeters))
                                     .linearVelocity(MetersPerSecond.of(mod.getState().speedMetersPerSecond));
                         }
                     }, this));
 
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutine.quasistatic(direction).withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Quasistatic", 7.0)));
+        return m_sysIdRoutine.quasistatic(direction)
+                .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Quasistatic", 7.0)));
     }
 
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutine.dynamic(direction).withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
+        return m_sysIdRoutine.dynamic(direction)
+                .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
     }
 
     public Command sacudirChasis() {
@@ -215,15 +261,15 @@ public class SwerveBase extends SubsystemBase {
             double tiempo = Timer.getFPGATimestamp();
             double frecuencia = SmartDashboard.getNumber("Meneito/Frecuencia", 10.0);
             double amplitud = SmartDashboard.getNumber("Meneito/Amplitud", 1.0);
-            double velocidadVibracion = Math.sin(tiempo * frecuencia) * amplitud; 
+            double velocidadVibracion = Math.sin(tiempo * frecuencia) * amplitud;
             drive(new Translation2d(0, 0), velocidadVibracion, false, true);
-        }).finallyDo(() -> stop()); 
+        }).finallyDo(() -> stop());
     }
 
     public void simulationPeriodic() {
         for (SwerveModule mod : swerveMods) {
-            if(mod instanceof RevSwerveModule) {
-                ((RevSwerveModule)mod).simulationPeriodic(0.02);
+            if (mod instanceof RevSwerveModule) {
+                ((RevSwerveModule) mod).simulationPeriodic(0.02);
             }
         }
         SwerveModuleState[] realStates = getModuleStates();
@@ -232,7 +278,7 @@ public class SwerveBase extends SubsystemBase {
     }
 
     @Override
-    public void periodic() { 
+    public void periodic() {
         double currentKP = SmartDashboard.getNumber("Tuning/Drive kP", Constants.Swerve.Drive.kP);
         double currentKD = SmartDashboard.getNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
 
@@ -243,7 +289,7 @@ public class SwerveBase extends SubsystemBase {
                 ((RevSwerveModule) mod).updateDrivePID(currentKP, currentKD);
             }
         }
-        
+
         swerveOdometer.update(getYaw(), getModulePositions());
         Logger.recordOutput("Odometry/RobotPose", swerveOdometer.getEstimatedPosition());
         Logger.recordOutput("Swerve/ModuleStates/Real", getModuleStates());
@@ -258,12 +304,37 @@ public class SwerveBase extends SubsystemBase {
         field.setRobotPose(getPose());
 
         for (SwerveModule mod : swerveMods) {
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Cancoder", mod.getCanCoder().getDegrees());
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Integrated", mod.getPosition().angle.getDegrees());
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Velocity", mod.getState().speedMetersPerSecond);
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Objetivo", mod.getDesiredState().speedMetersPerSecond);
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Cancoder",
+                    mod.getCanCoder().getDegrees());
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Integrated",
+                    mod.getPosition().angle.getDegrees());
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Velocity",
+                    mod.getState().speedMetersPerSecond);
+            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Objetivo",
+                    mod.getDesiredState().speedMetersPerSecond);
             SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Error de Velocidad",
                     mod.getDesiredState().speedMetersPerSecond - mod.getState().speedMetersPerSecond);
         }
+
+        // ==========================================================
+        // TELEMETRÍA PARA EL WIDGET SWERVE DE ELASTIC
+        // ==========================================================
+        SwerveModuleState[] estados = getModuleStates();
+        double[] datosSwerveElastic = new double[] {
+            // Módulo 0 (Front Left)
+            estados[0].angle.getDegrees(), estados[0].speedMetersPerSecond,
+            // Módulo 1 (Front Right)
+            estados[1].angle.getDegrees(), estados[1].speedMetersPerSecond,
+            // Módulo 2 (Back Left)
+            estados[2].angle.getDegrees(), estados[2].speedMetersPerSecond,
+            // Módulo 3 (Back Right)
+            estados[3].angle.getDegrees(), estados[3].speedMetersPerSecond
+        };
+        SmartDashboard.putNumberArray("Elastic/EstadosSwerve", datosSwerveElastic);
+
+        // Calculamos la velocidad real del robot combinando X y Y usando Pitágoras
+        double velocidadTotal = Math.hypot(getRobotRelativeSpeeds().vxMetersPerSecond,
+                getRobotRelativeSpeeds().vyMetersPerSecond);
+        SmartDashboard.putNumber("Elastic/Velocidad", velocidadTotal);
     }
 }
