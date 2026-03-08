@@ -23,7 +23,7 @@ public class IndexerIOReal implements IndexerIO {
         configBandas.openLoopRampRate(0.25);
         motorBandas.configure(configBandas, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-        // 2. MOTOR NUEVO (Mecanum - Redline BRUSHED)
+        // 2. MOTOR NUEVO (Mecanum - NEO Brushless)
         // ¡Súper importante el MotorType.kBrushed para que no tiemble!
         motorMecanum = new SparkMax(Constants.Indexer.kMotorMecanumID, MotorType.kBrushless);
         SparkMaxConfig configMecanum = new SparkMaxConfig();
