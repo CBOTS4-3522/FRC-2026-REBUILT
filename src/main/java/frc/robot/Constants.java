@@ -19,10 +19,10 @@ import frc.lib.util.swerveUtil.SwerveConstants;
 public final class Constants {
 
 	public static final class VisionConstants {
-		public static final String kCameraName = "CAM_POSE"; // Cambia esto al nombre de tu cámara
+		public static final String kCameraName = "atras"; // Cambia esto al nombre de tu cámara
 		public static final Transform3d kCameraOffset = new Transform3d(
-            new Translation3d(0.0, 0.0, Units.inchesToMeters(46.0)), // X, Y, Z (46 pulgadas de alto)
-            new Rotation3d(0.0, Units.degreesToRadians(-60.0), 0.0)  // Roll, Pitch, Yaw
+            new Translation3d(((-(Constants.Swerve.kWheelBase) / 2)+.205), ((-(Constants.Swerve.kTrackWidth) / 2)+0.115), 0.463), // X, Y, Z (46 pulgadas de alto)
+            new Rotation3d(0.0, Units.degreesToRadians(50), Units.degreesToRadians(180))  // Roll, Pitch, Yaw
         );
 		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
 	}
@@ -90,8 +90,8 @@ public final class Constants {
 	public static final class Indexer {
 		public static final int kMotorBandasID = 53;
 		public static final int kMotorMecanumID = 55;
-		public static final double kVelocidadBandas = 1;
-		public static final double kVelocidadMecanum = 0.5;
+		public static final double kVelocidadBandas = 0.5;
+		public static final double kVelocidadMecanum = 1;
 
 	}
 
@@ -164,8 +164,8 @@ public final class Constants {
 		public static final double kDriveRpmToMetersPerSecond = kDriveRevToMeters / 60;
 
 		/* Drivetrain Constants */
-		public static final double kTrackWidth = Units.inchesToMeters(21.8503); // 55.5cm 0.555 M
-		public static final double kWheelBase = Units.inchesToMeters(22);// 55.88 cm 0.5588M
+		public static final double kTrackWidth = Units.inchesToMeters(21.8503); // 55.5cm 0.555 M frente
+		public static final double kWheelBase = Units.inchesToMeters(22);// 55.88 cm 0.5588M lateral
 
 		// Swerve Kinematics
 		public static final SwerveDriveKinematics kSwerveKinematics = new SwerveDriveKinematics(

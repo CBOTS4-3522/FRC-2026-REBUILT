@@ -19,13 +19,10 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj2.command.Command;
-<<<<<<< HEAD
-=======
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 // import edu.wpi.first.units.measure.;
->>>>>>> feature/vision
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -110,7 +107,7 @@ public class SwerveBase extends SubsystemBase {
                 },
                 this);
 
-                // ==========================================================
+        // ==========================================================
         // WIDGET CUSTOMIZADO PARA ELASTIC (Swerve Drive)
         // ==========================================================
         SmartDashboard.putData("Elastic/Swerve Nativo", new Sendable() {
@@ -120,19 +117,23 @@ public class SwerveBase extends SubsystemBase {
 
                 // Módulo 0 (Front Left)
                 builder.addDoubleProperty("Front Left Angle", () -> swerveMods[0].getState().angle.getRadians(), null);
-                builder.addDoubleProperty("Front Left Velocity", () -> swerveMods[0].getState().speedMetersPerSecond, null);
+                builder.addDoubleProperty("Front Left Velocity", () -> swerveMods[0].getState().speedMetersPerSecond,
+                        null);
 
                 // Módulo 1 (Front Right)
                 builder.addDoubleProperty("Front Right Angle", () -> swerveMods[1].getState().angle.getRadians(), null);
-                builder.addDoubleProperty("Front Right Velocity", () -> swerveMods[1].getState().speedMetersPerSecond, null);
+                builder.addDoubleProperty("Front Right Velocity", () -> swerveMods[1].getState().speedMetersPerSecond,
+                        null);
 
                 // Módulo 2 (Back Left)
                 builder.addDoubleProperty("Back Left Angle", () -> swerveMods[2].getState().angle.getRadians(), null);
-                builder.addDoubleProperty("Back Left Velocity", () -> swerveMods[2].getState().speedMetersPerSecond, null);
+                builder.addDoubleProperty("Back Left Velocity", () -> swerveMods[2].getState().speedMetersPerSecond,
+                        null);
 
                 // Módulo 3 (Back Right)
                 builder.addDoubleProperty("Back Right Angle", () -> swerveMods[3].getState().angle.getRadians(), null);
-                builder.addDoubleProperty("Back Right Velocity", () -> swerveMods[3].getState().speedMetersPerSecond, null);
+                builder.addDoubleProperty("Back Right Velocity", () -> swerveMods[3].getState().speedMetersPerSecond,
+                        null);
 
                 // Ángulo general del Robot
                 builder.addDoubleProperty("Robot Angle", () -> getYaw().getRadians(), null);
@@ -263,10 +264,10 @@ public class SwerveBase extends SubsystemBase {
                 .withTimeout(Seconds.of(SmartDashboard.getNumber("SysId/Tiempo Dynamic", 1.5)));
     }
 
-  public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
-    // Ahora le pasamos los 3 parámetros al odómetro (o PoseEstimator)
-    swerveOdometer.addVisionMeasurement(visionPose, timestamp, stdDevs);
-}
+    public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
+        // Ahora le pasamos los 3 parámetros al odómetro (o PoseEstimator)
+        swerveOdometer.addVisionMeasurement(visionPose, timestamp, stdDevs);
+    }
 
     public Command sacudirChasis() {
         return this.run(() -> {
@@ -309,42 +310,26 @@ public class SwerveBase extends SubsystemBase {
         SwerveModuleState[] desiredStates = new SwerveModuleState[4];
         for (SwerveModule mod : swerveMods) {
             desiredStates[mod.getModuleNumber()] = mod.getDesiredState();
-        
+        } // <---- ¡ESTA ES LA LLAVE QUE FALTABA!
+
         Logger.recordOutput("Swerve/ModuleStates/Desired", desiredStates);
 
         SmartDashboard.putData("field", field);
         field.setRobotPose(getPose());
-
-<<<<<<< HEAD
-        for (SwerveModule mod : swerveMods) {
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Cancoder",
-                    mod.getCanCoder().getDegrees());
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Integrated",
-                    mod.getPosition().angle.getDegrees());
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Velocity",
-                    mod.getState().speedMetersPerSecond);
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Objetivo",
-                    mod.getDesiredState().speedMetersPerSecond);
-            SmartDashboard.putNumber("Swerve Mods/REV Mod " + mod.getModuleNumber() + "/Error de Velocidad",
-                    mod.getDesiredState().speedMetersPerSecond - mod.getState().speedMetersPerSecond);
-        }
-=======
-        
->>>>>>> feature/vision
 
         // ==========================================================
         // TELEMETRÍA PARA EL WIDGET SWERVE DE ELASTIC
         // ==========================================================
         SwerveModuleState[] estados = getModuleStates();
         double[] datosSwerveElastic = new double[] {
-            // Módulo 0 (Front Left)
-            estados[0].angle.getDegrees(), estados[0].speedMetersPerSecond,
-            // Módulo 1 (Front Right)
-            estados[1].angle.getDegrees(), estados[1].speedMetersPerSecond,
-            // Módulo 2 (Back Left)
-            estados[2].angle.getDegrees(), estados[2].speedMetersPerSecond,
-            // Módulo 3 (Back Right)
-            estados[3].angle.getDegrees(), estados[3].speedMetersPerSecond
+                // Módulo 0 (Front Left)
+                estados[0].angle.getDegrees(), estados[0].speedMetersPerSecond,
+                // Módulo 1 (Front Right)
+                estados[1].angle.getDegrees(), estados[1].speedMetersPerSecond,
+                // Módulo 2 (Back Left)
+                estados[2].angle.getDegrees(), estados[2].speedMetersPerSecond,
+                // Módulo 3 (Back Right)
+                estados[3].angle.getDegrees(), estados[3].speedMetersPerSecond
         };
         SmartDashboard.putNumberArray("Elastic/EstadosSwerve", datosSwerveElastic);
 
@@ -352,6 +337,5 @@ public class SwerveBase extends SubsystemBase {
         double velocidadTotal = Math.hypot(getRobotRelativeSpeeds().vxMetersPerSecond,
                 getRobotRelativeSpeeds().vyMetersPerSecond);
         SmartDashboard.putNumber("Elastic/Velocidad", velocidadTotal);
-    }
     }
 }

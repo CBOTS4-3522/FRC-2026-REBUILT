@@ -29,7 +29,7 @@ public class IndexerIOReal implements IndexerIO {
         SparkMaxConfig configMecanum = new SparkMaxConfig();
         configMecanum.idleMode(IdleMode.kCoast);
         configMecanum.smartCurrentLimit(35); // Límite de seguridad para Redlines
-        configMecanum.inverted(true); // Cambia a true si gira al revés
+        configMecanum.inverted(false); // Cambia a true si gira al revés
         configMecanum.openLoopRampRate(0.25);
         motorMecanum.configure(configMecanum, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     }
