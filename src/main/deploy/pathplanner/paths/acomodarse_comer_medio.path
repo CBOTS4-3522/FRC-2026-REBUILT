@@ -3,32 +3,37 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.757,
-        "y": 0.647
+        "x": 3.560156626506024,
+        "y": 0.6342
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3933915923263,
-        "y": 1.8575019412683644
+        "x": 5.789409638554216,
+        "y": 0.22122891566265035
       },
       "isLocked": false,
-      "linkedName": "estacion de carga"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.653156626506024,
-        "y": 3.7727349397590366
+        "x": 7.603409638554217,
+        "y": 1.204722891566264
       },
       "prevControl": {
-        "x": 1.7084961813438493,
-        "y": 1.465468794149249
+        "x": 6.1500240963855415,
+        "y": 0.6255542168674698
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "1"
+      "linkedName": "enfrente pelotas"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,13 +47,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "reversed": false,
-  "folder": "HUB-STATION-HUB",
+  "folder": "RECOLECTAR CENTRO LEFT BLUE",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -179.99999
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

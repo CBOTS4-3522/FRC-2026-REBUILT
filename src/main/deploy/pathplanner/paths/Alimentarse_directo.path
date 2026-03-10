@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.653156626506024,
-        "y": 3.7727349397590366
+        "x": 3.538,
+        "y": 4.035
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.1837209690163766,
-        "y": 1.4541808507631981
+        "x": 2.8814419190419818,
+        "y": 2.273152771101814
       },
       "isLocked": false,
-      "linkedName": "1"
+      "linkedName": null
     },
     {
       "anchor": {
         "x": 0.757,
-        "y": 0.6474096385542167
+        "y": 0.647
       },
       "prevControl": {
-        "x": 1.7134805296730153,
-        "y": 1.9539479247799214
+        "x": 2.723358283011047,
+        "y": 2.5766430558086535
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "estacion de carga"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -179.99990000000003
   },
   "reversed": false,
-  "folder": null,
+  "folder": "HUB-STATION-HUB",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -1.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

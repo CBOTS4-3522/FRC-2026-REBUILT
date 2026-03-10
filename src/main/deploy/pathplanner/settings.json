@@ -2,8 +2,15 @@
   "robotWidth": 0.87,
   "robotLength": 0.87,
   "holonomicMode": true,
-  "pathFolders": [],
-  "autoFolders": [],
+  "pathFolders": [
+    "HUB-STATION-HUB",
+    "HUB-STATION-HUB-RED",
+    "RECOLECTAR CENTRO LEFT BLUE"
+  ],
+  "autoFolders": [
+    "BLUE",
+    "RED"
+  ],
   "defaultMaxVel": 4.28,
   "defaultMaxAccel": 3.5,
   "defaultMaxAngVel": 540.0,

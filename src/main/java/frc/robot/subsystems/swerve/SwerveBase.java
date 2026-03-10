@@ -10,7 +10,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -38,6 +37,7 @@ public class SwerveBase extends SubsystemBase {
 
     private double lastDriveKP = Constants.Swerve.Drive.kP;
     private double lastDriveKD = Constants.Swerve.Drive.kD;
+    private double lastDriveKI = Constants.Swerve.Drive.kI;
 
     public SwerveDrivePoseEstimator swerveOdometer;
     public SwerveModule[] swerveMods;
@@ -53,8 +53,9 @@ public class SwerveBase extends SubsystemBase {
         headingController.enableContinuousInput(-180, 180);
         SmartDashboard.putData("Swerve/HeadingPID", headingController);
 
-        SmartDashboard.putNumber("Turning/Drive kP", Constants.Swerve.Drive.kP);
+        SmartDashboard.putNumber("Tuning/Drive kP", Constants.Swerve.Drive.kP);
         SmartDashboard.putNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
+        SmartDashboard.putNumber("Tuning/Drive kI", Constants.Swerve.Drive.kI);
 
         SmartDashboard.putNumber("SysId/Tiempo Quasistatic", 7.0);
         SmartDashboard.putNumber("SysId/Tiempo Dynamic", 1.5);
@@ -98,15 +99,13 @@ public class SwerveBase extends SubsystemBase {
                         new PIDConstants(5.0, 0.0, 0.0),
                         new PIDConstants(5.0, 0.0, 0.0)),
                 config,
-                () -> {
-                    var alliance = DriverStation.getAlliance();
-                    if (alliance.isPresent()) {
-                        return alliance.get() == DriverStation.Alliance.Red;
-                    }
-                    return false;
-                },
+                
+                // ==========================================================
+                // ¡AQUÍ ESTÁ LA MAGIA! Apagamos el espejo automático
+                // ==========================================================
+                () -> false, 
+                
                 this);
-
         // ==========================================================
         // WIDGET CUSTOMIZADO PARA ELASTIC (Swerve Drive)
         // ==========================================================
@@ -294,12 +293,14 @@ public class SwerveBase extends SubsystemBase {
     public void periodic() {
         double currentKP = SmartDashboard.getNumber("Tuning/Drive kP", Constants.Swerve.Drive.kP);
         double currentKD = SmartDashboard.getNumber("Tuning/Drive kD", Constants.Swerve.Drive.kD);
+        double currentKI = SmartDashboard.getNumber("Tuning/Drive kI", Constants.Swerve.Drive.kI);
 
-        if (currentKP != lastDriveKP || currentKD != lastDriveKD) {
+        if (currentKP != lastDriveKP || currentKD != lastDriveKD || currentKI != lastDriveKI) {
             lastDriveKP = currentKP;
             lastDriveKD = currentKD;
+            lastDriveKI = currentKI;
             for (SwerveModule mod : swerveMods) {
-                ((RevSwerveModule) mod).updateDrivePID(currentKP, currentKD);
+                ((RevSwerveModule) mod).updateDrivePID(currentKP, currentKD, currentKI);
             }
         }
 

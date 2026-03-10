@@ -12,21 +12,22 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import frc.lib.util.swerveUtil.SwerveConstants;
-
 
 public final class Constants {
 
 	public static final class VisionConstants {
 		public static final String kCameraName = "atras"; // Cambia esto al nombre de tu cámara
 		public static final Transform3d kCameraOffset = new Transform3d(
-            new Translation3d(((-(Constants.Swerve.kWheelBase) / 2)+.205), ((-(Constants.Swerve.kTrackWidth) / 2)+0.115), 0.463), // X, Y, Z (46 pulgadas de alto)
-            new Rotation3d(0.0, Units.degreesToRadians(50), Units.degreesToRadians(180))  // Roll, Pitch, Yaw
-        );
-		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
+				new Translation3d(((-(Constants.Swerve.kWheelBase) / 2) + .205),
+						((-(Constants.Swerve.kTrackWidth) / 2) + 0.115), 0.463), // X, Y, Z (46 pulgadas de alto)
+				new Rotation3d(0.0, Units.degreesToRadians(50), Units.degreesToRadians(180)) // Roll, Pitch, Yaw
+		);
+		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout
+				.loadField(AprilTagFields.k2026RebuiltAndymark);
 	}
-
 
 	public static final class OIConstants {
 		public static final double kStickDeadband = 0.08;
@@ -56,14 +57,23 @@ public final class Constants {
 				Constants.Swerve.kTrackWidth / 2.0).plus(kOffsetDesdeModulo);
 
 		// Coordenada exacta del Núcleo (Juego: Rebuilt)
-		public static final Translation2d kPosicionMeta = new Translation2d(4.625, 4.034);
+		public static final Translation2d kPosicionNucleoAzul = new Translation2d(4.625, 4.034);
+		public static final Translation2d kPosicionNucleoRojo = new Translation2d(11.9148, 4.034);
+
+		public static Translation2d getObjetivoActual() {
+			var alliance = DriverStation.getAlliance();
+			if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red) {
+				return kPosicionNucleoRojo;
+			}
+			return kPosicionNucleoAzul; // Por defecto azul
+		}
 
 		public static final class flywheels {
 			public static final byte kLiderID = 50;
 			public static final byte kSeguidorID = 51;
-			public static final double kP = 0.0003;
-			public static final double kI = 0.000000022;
-			public static final double kD = 0.001;
+			public static final double kP = 0.0001;
+			public static final double kI = 0.0;
+			public static final double kD = 0.0;
 
 			public static final double kS = 0.25941;
 			public static final double kV = 0.125;
@@ -77,13 +87,22 @@ public final class Constants {
 
 		public static final class azimuth {
 			public static final byte kID = 54;
-			public static final double kP = 0.5;
+			public static final double kP = 0.22;
 			public static final double kI = 0;
-			public static final double kD = 0.01;
+			public static final double kD = 0.00;
 
 			public static final double kV = 0.0;
 			public static final double kA = 0.0;
-			public static final double kS = 0.0;
+			public static final double kS = 0.15;
+
+			// --- NUEVOS LÍMITES PARA EL PROFILED PID ---
+			// Tu chasis Swerve gira a máximo ~400 grados/seg. Queremos que la torreta sea
+			// más rápida.
+			public static final double kMaxVelocityDegPerSec = 600.0;
+
+			// ESTE ES EL FRENO DE MANO PARA LOS DIENTES:
+			// Si sigue saltando dientes, bájalo a 600 o 400. Si está muy lento, súbelo.
+			public static final double kMaxAccelerationDegPerSecSq = 800.0;
 		}
 	}
 
@@ -203,14 +222,14 @@ public final class Constants {
 				/ kDriveGearRatio;
 
 		public static final class Drive {
-			public static final double kP = 0.02;
-			public static final double kI = 0.0;
+			public static final double kP = 0.0252;
+			public static final double kI = 0.000031;
 			public static final double kD = 0.01;
 
 			/* Drive motor FeedForward Values */
-			public static final double kS = 0.1615675; // Voltios para empezar a mover
-			public static final double kV = 2.56015; // Voltios por metro/segundo
-			public static final double kA = 0.3928225; // Voltios por metro/segundo^2
+			public static final double kS = 0.05058075; // Voltios para empezar a mover
+			public static final double kV = 2.695925; // Voltios por metro/segundo
+			public static final double kA = 0.9084375; // Voltios por metro/segundo^2
 
 		}
 

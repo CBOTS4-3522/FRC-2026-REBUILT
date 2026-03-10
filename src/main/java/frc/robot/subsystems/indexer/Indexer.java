@@ -31,6 +31,14 @@ public class Indexer extends SubsystemBase {
         }, () -> io.stopMotores());
     }
 
+    public Command encenderAuto() {
+        return this.runEnd(() -> {
+            double vBandas = 1;
+            double vMecanum = SmartDashboard.getNumber("Indexer/VelocidadMecanum", velocidadMecanum);
+            io.setPorcentajeMotores(vBandas, vMecanum);
+        }, () -> io.stopMotores());
+    }
+
     public Command alRevez() {
         return this.runEnd(() -> {
             double vBandas = -SmartDashboard.getNumber("Indexer/VelocidadBandas", velocidadBandas);
@@ -65,7 +73,7 @@ public class Indexer extends SubsystemBase {
                 io.setPorcentajeMotores(-0.5, -0.5); // REVERSA para desatorar
                 
                 // Después de 0.3 segundos de reversa, reiniciamos el ciclo para volver a empujar
-                if (timerAtasco.hasElapsed(2.3)) {
+                if (timerAtasco.hasElapsed(3)) {
                     timerAtasco.reset();
                 }
             } else {

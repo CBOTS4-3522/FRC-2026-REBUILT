@@ -270,10 +270,11 @@ public class RevSwerveModule implements SwerveModule {
         mAngleMotor.getClosedLoopController().setSetpoint(0, com.revrobotics.spark.SparkBase.ControlType.kPosition);
     }
 
-    public void updateDrivePID(double p, double d) {
+    public void updateDrivePID(double p, double d, double i) {
         // Actualizamos el objeto de configuración que ya tienes
         mDriveConfig.closedLoop.p(p, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.d(d, ClosedLoopSlot.kSlot0);
+        mDriveConfig.closedLoop.i(i, ClosedLoopSlot.kSlot0);
 
         // Aplicamos solo los cambios necesarios de forma segura
         mDriveMotor.configure(mDriveConfig,

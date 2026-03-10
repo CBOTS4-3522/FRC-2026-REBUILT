@@ -118,7 +118,7 @@ public class ShooterFlywheels extends SubsystemBase {
         }
 
         SmartDashboard.putNumber("Shooter/RPMObjetivo", objetivoRPMLlanta);
-        SmartDashboard.putNumber("SHooter/ObjetivoMotores",
+        SmartDashboard.putNumber("Shooter/ObjetivoMotores",
                 objetivoRPMLlanta / Constants.shooter.flywheels.relationMotor);
         Logger.recordOutput("Shooter/FlywheelRPM_Real",
                 inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor);

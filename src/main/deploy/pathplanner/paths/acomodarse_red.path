@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.757,
-        "y": 0.647
+        "x": 15.756,
+        "y": 7.3956
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3933915923263,
-        "y": 1.8575019412683644
+        "x": 14.29067136802057,
+        "y": 6.168286772705968
       },
       "isLocked": false,
-      "linkedName": "estacion de carga"
+      "linkedName": "red alimentador"
     },
     {
       "anchor": {
-        "x": 2.653156626506024,
-        "y": 3.7727349397590366
+        "x": 13.86,
+        "y": 4.269
       },
       "prevControl": {
-        "x": 1.7084961813438493,
-        "y": 1.465468794149249
+        "x": 14.776096469064797,
+        "y": 6.958860550068772
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "1"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": "HUB-STATION-HUB",
+  "folder": "HUB-STATION-HUB-RED",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -179.99999
+    "rotation": 0.0001
   },
   "useDefaultConstraints": true
 }
