@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 12.975,
-        "y": 4.0
+        "x": 3.5820120481992124,
+        "y": 7.433518072292278
       },
       "prevControl": null,
       "nextControl": {
-        "x": 13.726952646187048,
-        "y": 5.823871398017674
+        "x": 2.404340172567343,
+        "y": 7.246593175215766
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 15.777337349397591,
-        "y": 7.400734939759036
+        "x": 0.4785421686746987,
+        "y": 6.9964096385542165
       },
       "prevControl": {
-        "x": 13.691458028835585,
-        "y": 5.345492731514836
+        "x": 1.405226849871915,
+        "y": 7.075904751152002
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "rojoalimentador"
+      "linkedName": "empezar tragar corral azul"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -90.0
   },
   "reversed": false,
-  "folder": "HUB-STATION-HUB-RED",
+  "folder": "LEFT, TRINCH, CORRAL, NEUTRAL",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

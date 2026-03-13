@@ -15,7 +15,7 @@ public class NavXGyro extends AHRS {
 
     private NavXGyro() {
         // En la librería de Studica, se usa NavXComType, no SPI.Port
-        super(NavXComType.kMXP_SPI);
+        super(NavXComType.kUSB1);
 
         // Espera de seguridad para inicialización
         try {
@@ -58,6 +58,7 @@ public class NavXGyro extends AHRS {
     public double getZeroAngle(){
         return zeroAngle;
     }
+
 
     public void updateSimAngle(double dtSeconds, double radiansPerSecond){
         // Convertimos de radianes a grados y sumamos

@@ -14,6 +14,9 @@ public interface ShooterFlywheelsIO {
         public double flywheelTemplider = 0.0;
         public double flywheeltempFollower = 0.0;
         
+        //fallas
+        public boolean errorEncoderLider = false;
+        public boolean errorEncoderFollower = false;
       
     }
 

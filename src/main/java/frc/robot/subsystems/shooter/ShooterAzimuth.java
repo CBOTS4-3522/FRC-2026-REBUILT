@@ -5,6 +5,8 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -12,12 +14,18 @@ import frc.robot.Constants;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
+
 public class ShooterAzimuth extends SubsystemBase {
 
     private final ShooterAzimuthIO io;
     private final ShooterAzimuthIOInputsAutoLogged inputs = new ShooterAzimuthIOInputsAutoLogged();
 
     private final ProfiledPIDController azimuthPID;
+
+   private final Alert alertaEncoderAzimuth = new Alert(
+        "¡CRÍTICO! Through Bore Encoder Desconectado (Torreta)", 
+        AlertType.kError
+    );
 
     // private final SimpleMotorFeedforward feedforward = new
     // SimpleMotorFeedforward(
@@ -69,6 +77,8 @@ public class ShooterAzimuth extends SubsystemBase {
         Logger.processInputs("Shooter/Azimuth", inputs);
 
         SmartDashboard.putNumber("Shooter/Azimuth_CurrentAngle", inputs.azimuthPositionDegrees);
+
+        alertaEncoderAzimuth.set(inputs.fallaEncoderAbsoluto);
 
     }
 

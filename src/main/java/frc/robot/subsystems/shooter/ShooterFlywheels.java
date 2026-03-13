@@ -13,6 +13,8 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -26,6 +28,15 @@ public class ShooterFlywheels extends SubsystemBase {
     private final InterpolatingDoubleTreeMap mapaRPM = new InterpolatingDoubleTreeMap();
 
     private final SysIdRoutine m_sysIdRoutine;
+
+    private final Alert alertaEncoderShooterLider = new Alert(
+            "¡Falla de Sensor en Motor Lider del Shooter!",
+            AlertType.kError);
+    private final Alert alertaEncoderShooterSeguidor = new Alert(
+            "¡Falla de Sensor en Motor Seguidor del Shooter!",
+            AlertType.kError);
+            
+        
 
     private double objetivoRPMLlanta = 0.0;
     private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(
@@ -103,6 +114,11 @@ public class ShooterFlywheels extends SubsystemBase {
         // Mandamos luces de estado para que Elastic las lea
         SmartDashboard.putBoolean("Elastic/Shooter Listo", estaEnVelocidad());
         SmartDashboard.putBoolean("Elastic/Anti-Atasco Activo", detectoBajonPelota());
+
+        alertaEncoderShooterLider.set(inputs.errorEncoderLider);
+        alertaEncoderShooterSeguidor.set(inputs.errorEncoderFollower);
+
+
 
         double pDashboard = SmartDashboard.getNumber("Shooter/kP", kP);
         double iDashboard = SmartDashboard.getNumber("Shooter/kI", kI);

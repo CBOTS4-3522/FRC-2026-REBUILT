@@ -3,32 +3,37 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 12.975,
-        "y": 4.0
+        "x": 3.560156626506024,
+        "y": 0.6342
       },
       "prevControl": null,
       "nextControl": {
-        "x": 13.726952646187048,
-        "y": 5.823871398017674
+        "x": 5.789409638554216,
+        "y": 0.22122891566265046
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 15.777337349397591,
-        "y": 7.400734939759036
+        "x": 7.603409638554217,
+        "y": 1.204722891566264
       },
       "prevControl": {
-        "x": 13.691458028835585,
-        "y": 5.345492731514836
+        "x": 6.1500240963855415,
+        "y": 0.6255542168674698
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "rojoalimentador"
+      "linkedName": "enfrente pelotas"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,13 +47,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "reversed": false,
-  "folder": "HUB-STATION-HUB-RED",
+  "folder": "RECOLECTAR CENTRO LEFT RED",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

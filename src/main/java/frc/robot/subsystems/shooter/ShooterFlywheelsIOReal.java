@@ -55,6 +55,8 @@ public class ShooterFlywheelsIOReal implements ShooterFlywheelsIO {
         inputs.flywheelCurrentAmps = motorLider.getOutputCurrent();
         inputs.flywheelTemplider = motorLider.getMotorTemperature();
         inputs.flywheeltempFollower = motorSeguidor.getMotorTemperature();
+        inputs.errorEncoderLider = motorLider.getFaults().sensor;
+        inputs.errorEncoderFollower = motorSeguidor.getFaults().sensor;
     }
 
     @Override

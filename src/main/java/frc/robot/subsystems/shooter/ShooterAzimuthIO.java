@@ -15,6 +15,8 @@ public interface ShooterAzimuthIO {
         
         // --- Pivot (Chamfle - Servo PWM) ---
         public double pivotAngleDegrees = 0.0; 
+
+        public boolean fallaEncoderAbsoluto = false;
     }
 
     public default void updateInputs(ShooterAzimuthIOInputs inputs) {}

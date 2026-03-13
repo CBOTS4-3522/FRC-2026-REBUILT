@@ -21,8 +21,8 @@ public final class Constants {
 	public static final class VisionConstants {
 		public static final String kCameraName = "atras"; // Cambia esto al nombre de tu cámara
 		public static final Transform3d kCameraOffset = new Transform3d(
-				new Translation3d(((-(Constants.Swerve.kWheelBase) / 2) + .205),
-						((-(Constants.Swerve.kTrackWidth) / 2) + 0.115), 0.463), // X, Y, Z (46 pulgadas de alto)
+				new Translation3d(((-(Constants.Swerve.kWheelBase) / 2) + 0.234),
+						((-(Constants.Swerve.kTrackWidth) / 2) + 0.115), 0.403), // X, Y, Z (46 pulgadas de alto)
 				new Rotation3d(0.0, Units.degreesToRadians(50), Units.degreesToRadians(180)) // Roll, Pitch, Yaw
 		);
 		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout

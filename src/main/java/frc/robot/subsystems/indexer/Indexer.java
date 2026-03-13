@@ -9,6 +9,7 @@ import org.littletonrobotics.junction.Logger;
 import java.util.function.BooleanSupplier;
 import frc.robot.Constants;
 
+
 public class Indexer extends SubsystemBase {
     
     private final IndexerIO io;
@@ -70,10 +71,10 @@ public class Indexer extends SubsystemBase {
             // Si llevamos 2.0 segundos enteros empujando sin que las llantas sufran ningún bajón...
             if (timerAtasco.hasElapsed(2.5)) {
                 
-                io.setPorcentajeMotores(-0.5, -0.5); // REVERSA para desatorar
+                io.setPorcentajeMotores(-1, -1); // REVERSA para desatorar
                 
                 // Después de 0.3 segundos de reversa, reiniciamos el ciclo para volver a empujar
-                if (timerAtasco.hasElapsed(3)) {
+                if (timerAtasco.hasElapsed(3.5)) {
                     timerAtasco.reset();
                 }
             } else {

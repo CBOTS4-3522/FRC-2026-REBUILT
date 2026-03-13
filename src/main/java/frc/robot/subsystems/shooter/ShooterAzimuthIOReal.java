@@ -58,6 +58,15 @@ public class ShooterAzimuthIOReal implements ShooterAzimuthIO {
         // 1. Leer valor crudo del adaptador (0.0 a 1.0)
         double currentRaw = azimuthEncoder.getPosition();
 
+        boolean fallaFisica = motorAzimuth.getFaults().sensor;
+        
+        // 3. Revisas si hubo un error al intentar comunicarse con el encoder
+        // (com.revrobotics.REVLibError.kOk significa que todo está bien)
+        boolean fallaComunicacion = (motorAzimuth.getLastError() != com.revrobotics.REVLibError.kOk);
+
+        // Si cualquiera de las dos cosas falla, activamos la alerta
+        inputs.fallaEncoderAbsoluto = fallaFisica || fallaComunicacion;
+
         // 2. Detectar vueltas completas del pequeño piñón
         double diff = currentRaw - lastRawPosition;
         if (diff < -0.5) {

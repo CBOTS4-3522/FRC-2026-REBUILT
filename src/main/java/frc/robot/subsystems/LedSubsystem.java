@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard; // <-- ¡NO OLVIDES ESTE IMPORT!
 import edu.wpi.first.units.measure.Distance;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -25,8 +26,11 @@ public class LedSubsystem extends SubsystemBase {
     private boolean isHomed = false;
 
     public LedSubsystem() {
-        m_pdh = new PowerDistribution(1, ModuleType.kRev);
-        m_pdh.setSwitchableChannel(true);
+        // CAMBIO 1: Se actualiza el ID de la PDH a 5
+        m_pdh = new PowerDistribution(5, ModuleType.kRev);
+        
+        // CAMBIO 2: Publicamos el botón virtual en Elastic. Por defecto lo dejamos encendido (true)
+        SmartDashboard.setDefaultBoolean("Elastic/PDH_Luces", true);
 
         m_led = new AddressableLED(1); 
         m_ledBuffer = new AddressableLEDBuffer(38); // Tus 38 LEDs
@@ -40,6 +44,12 @@ public class LedSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        
+        // CAMBIO 3: Leemos el estado del botón en Elastic y lo aplicamos directo al canal
+        // ¡Como está en el periodic, funcionará al instante aunque estés en Disabled!
+        boolean encenderLuces = SmartDashboard.getBoolean("Elastic/PDH_Luces", true);
+        m_pdh.setSwitchableChannel(encenderLuces);
+
         if (DriverStation.isTeleopEnabled()) {
             
             // --- BARRA TEMPORIZADORA DE JUEGO ---

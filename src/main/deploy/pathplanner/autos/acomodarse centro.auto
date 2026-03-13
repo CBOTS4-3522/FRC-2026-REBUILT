@@ -1,0 +1,25 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "recolectar desde alianza"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "DISPARAR_SMART"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "RED",
+  "choreoAuto": false
+}

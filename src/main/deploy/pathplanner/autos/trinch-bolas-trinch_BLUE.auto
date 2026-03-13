@@ -64,7 +64,7 @@
         {
           "type": "named",
           "data": {
-            "name": "DISPARAR_AUTOA_AIM"
+            "name": "DISPARAR_AUTO_AIM"
           }
         }
       ]

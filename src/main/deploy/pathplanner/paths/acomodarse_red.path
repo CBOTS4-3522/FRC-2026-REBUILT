@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 15.756,
-        "y": 7.3956
+        "x": 15.777337349397591,
+        "y": 7.400734939759036
       },
       "prevControl": null,
       "nextControl": {
-        "x": 14.29067136802057,
-        "y": 6.168286772705968
+        "x": 16.04709121168515,
+        "y": 7.8006705611142415
       },
       "isLocked": false,
-      "linkedName": "red alimentador"
+      "linkedName": "rojoalimentador"
     },
     {
       "anchor": {
-        "x": 13.86,
-        "y": 4.269
+        "x": 13.340457831325303,
+        "y": 4.209843373493976
       },
       "prevControl": {
-        "x": 14.776096469064797,
-        "y": 6.958860550068772
+        "x": 13.413293340189076,
+        "y": 5.210328998096647
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": "HUB-STATION-HUB-RED",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0001
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }
