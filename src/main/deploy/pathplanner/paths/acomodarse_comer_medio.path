@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.560156626506024,
-        "y": 0.6342
+        "x": 4.445301204819277,
+        "y": 0.6474096385542167
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.789409638554216,
-        "y": 0.2212289156626504
+        "x": 5.221168674698795,
+        "y": 0.5818433734939765
       },
       "isLocked": false,
       "linkedName": null
@@ -20,7 +20,7 @@
         "y": 1.204722891566264
       },
       "prevControl": {
-        "x": 6.1500240963855415,
+        "x": 6.608987951807228,
         "y": 0.6255542168674698
       },
       "nextControl": null,
@@ -28,12 +28,7 @@
       "linkedName": "enfrente pelotas"
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.5,
-      "rotationDegrees": 0.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],

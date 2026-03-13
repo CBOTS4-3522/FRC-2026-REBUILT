@@ -165,6 +165,7 @@ public class RobotContainer {
                 NamedCommands.registerCommand("PRENDER_INDEXER", s_Indexer.encender());
                 NamedCommands.registerCommand("MENEITO", s_Swerve.sacudirChasis());
                 NamedCommands.registerCommand("DISPARAR_AUTO_AIM", disparoInteligente());
+                NamedCommands.registerCommand("HOMING SHOOTER", s_ShooterAzimuth.homingCero());
 
                 // -------------------------------------------------------------------
                 // PESTAÑA DE DIAGNÓSTICO (SYSID & GYRO)
@@ -417,7 +418,7 @@ public class RobotContainer {
                 driver1.y().whileTrue(new PathPlannerAuto("regresar_a_disparar_BLUE"));                // ==========================================================
                 // DRIVER 2: MECANISMOS (Torreta, Disparo y Fuego)
                 // ==========================================================
-                driver2.x().whileTrue(s_IntakeRollers.tragarPelotas());
+                driver2.x().toggleOnTrue(s_IntakeRollers.tragarPelotas());
                 driver2.leftBumper().whileTrue(s_Indexer.encender());
                 driver2.leftTrigger().whileTrue(s_Indexer.alRevez());
                 driver2.a().onTrue(s_IntakeLift.bajarProtegido());

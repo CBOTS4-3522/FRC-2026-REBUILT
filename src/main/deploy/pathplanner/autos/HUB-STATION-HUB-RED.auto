@@ -9,6 +9,19 @@
           "data": {
             "commands": [
               {
+                "type": "parallel",
+                "data": {
+                  "commands": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
                 "type": "path",
                 "data": {
                   "pathName": "Alimentarse_directo_red"
