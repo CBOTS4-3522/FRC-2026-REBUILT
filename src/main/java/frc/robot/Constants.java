@@ -23,7 +23,7 @@ public final class Constants {
 		public static final Transform3d kCameraOffset = new Transform3d(
 				new Translation3d(((-(Constants.Swerve.kWheelBase) / 2) + .205),
 						((-(Constants.Swerve.kTrackWidth) / 2) + 0.115), 0.463), // X, Y, Z (46 pulgadas de alto)
-				new Rotation3d(0.0, Units.degreesToRadians(50), Units.degreesToRadians(180)) // Roll, Pitch, Yaw
+				new Rotation3d(0.0, Units.degreesToRadians(-60), Units.degreesToRadians(180)) // Roll, Pitch, Yaw
 		);
 		public static final AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout
 				.loadField(AprilTagFields.k2026RebuiltAndymark);
@@ -109,7 +109,7 @@ public final class Constants {
 	public static final class Indexer {
 		public static final int kMotorBandasID = 53;
 		public static final int kMotorMecanumID = 55;
-		public static final double kVelocidadBandas = 0.5;
+		public static final double kVelocidadBandas = 0.8;
 		public static final double kVelocidadMecanum = 1;
 
 	}

@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.603409638554217,
-        "y": 1.204722891566264
+        "x": 0.4785421686746987,
+        "y": 6.9964096385542165
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.618758817764572,
-        "y": 1.6450241543766584
+        "x": 0.462848145223004,
+        "y": 5.971397279149725
       },
       "isLocked": false,
-      "linkedName": "enfrente pelotas"
+      "linkedName": "empezar tragar corral azul"
     },
     {
       "anchor": {
-        "x": 7.668975903614458,
-        "y": 2.822024096385543
+        "x": 0.4785421686746987,
+        "y": 5.608590361445783
       },
       "prevControl": {
-        "x": 7.655374623415021,
-        "y": 1.7037021114653785
+        "x": 0.4936218880115764,
+        "y": 6.7476283109454664
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "lleno"
+      "linkedName": "rellenito azul corral"
     }
   ],
   "rotationTargets": [],
@@ -35,8 +35,8 @@
       "minWaypointRelativePos": 0,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
-        "maxVelocity": 0.5,
-        "maxAcceleration": 3.5,
+        "maxVelocity": 0.75,
+        "maxAcceleration": 1.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -56,13 +56,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": -90.0
   },
   "reversed": false,
-  "folder": "RECOLECTAR CENTRO LEFT BLUE",
+  "folder": "LEFT TRINCH, CORRAL, NEUTRAL",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": -90.0
   },
   "useDefaultConstraints": true
 }

@@ -43,6 +43,11 @@ public class IntakeRollersIOReal implements IntakeRollersIO {
     public void setVoltajeRodillos(double volts) {
         motorRodillos.setVoltage(volts);
     }
+    
+    @Override
+    public void setSpeedRollers(double speed){
+        motorRodillos.set(speed);
+    }
 
     @Override
     public void stopRodillos() {

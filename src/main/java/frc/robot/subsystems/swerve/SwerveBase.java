@@ -96,7 +96,7 @@ public class SwerveBase extends SubsystemBase {
                     driveRobotRelative(fixedSpeeds);
                 },
                 new PPHolonomicDriveController(
-                        new PIDConstants(5.0, 0.0, 0.0),
+                        new PIDConstants(4, 0.0, 0.0),
                         new PIDConstants(5.0, 0.0, 0.0)),
                 config,
                 
@@ -141,7 +141,9 @@ public class SwerveBase extends SubsystemBase {
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-        Rotation2d currentYaw = getYaw();
+        // ¡LA MAGIA! Usar la odometría, no el hardware crudo
+        Rotation2d currentYaw = getPose().getRotation(); 
+        
         ChassisSpeeds desiredChassisSpeeds = fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
                 translation.getX(), translation.getY(), rotation, currentYaw)
                 : new ChassisSpeeds(translation.getX(), translation.getY(), rotation);
@@ -199,7 +201,12 @@ public class SwerveBase extends SubsystemBase {
     }
 
     public void zeroGyro() {
-        gyro.zeroNavHeading();
+        // En lugar de borrar el NavX físico, reiniciamos la Odometría.
+        // Si eres Rojo, tu frente es 0°. Si eres Azul, tu frente es 180°.
+        var alliance = edu.wpi.first.wpilibj.DriverStation.getAlliance();
+        boolean isRed = alliance.isPresent() && alliance.get() == edu.wpi.first.wpilibj.DriverStation.Alliance.Red;
+        
+        resetOdometry(new Pose2d(getPose().getTranslation(), Rotation2d.fromDegrees(isRed ? 0.0 : 180.0)));
     }
 
     public Rotation2d getYaw() {

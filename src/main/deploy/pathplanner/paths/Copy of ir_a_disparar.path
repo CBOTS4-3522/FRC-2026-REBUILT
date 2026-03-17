@@ -3,41 +3,41 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.668975903614458,
-        "y": 2.822024096385543
+        "x": 7.690831325301204,
+        "y": 4.395614457831325
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.01866265060241,
-        "y": -0.03010843373494021
+        "x": 7.920313253012047,
+        "y": 1.8713132530120467
       },
       "isLocked": false,
-      "linkedName": "lleno"
+      "linkedName": "lleno neutral zone red"
     },
     {
       "anchor": {
-        "x": 4.412518072293629,
-        "y": 0.6364819277147626
+        "x": 4.412518072289157,
+        "y": 0.505349397590362
       },
       "prevControl": {
-        "x": 4.662518072293629,
-        "y": 0.6364819277147626
+        "x": 7.17722891566265,
+        "y": 0.5381325301204822
       },
       "nextControl": {
-        "x": 4.162518072293629,
-        "y": 0.6364819277147626
+        "x": 3.9208056517906487,
+        "y": 0.499518815529115
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.11212048192771,
-        "y": 2.4286265060240964
+        "x": 2.8607831325301203,
+        "y": 2.690891566265061
       },
       "prevControl": {
-        "x": 1.0686385542168662,
-        "y": -0.24866265060240922
+        "x": 2.7733614457831326,
+        "y": 0.5053493975903622
       },
       "nextControl": null,
       "isLocked": false,
@@ -47,11 +47,11 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 0.5,
-      "rotationDegrees": -0.24288966156138403
+      "rotationDegrees": -0.2690396417271624
     },
     {
       "waypointRelativePos": 1.4887966804979278,
-      "rotationDegrees": -0.7380652277374137
+      "rotationDegrees": 0.07736114175672006
     }
   ],
   "constraintZones": [],
@@ -67,10 +67,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 38.853374340353284
+    "rotation": 42.35745470593539
   },
   "reversed": false,
-  "folder": "RECOLECTAR CENTRO LEFT BLUE",
+  "folder": "RECOLECTAR CENTRO LEFT RED",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 90.0

@@ -56,6 +56,17 @@ public class TeleopSwerve extends Command {
         double strafeVal = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
         double rotationVal = MathUtil.applyDeadband(-rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
 
+        // ==========================================================
+        // MAGIA DE INVERSIÓN (Perspectiva del Piloto)
+        // ==========================================================
+        var alliance = edu.wpi.first.wpilibj.DriverStation.getAlliance();
+        boolean isRed = alliance.isPresent() && alliance.get() == edu.wpi.first.wpilibj.DriverStation.Alliance.Red;
+
+        if (isRed) {
+            translationVal *= -1.0;
+            strafeVal *= -1.0;
+        }
+
         double xFiltered = xLimiter.calculate(translationVal);
         double yFiltered = yLimiter.calculate(strafeVal);
 
@@ -63,9 +74,17 @@ public class TeleopSwerve extends Command {
         boolean isButtonPushed = alignToMoveSup.getAsBoolean();
         boolean isMoving = (Math.abs(translationVal) > 0.01 || Math.abs(strafeVal) > 0.01);
 
-        if (povAngle != -1) {
+       if (povAngle != -1) {
             double anguloCorregido = (360 - povAngle) % 360; 
-            double currentAngle = s_Swerve.getYaw().getDegrees();
+            
+            // Invertir el D-PAD en la alianza roja para que "Arriba" 
+            // siga apuntando lejos del piloto
+            if (isRed) {
+                anguloCorregido = (anguloCorregido + 180) % 360;
+            }
+
+            // ¡LA MAGIA AQUÍ! Usar Odometría en lugar de getYaw()
+            double currentAngle = s_Swerve.getPose().getRotation().getDegrees();
             
             double pidOutput = s_Swerve.headingController.calculate(currentAngle, anguloCorregido);
             rotationVal = MathUtil.clamp(pidOutput, -1.0, 1.0);
@@ -74,7 +93,9 @@ public class TeleopSwerve extends Command {
         }
         else if (isButtonPushed && isMoving) {
             double targetAngle = Math.toDegrees(Math.atan2(strafeVal, translationVal));
-            double currentAngle = s_Swerve.getYaw().getDegrees();
+            
+            // ¡AQUÍ TAMBIÉN CORREGIMOS!
+            double currentAngle = s_Swerve.getPose().getRotation().getDegrees();
             
             double pidOutput = s_Swerve.headingController.calculate(currentAngle, targetAngle);
             rotationVal = MathUtil.clamp(pidOutput, -1.0, 1.0);

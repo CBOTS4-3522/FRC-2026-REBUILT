@@ -18,6 +18,8 @@ public interface IntakeRollersIO {
     
     public default void stopRodillos() {}
 
+    public default void setSpeedRollers(double speed) {}
+
     
     
     

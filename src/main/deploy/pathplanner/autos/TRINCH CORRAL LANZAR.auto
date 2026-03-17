@@ -11,41 +11,41 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Alimentarse_directo_red"
+                  "pathName": "tragar corral BLUE"
                 }
               },
               {
-                "type": "sequential",
+                "type": "named",
                 "data": {
-                  "commands": [
-                    {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.3
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "BAJAR_INTAKE"
-                      }
-                    }
-                  ]
+                  "name": "BAJAR_INTAKE"
                 }
               }
             ]
           }
         },
         {
-          "type": "wait",
+          "type": "deadline",
           "data": {
-            "waitTime": 1.5
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "tragarbolascorral BLUE"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "TRAGAR"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "acomodarse_red"
+            "pathName": "CORRAL LANZAR BLUE"
           }
         },
         {
@@ -58,6 +58,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "RED",
+  "folder": "BLUE",
   "choreoAuto": false
 }

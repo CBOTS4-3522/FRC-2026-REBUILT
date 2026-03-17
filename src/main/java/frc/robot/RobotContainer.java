@@ -26,12 +26,14 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import org.littletonrobotics.junction.Logger;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOReal;
 import frc.robot.subsystems.LedSubsystem;
-//import frc.robot.subsystems.Vision;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.intake.IntakeLift;
 import frc.robot.subsystems.intake.IntakeLiftIO;
 import frc.robot.subsystems.intake.IntakeLiftOIReal;
@@ -46,6 +48,7 @@ import frc.robot.subsystems.shooter.ShooterFlywheelsIO;
 import frc.robot.subsystems.shooter.ShooterFlywheelsIOReal;
 import frc.robot.subsystems.swerve.SwerveBase;
 
+
 public class RobotContainer {
         public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
 
@@ -56,7 +59,7 @@ public class RobotContainer {
         private final InterpolatingDoubleTreeMap mapaTiempo = new InterpolatingDoubleTreeMap();
         private final InterpolatingDoubleTreeMap mapaChamfle = new InterpolatingDoubleTreeMap();
 
-        // private final Vision s_Vision;
+        private final Vision s_Vision;
 
         /* Subsystems */
         private final SwerveBase s_Swerve;
@@ -72,6 +75,7 @@ public class RobotContainer {
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
                 s_LedSubsystem = new LedSubsystem();
+                s_Vision = new Vision(s_Swerve);
 
                 // -------------------------------------------------------------------
                 // MAPAS DE INTERPOLACIÓN
@@ -110,9 +114,9 @@ public class RobotContainer {
                 mapaChamfle.put(6.0, 180.0);
                 mapaTiempo.put(6.0, 1.45);
 
-                // s_Vision = new Vision(s_Swerve);
+                
 
-                // ShooterIO shooterIO; // 1. Declaramos la interfaz temporal
+           
 
                 // -------------------------------------------------------------------
                 // INICIALIZACIÓN DE SUBSISTEMAS (REAL VS SIMULADO)
@@ -162,49 +166,8 @@ public class RobotContainer {
                 NamedCommands.registerCommand("BAJAR_INTAKE", s_IntakeLift.bajarProtegido());
                 NamedCommands.registerCommand("PRENDER_INDEXER", s_Indexer.encender());
                 NamedCommands.registerCommand("MENEITO", s_Swerve.sacudirChasis());
-                NamedCommands.registerCommand("DISPARAR_AUTOA_AIM",
-                                Commands.parallel(
-                                                // ACCIÓN A: La torreta persiguiendo el núcleo a tiempo real
-                                                s_ShooterAzimuth.autoApuntar(() -> {
-                                                        Pose2d robotPose = s_Swerve.getPose();
-                                                        Rotation2d robotYaw = s_Swerve.getYaw();
-
-                                                        Rotation2d anguloHaciaMeta = Rotation2d.fromRadians(
-                                                                        Math.atan2(
-                                                                                        Constants.shooter
-                                                                                                        .getObjetivoActual()
-                                                                                                        .getY()
-                                                                                                        - robotPose.getY(),
-                                                                                        Constants.shooter
-                                                                                                        .getObjetivoActual()
-                                                                                                        .getX()
-                                                                                                        - robotPose.getX()));
-
-                                                        // Calculamos hacia dónde está la meta respecto a la trompa del
-                                                        // robot
-                                                        double anguloRelativo = anguloHaciaMeta.minus(robotYaw)
-                                                                        .getDegrees();
-
-                                                        // SEGÚN TU DIBUJO: Le sumamos 90 porque el 90 de tu torreta es
-                                                        // el Frente del robot
-                                                        return anguloRelativo + 85.0;
-                                                }),
-
-                                                // ACCIÓN B: Preparar llantas y accionar Indexer
-                                                s_ShooterFlywheels.runShooterCommand(5300) // Cambia esto al RPM fijo
-                                                                                           // que quieras
-                                                                .alongWith(
-                                                                                Commands.sequence(
-                                                                                                // Esperar a que las
-                                                                                                // llantas de
-                                                                                                // policarbonato lleguen
-                                                                                                // a 2800
-                                                                                                Commands.waitUntil(
-                                                                                                                s_ShooterFlywheels::estaEnVelocidad),
-
-                                                                                                // FUEGO!
-                                                                                                s_Indexer.dispararConAntiAtasco(
-                                                                                                                s_ShooterFlywheels::estaEnVelocidad)))));
+                NamedCommands.registerCommand("DISPARAR_AUTO_AIM", disparoInteligente());
+                NamedCommands.registerCommand("HOMING SHOOTER", s_ShooterAzimuth.homingCero());
 
                 // -------------------------------------------------------------------
                 // PESTAÑA DE DIAGNÓSTICO (SYSID & GYRO)
@@ -304,31 +267,33 @@ public class RobotContainer {
                 ).ignoringDisable(true); // Permitimos que funcione apagado
         }
 
-        public Command alinearChasisEvasivo(DoubleSupplier translationX, DoubleSupplier translationY) {
+       public Command alinearChasisEvasivo(DoubleSupplier translationX, DoubleSupplier translationY) {
                 return Commands.run(() -> {
                         Pose2d robotPose = s_Swerve.getPose();
-                        Rotation2d robotYaw = s_Swerve.getYaw();
+                        Rotation2d robotYaw = robotPose.getRotation();
 
-                        Rotation2d anguloHaciaMeta = Rotation2d.fromRadians(
+                        // 1. Calculamos el ángulo directo al núcleo
+                        Rotation2d anguloChasisDeseado = Rotation2d.fromRadians(
                                         Math.atan2(
                                                         Constants.shooter.getObjetivoActual().getY() - robotPose.getY(),
-                                                        Constants.shooter.getObjetivoActual().getX()
-                                                                        - robotPose.getX()));
+                                                        Constants.shooter.getObjetivoActual().getX() - robotPose.getX()));
 
-                        // ESTRATEGIA DE 60 GRADOS:
-                        // Le sumamos 30 grados al chasis para que mire "a la izquierda" del núcleo.
-                        // Esto forzará a la torreta a irse a sus 60 grados (hacia la derecha) para
-                        // compensar,
-                        // dejándole 60 grados libres para cada lado en caso de que el piloto derrape.
-                        Rotation2d anguloChasisDeseado = anguloHaciaMeta.plus(Rotation2d.fromDegrees(30.0));
+                        // NOTA DE PITS: Si atornillaron el shooter viendo hacia ATRÁS del robot en lugar del frente, 
+                        // descomenta esta línea de abajo para sumarle 180 grados:
+                        // anguloChasisDeseado = anguloChasisDeseado.plus(Rotation2d.fromDegrees(180.0));
 
-                        double translationVal = MathUtil.applyDeadband(translationX.getAsDouble(),
-                                        Constants.OIConstants.kStickDeadband);
-                        double strafeVal = MathUtil.applyDeadband(translationY.getAsDouble(),
-                                        Constants.OIConstants.kStickDeadband);
+                        var alliance = DriverStation.getAlliance();
+                        boolean isRed = alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
 
-                        double rotacionPID = s_Swerve.headingController.calculate(robotYaw.getDegrees(),
-                                        anguloChasisDeseado.getDegrees());
+                        double translationVal = MathUtil.applyDeadband(translationX.getAsDouble(), Constants.OIConstants.kStickDeadband);
+                        double strafeVal = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
+
+                        if (isRed) {
+                                translationVal *= -1.0;
+                                strafeVal *= -1.0;
+                        }
+
+                        double rotacionPID = s_Swerve.headingController.calculate(robotYaw.getDegrees(), anguloChasisDeseado.getDegrees());
                         double rotacionLimitada = MathUtil.clamp(rotacionPID, -1.0, 1.0);
 
                         s_Swerve.drive(
@@ -339,83 +304,29 @@ public class RobotContainer {
                         SmartDashboard.putNumber("AutoAim/AnguloChasis_Deseado", anguloChasisDeseado.getDegrees());
                 }, s_Swerve);
         }
-
         public Command disparoInteligente() {
                 return Commands.parallel(
-                                // ======================================================
-                                // 1. APUNTADO PREDICTIVO (Torreta y Chamfle)
-                                // ======================================================
-                                s_ShooterAzimuth.autoApuntar(() -> {
-                                        Pose2d robotPose = s_Swerve.getPose();
-                                        Rotation2d robotYaw = s_Swerve.getYaw();
-
-                                        // MAGIA: Encontrar la coordenada exacta del shooter en la cancha
-                                        Translation2d posicionShooter = robotPose.getTranslation().plus(
-                                                        Constants.shooter.kShooterOffset.rotateBy(robotYaw));
-
-                                        var velocidades = s_Swerve.getRobotRelativeSpeeds();
-                                        double vxField = velocidades.vxMetersPerSecond * robotYaw.getCos()
-                                                        - velocidades.vyMetersPerSecond * robotYaw.getSin();
-                                        double vyField = velocidades.vxMetersPerSecond * robotYaw.getSin()
-                                                        + velocidades.vyMetersPerSecond * robotYaw.getCos();
-
-                                        // Usamos la posición del SHOOTER, no del chasis
-                                        double distanciaReal = posicionShooter
-                                                        .getDistance(Constants.shooter.getObjetivoActual());
-                                        double tiempoVuelo = mapaTiempo.get(distanciaReal);
-
-                                        double metaVirtualX = Constants.shooter.getObjetivoActual().getX()
-                                                        - (vxField * tiempoVuelo);
-                                        double metaVirtualY = Constants.shooter.getObjetivoActual().getY()
-                                                        - (vyField * tiempoVuelo);
-
-                                        // Calculamos el ángulo desde el SHOOTER hacia la meta virtual
-                                        Rotation2d anguloHaciaMetaVirtual = Rotation2d.fromRadians(
-                                                        Math.atan2(metaVirtualY - posicionShooter.getY(),
-                                                                        metaVirtualX - posicionShooter.getX()));
-
-                                        double distanciaVirtual = Math.hypot(metaVirtualX - posicionShooter.getX(),
-                                                        metaVirtualY - posicionShooter.getY());
-                                        s_ShooterAzimuth.setObjetivo(mapaChamfle.get(distanciaVirtual));
-
-                                        return anguloHaciaMetaVirtual.minus(robotYaw).getDegrees() + 85.0;
-                                }),
-
-                                // ======================================================
-                                // 2. CONTROL DE RPM DINÁMICO Y TELEMETRÍA
-                                // ======================================================
+                                // 1. APUNTADO DE CHAMFLE Y RPM (Ya no movemos la torreta)
                                 Commands.run(() -> {
                                         Pose2d robotPose = s_Swerve.getPose();
-
-                                        // Repetimos la magia trigonométrica aquí para medir la distancia
                                         Translation2d posicionShooter = robotPose.getTranslation().plus(
-                                                        Constants.shooter.kShooterOffset
-                                                                        .rotateBy(robotPose.getRotation()));
+                                                        Constants.shooter.kShooterOffset.rotateBy(robotPose.getRotation()));
 
-                                        double distanciaReal = posicionShooter
-                                                        .getDistance(Constants.shooter.getObjetivoActual());
+                                        double distanciaReal = posicionShooter.getDistance(Constants.shooter.getObjetivoActual());
 
-                                        // ¡TELEMETRÍA PARA QUE VERIFIQUES LA DISTANCIA!
-                                        SmartDashboard.putNumber("AutoAim/Dist_CentroRobot", robotPose.getTranslation()
-                                                        .getDistance(Constants.shooter.getObjetivoActual()));
-                                        SmartDashboard.putNumber("AutoAim/Dist_ShooterReal", distanciaReal);
-
+                                        // Ajustamos solo el chamfle y las llantas
                                         double rpmDeseado = mapaRPM.get(distanciaReal);
-                                        SmartDashboard.putNumber("AutoAim/RPM_Mapeado", rpmDeseado);
-
+                                        s_ShooterAzimuth.setObjetivo(mapaChamfle.get(distanciaReal));
                                         s_ShooterFlywheels.setObjetivoRPM(rpmDeseado);
-                                }, s_ShooterFlywheels),
 
-                                // ======================================================
-                                // 3. SECUENCIA DE FUEGO Y ANTI-ATASCO
-                                // ======================================================
+                                }, s_ShooterAzimuth, s_ShooterFlywheels),
+
+                                // 2. SECUENCIA DE FUEGO Y ANTI-ATASCO
                                 Commands.sequence(
                                                 Commands.waitUntil(s_ShooterFlywheels::estaEnVelocidad),
-                                                s_Indexer.dispararConAntiAtasco(
-                                                                s_ShooterFlywheels::detectoBajonPelota)))
+                                                s_Indexer.dispararConAntiAtasco(s_ShooterFlywheels::detectoBajonPelota)))
                                 .finallyDo(() -> {
                                         s_ShooterFlywheels.detener();
-                                        s_ShooterAzimuth.detener();
                                 });
         }
 
@@ -454,11 +365,11 @@ public class RobotContainer {
                                                 () -> -driver1.getLeftY(),
                                                 () -> -driver1.getLeftX()));
                 driver1.x().whileTrue(Commands.run(s_Swerve::wheelsIn, s_Swerve));
-
-                // ==========================================================
+                driver1.y().whileTrue(new PathPlannerAuto("regresar_a_disparar_BLUE"));                // ==========================================================
                 // DRIVER 2: MECANISMOS (Torreta, Disparo y Fuego)
                 // ==========================================================
                 driver2.x().whileTrue(s_IntakeRollers.tragarPelotas());
+                driver2.start().whileTrue(s_IntakeRollers.tragarPelotasVoltaje());
                 driver2.leftBumper().whileTrue(s_Indexer.encender());
                 driver2.leftTrigger().whileTrue(s_Indexer.alRevez());
                 driver2.a().onTrue(s_IntakeLift.bajarProtegido());
@@ -469,14 +380,12 @@ public class RobotContainer {
                                 Commands.parallel(s_ShooterFlywheels.testShooterDesdeDashboard(), Commands.sequence(
                                                 Commands.waitUntil(
                                                                 s_ShooterFlywheels::estaEnVelocidad),
-                                                s_Indexer.dispararConAntiAtasco(
-                                                                s_ShooterFlywheels::detectoBajonPelota))));
+                                                Commands.parallel(s_Indexer.dispararConAntiAtasco(
+                                                                s_ShooterFlywheels::detectoBajonPelota),s_IntakeRollers.movimiento()))));
 
                 driver2.rightBumper().whileTrue(s_IntakeRollers.movimiento());
                 driver2.povRight().onTrue(s_ShooterAzimuth.homingCero());
                 driver2.povDown().onTrue(rutinaPreMatchManual());
-
-                driver2.povUp().toggleOnTrue(s_ShooterAzimuth.setAzimuthAngleCommand());
 
                 // Al presionar Right Trigger, la torreta sigue al objetivo y las llantas se
                 // prenden a 2800 RPM. Cuando lleguen a la velocidad, el indexer dispara.

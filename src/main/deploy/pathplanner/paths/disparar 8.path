@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.455943312666076,
-        "y": 0.6404118689105383
+        "x": 12.979843373493974,
+        "y": 5.586734939759037
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.2318112631028475,
-        "y": 0.5748512906928454
+        "x": 13.976926054107476,
+        "y": 6.005820797339963
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.603,
-        "y": 1.204722891566264
+        "x": 13.897771084337348,
+        "y": 5.958277108433736
       },
       "prevControl": {
-        "x": 6.608578313253011,
-        "y": 0.6255542168674698
+        "x": 13.045487092453332,
+        "y": 5.637005497648252
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "enfrente pelotas"
+      "linkedName": "acomodado atras tope rojo"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": -139.48460600954445
   },
   "reversed": false,
-  "folder": "RECOLECTAR CENTRO LEFT BLUE",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }

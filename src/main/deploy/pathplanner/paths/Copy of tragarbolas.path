@@ -12,20 +12,20 @@
         "y": 1.6450241543766584
       },
       "isLocked": false,
-      "linkedName": "enfrente pelotas"
+      "linkedName": "neutral right zone acomodado"
     },
     {
       "anchor": {
-        "x": 7.668975903614458,
-        "y": 2.822024096385543
+        "x": 7.690831325301204,
+        "y": 4.395614457831325
       },
       "prevControl": {
-        "x": 7.655374623415021,
-        "y": 1.7037021114653785
+        "x": 7.677230045101767,
+        "y": 3.277292472911161
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "lleno"
+      "linkedName": "lleno neutral zone red"
     }
   ],
   "rotationTargets": [],
@@ -59,7 +59,7 @@
     "rotation": 90.0
   },
   "reversed": false,
-  "folder": "RECOLECTAR CENTRO LEFT BLUE",
+  "folder": "RECOLECTAR CENTRO LEFT RED",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 90.0

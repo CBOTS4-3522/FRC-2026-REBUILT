@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3933915923263,
-        "y": 1.8575019412683644
+        "x": 2.511096385542168,
+        "y": 0.7785421686746998
       },
       "isLocked": false,
-      "linkedName": "estacion de carga"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.653156626506024,
-        "y": 3.7727349397590366
+        "x": 2.9372771084337352,
+        "y": 2.3193493975903605
       },
       "prevControl": {
-        "x": 1.7084961813438493,
-        "y": 1.465468794149249
+        "x": 2.817072289156627,
+        "y": 1.3577108433734937
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "1"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 40.914383220025286
   },
   "reversed": false,
   "folder": "HUB-STATION-HUB",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -179.99999
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }

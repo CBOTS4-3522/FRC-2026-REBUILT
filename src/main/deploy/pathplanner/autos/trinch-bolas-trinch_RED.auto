@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Alimentarse_directo_red"
+                  "pathName": "Copy of acomodarse_comer_medio"
                 }
               },
               {
@@ -21,7 +21,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.3
+                        "waitTime": 1.0
                       }
                     },
                     {
@@ -37,15 +37,28 @@
           }
         },
         {
-          "type": "wait",
+          "type": "deadline",
           "data": {
-            "waitTime": 1.5
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Copy of tragarbolas"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "TRAGAR"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "acomodarse_red"
+            "pathName": "Copy of ir_a_disparar"
           }
         },
         {
@@ -58,6 +71,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "RED",
+  "folder": null,
   "choreoAuto": false
 }
