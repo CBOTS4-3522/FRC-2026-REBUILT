@@ -5,6 +5,7 @@ import java.util.function.DoubleSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -24,16 +25,15 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import org.littletonrobotics.junction.Logger;
 import frc.robot.commands.TeleopSwerve;
+import frc.robot.subsystems.LedSubsystem;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOReal;
-import frc.robot.subsystems.LedSubsystem;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.intake.IntakeLift;
 import frc.robot.subsystems.intake.IntakeLiftIO;
 import frc.robot.subsystems.intake.IntakeLiftOIReal;
@@ -48,12 +48,12 @@ import frc.robot.subsystems.shooter.ShooterFlywheelsIO;
 import frc.robot.subsystems.shooter.ShooterFlywheelsIOReal;
 import frc.robot.subsystems.swerve.SwerveBase;
 
-
 public class RobotContainer {
         public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
 
         private final CommandXboxController driver1 = new CommandXboxController(Constants.OIConstants.kDriver1Port);
         private final CommandXboxController driver2 = new CommandXboxController(Constants.OIConstants.kDriver2Port);
+        //private final CommandXboxController driver3 = new CommandXboxController(Constants.OIConstants.kDriver3Port);
 
         private final InterpolatingDoubleTreeMap mapaRPM = new InterpolatingDoubleTreeMap();
         private final InterpolatingDoubleTreeMap mapaTiempo = new InterpolatingDoubleTreeMap();
@@ -113,10 +113,6 @@ public class RobotContainer {
                 mapaRPM.put(6.0, 3850.0);
                 mapaChamfle.put(6.0, 180.0);
                 mapaTiempo.put(6.0, 1.45);
-
-                
-
-           
 
                 // -------------------------------------------------------------------
                 // INICIALIZACIÓN DE SUBSISTEMAS (REAL VS SIMULADO)
@@ -267,7 +263,7 @@ public class RobotContainer {
                 ).ignoringDisable(true); // Permitimos que funcione apagado
         }
 
-       public Command alinearChasisEvasivo(DoubleSupplier translationX, DoubleSupplier translationY) {
+        public Command alinearChasisEvasivo(DoubleSupplier translationX, DoubleSupplier translationY) {
                 return Commands.run(() -> {
                         Pose2d robotPose = s_Swerve.getPose();
                         Rotation2d robotYaw = robotPose.getRotation();
@@ -276,24 +272,30 @@ public class RobotContainer {
                         Rotation2d anguloChasisDeseado = Rotation2d.fromRadians(
                                         Math.atan2(
                                                         Constants.shooter.getObjetivoActual().getY() - robotPose.getY(),
-                                                        Constants.shooter.getObjetivoActual().getX() - robotPose.getX()));
+                                                        Constants.shooter.getObjetivoActual().getX()
+                                                                        - robotPose.getX()));
 
-                        // NOTA DE PITS: Si atornillaron el shooter viendo hacia ATRÁS del robot en lugar del frente, 
+                        // NOTA DE PITS: Si atornillaron el shooter viendo hacia ATRÁS del robot en
+                        // lugar del frente,
                         // descomenta esta línea de abajo para sumarle 180 grados:
-                        // anguloChasisDeseado = anguloChasisDeseado.plus(Rotation2d.fromDegrees(180.0));
+                        // anguloChasisDeseado =
+                        // anguloChasisDeseado.plus(Rotation2d.fromDegrees(180.0));
 
                         var alliance = DriverStation.getAlliance();
                         boolean isRed = alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
 
-                        double translationVal = MathUtil.applyDeadband(translationX.getAsDouble(), Constants.OIConstants.kStickDeadband);
-                        double strafeVal = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
+                        double translationVal = MathUtil.applyDeadband(translationX.getAsDouble(),
+                                        Constants.OIConstants.kStickDeadband);
+                        double strafeVal = MathUtil.applyDeadband(translationY.getAsDouble(),
+                                        Constants.OIConstants.kStickDeadband);
 
                         if (isRed) {
                                 translationVal *= -1.0;
                                 strafeVal *= -1.0;
                         }
 
-                        double rotacionPID = s_Swerve.headingController.calculate(robotYaw.getDegrees(), anguloChasisDeseado.getDegrees());
+                        double rotacionPID = s_Swerve.headingController.calculate(robotYaw.getDegrees(),
+                                        anguloChasisDeseado.getDegrees());
                         double rotacionLimitada = MathUtil.clamp(rotacionPID, -1.0, 1.0);
 
                         s_Swerve.drive(
@@ -304,15 +306,18 @@ public class RobotContainer {
                         SmartDashboard.putNumber("AutoAim/AnguloChasis_Deseado", anguloChasisDeseado.getDegrees());
                 }, s_Swerve);
         }
+
         public Command disparoInteligente() {
                 return Commands.parallel(
                                 // 1. APUNTADO DE CHAMFLE Y RPM (Ya no movemos la torreta)
                                 Commands.run(() -> {
                                         Pose2d robotPose = s_Swerve.getPose();
                                         Translation2d posicionShooter = robotPose.getTranslation().plus(
-                                                        Constants.shooter.kShooterOffset.rotateBy(robotPose.getRotation()));
+                                                        Constants.shooter.kShooterOffset
+                                                                        .rotateBy(robotPose.getRotation()));
 
-                                        double distanciaReal = posicionShooter.getDistance(Constants.shooter.getObjetivoActual());
+                                        double distanciaReal = posicionShooter
+                                                        .getDistance(Constants.shooter.getObjetivoActual());
 
                                         // Ajustamos solo el chamfle y las llantas
                                         double rpmDeseado = mapaRPM.get(distanciaReal);
@@ -324,7 +329,8 @@ public class RobotContainer {
                                 // 2. SECUENCIA DE FUEGO Y ANTI-ATASCO
                                 Commands.sequence(
                                                 Commands.waitUntil(s_ShooterFlywheels::estaEnVelocidad),
-                                                s_Indexer.dispararConAntiAtasco(s_ShooterFlywheels::detectoBajonPelota)))
+                                                s_Indexer.dispararConAntiAtasco(
+                                                                s_ShooterFlywheels::detectoBajonPelota)))
                                 .finallyDo(() -> {
                                         s_ShooterFlywheels.detener();
                                 });
@@ -365,7 +371,7 @@ public class RobotContainer {
                                                 () -> -driver1.getLeftY(),
                                                 () -> -driver1.getLeftX()));
                 driver1.x().whileTrue(Commands.run(s_Swerve::wheelsIn, s_Swerve));
-                driver1.y().whileTrue(new PathPlannerAuto("regresar_a_disparar_BLUE"));                // ==========================================================
+                driver1.y().whileTrue(new PathPlannerAuto("regresar_a_disparar_BLUE")); // ==========================================================
                 // DRIVER 2: MECANISMOS (Torreta, Disparo y Fuego)
                 // ==========================================================
                 driver2.x().whileTrue(s_IntakeRollers.tragarPelotas());
@@ -381,7 +387,8 @@ public class RobotContainer {
                                                 Commands.waitUntil(
                                                                 s_ShooterFlywheels::estaEnVelocidad),
                                                 Commands.parallel(s_Indexer.dispararConAntiAtasco(
-                                                                s_ShooterFlywheels::detectoBajonPelota),s_IntakeRollers.movimiento()))));
+                                                                s_ShooterFlywheels::detectoBajonPelota),
+                                                                s_IntakeRollers.movimiento()))));
 
                 driver2.rightBumper().whileTrue(s_IntakeRollers.movimiento());
                 driver2.povRight().onTrue(s_ShooterAzimuth.homingCero());
@@ -390,6 +397,17 @@ public class RobotContainer {
                 // Al presionar Right Trigger, la torreta sigue al objetivo y las llantas se
                 // prenden a 2800 RPM. Cuando lleguen a la velocidad, el indexer dispara.
                 driver2.rightTrigger().whileTrue(disparoInteligente());
+
+                // 1. Al presionar el botón 3, avanzamos en la máquina de estados
+               // driver3.a().onTrue(Commands.runOnce(() -> s_LedSubsystem.avanzarEstadoLorax()));
+
+                // 2. ¡LA MAGIA DESACOPLADA!
+                // Creamos un Trigger que lee el estado de los LEDs.
+                // Si estamos en DISCO y el modo Lorax está activado en Elastic, ¡el shooter
+                // baila!
+                new Trigger(() -> s_LedSubsystem.getEstadoLorax() == LedSubsystem.EstadoLorax.DISCO &&
+                                SmartDashboard.getBoolean("Elastic/Modo Lorax", false))
+                                .whileTrue(s_ShooterAzimuth.baileDisco());
         }
 
         public Command getAutonomousCommand() {

@@ -33,6 +33,7 @@ public final class Constants {
 		public static final double kStickDeadband = 0.08;
 		public static final int kDriver1Port = 0;
 		public static final int kDriver2Port = 1;
+		public static final int kDriver3Port = 2;
 	}
 
 	public static final class shooter {
