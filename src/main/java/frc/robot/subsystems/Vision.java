@@ -9,6 +9,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation; // <-- Importante para reportar el error
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -34,27 +35,37 @@ public class Vision extends SubsystemBase {
         for (var result : camara.getAllUnreadResults()) {
             if (!result.hasTargets()) continue;
 
-            // 1. Intentamos la mejor estrategia directa: MultiTag en el coprocesador
-            Optional<EstimatedRobotPose> visionEst = poseEstimator.estimateCoprocMultiTagPose(result);
+            // ==========================================================
+            // BLOQUE DE SEGURIDAD (Try-Catch)
+            // ==========================================================
+            try {
+                // 1. Intentamos la mejor estrategia directa: MultiTag en el coprocesador
+                Optional<EstimatedRobotPose> visionEst = poseEstimator.estimateCoprocMultiTagPose(result);
 
-            // 2. Si falló (porque solo hay 1 tag visible), usamos la estrategia más segura para 1 tag
-            if (visionEst.isEmpty()) {
-                visionEst = poseEstimator.estimateLowestAmbiguityPose(result);
+                // 2. Si falló (porque solo hay 1 tag visible), usamos la estrategia más segura para 1 tag
+                if (visionEst.isEmpty()) {
+                    visionEst = poseEstimator.estimateLowestAmbiguityPose(result);
+                }
+
+                // 3. Si logramos calcular una pose, se la pasamos al chasis
+                visionEst.ifPresent(est -> {
+                    SmartDashboard.putNumber("Vision/Ambigüedad", result.getBestTarget().getPoseAmbiguity());
+                    
+                    // Filtro de ambigüedad (Subido a 0.5 para pruebas, luego bájalo a 0.2)
+                    if (result.getTargets().size() == 1 && result.getBestTarget().getPoseAmbiguity() > 0.5) return;
+
+                    Matrix<N3, N1> stdDevs = getEstimationStdDevs(
+                            result.getTargets().size(),
+                            result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
+
+                    swerve.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, stdDevs);
+                });
+
+            } catch (Exception e) {
+                // Si ocurre un error matemático o de nulos, lo atrapamos aquí.
+                // Esto evita que el código crashee y te avisa en la consola de la computadora.
+                DriverStation.reportError("¡Error de Visión! Ignorando frame. Detalles: " + e.getMessage(), false);
             }
-
-            // 3. Si logramos calcular una pose, se la pasamos al chasis
-            visionEst.ifPresent(est -> {
-                SmartDashboard.putNumber("Vision/Ambigüedad", result.getBestTarget().getPoseAmbiguity());
-                
-                // Filtro de ambigüedad (Subido a 0.5 para pruebas, luego bájalo a 0.2)
-                if (result.getTargets().size() == 1 && result.getBestTarget().getPoseAmbiguity() > 0.5) return;
-
-                Matrix<N3, N1> stdDevs = getEstimationStdDevs(
-                        result.getTargets().size(),
-                        result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
-
-                swerve.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, stdDevs);
-            });
         }
     }
 

@@ -53,12 +53,7 @@ public class IntakeRollers extends SubsystemBase {
                 () -> io.stopRodillos());
     }
 
-    // public Command pasandopelotas(){
-    // return Commands.sequence(
-    // movimiento().withTimeout(5),
-    // encender()
-    // );
-    // }
+
 
     // --- BUCLE DE CONTROL (EL CEREBRO) ---
 
