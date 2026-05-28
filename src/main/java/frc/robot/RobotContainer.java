@@ -32,7 +32,7 @@ import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOReal;
 import frc.robot.subsystems.LedSubsystem;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-//import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.intake.IntakeLift;
 import frc.robot.subsystems.intake.IntakeLiftIO;
 import frc.robot.subsystems.intake.IntakeLiftOIReal;
@@ -57,7 +57,7 @@ public class RobotContainer {
         private final InterpolatingDoubleTreeMap mapaTiempo = new InterpolatingDoubleTreeMap();
         private final InterpolatingDoubleTreeMap mapaChamfle = new InterpolatingDoubleTreeMap();
 
-        //private final Vision s_Vision;
+        private final Vision s_Vision;
 
         /* Subsystems */
         private final SwerveBase s_Swerve;
@@ -73,7 +73,7 @@ public class RobotContainer {
         public RobotContainer() {
                 s_Swerve = new SwerveBase();
                 s_LedSubsystem = new LedSubsystem();
-                //s_Vision = new Vision(s_Swerve);
+                s_Vision = new Vision(s_Swerve);
 
                 // -------------------------------------------------------------------
                 // MAPAS DE INTERPOLACIÓN
