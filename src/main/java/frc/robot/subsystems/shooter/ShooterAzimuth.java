@@ -1,9 +1,12 @@
+/*
+ * ShooterAzimuth.java
+ * Este es el primer subsistema normal asi que lo voy a explicar a fondo aqui es donde
+ * definimos toda la logica y botones y todo lo que se puede hacer con este
+ */
 package frc.robot.subsystems.shooter;
 
 import java.util.function.DoubleSupplier;
-
 import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -14,30 +17,30 @@ import frc.robot.Constants;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
-
 public class ShooterAzimuth extends SubsystemBase {
-
+    //traemos la interfaz
     private final ShooterAzimuthIO io;
+    //este fue el que creo la libreria y sirve tal cual lo programamos solamente que ya registra las salidas
     private final ShooterAzimuthIOInputsAutoLogged inputs = new ShooterAzimuthIOInputsAutoLogged();
-
+    
+    // Controlador de lazo cerrado con perfil trapezoidal
     private final ProfiledPIDController azimuthPID;
-
-   private final Alert alertaEncoderAzimuth = new Alert(
+    
+    //para ver las alertas en la pantalla
+    private final Alert alertaEncoderAzimuth = new Alert(
         "¡CRÍTICO! Through Bore Encoder Desconectado (Torreta)", 
         AlertType.kError
     );
-
-    // private final SimpleMotorFeedforward feedforward = new
-    // SimpleMotorFeedforward(
-    // Constants.shooter.azimuth.kS,
-    // Constants.shooter.azimuth.kV
-    // );
-
+    
     private double anguloChamfleManual = 0.0;
+
 
     public ShooterAzimuth(ShooterAzimuthIO io) {
         this.io = io;
-        SmartDashboard.setDefaultNumber("Shooter/Test_kS_Volts", 0.0);  
+        //todo lo de smart dashboard es para poderlo ver en la computadora
+        SmartDashboard.setDefaultNumber("Shooter/Test_kS_Volts", 0.0);
+        
+        //un controlador para poderle pedir una pocision especifica al disparador y ademas con velocidad limitada para que no valla de golpe
         azimuthPID = new ProfiledPIDController(
                 Constants.shooter.azimuth.kP,
                 Constants.shooter.azimuth.kI,
@@ -45,127 +48,94 @@ public class ShooterAzimuth extends SubsystemBase {
                 new TrapezoidProfile.Constraints(
                         Constants.shooter.azimuth.kMaxVelocityDegPerSec,
                         Constants.shooter.azimuth.kMaxAccelerationDegPerSecSq));
-        azimuthPID.setTolerance(1.0);
-        azimuthPID.setTolerance(1.0);
-
+                        
+        azimuthPID.setTolerance(1.0); // Margen de error aceptable de 1 grado
+        //para poderlo modificar dasde la computadora (cambios temporales al reiniciar el robot se vuelve a settear lo que estaba en el constants)
         SmartDashboard.putData("Shooter/Azimuth_PID", azimuthPID);
-
     }
 
     public boolean isTorretaEnTope() {
         return inputs.isAzimuthLimitSwitchPressed;
     }
-
+    //esto fue para probar que tanta fricion tenia el shooter y compensar con ello
+    /** Comando de diagnóstico para descubrir empíricamente el valor de kS (Fricción estática). */
     public Command probarFriccionEstatica() {
         return this.run(() -> {
-            // Leemos el voltaje que escribiste en la pantalla
             double volts = SmartDashboard.getNumber("Shooter/Test_kS_Volts", 0.0);
-            
-            // Se lo inyectamos directo al motor
             io.setAzimuthVoltage(volts);
-        })
-        .finallyDo(() -> {
-            // Por seguridad, apagamos el motor y regresamos el valor a 0 en la pantalla al cancelar el comando
+        }).finallyDo(() -> {
             io.stopAzimuth();
             SmartDashboard.putNumber("Shooter/Test_kS_Volts", 0.0);
         });
     }
-
+    //esto es lo que se va a repetir una y otra vez no siempre se le pone codigo ya que el robot container va a llamar los comandos que ocupe pero si algo es necesario como registrar cosas se pone aca
     @Override
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Shooter/Azimuth", inputs);
-
         SmartDashboard.putNumber("Shooter/Azimuth_CurrentAngle", inputs.azimuthPositionDegrees);
-
         alertaEncoderAzimuth.set(inputs.fallaEncoderAbsoluto);
-
     }
 
-    // ==========================================================
-    // COMANDOS DE AZIMUTH (Torreta)
-    // ==========================================================
-
+    /** 
+     * Control de Posición. Mueve la torreta a un ángulo deseado usando PID y compensación FF. 
+     */
+    //asi se suele definir los comandos lo que la mayoria ocupa es lamnda aunque
+    //hay otra forma larga de definirlos que es por partes al iniciar mientras se ejecuta y al terminar es muy tardado y cada comando se tiene que poner un archivo propio asi que por eso lo hacemos asi
     public Command setAzimuthAngleCommand() {
         return this.run(() -> {
-            // 1. PID puro: Da todo el voltaje posible basado en qué tan lejos está
             double pidOutput = azimuthPID.calculate(inputs.azimuthPositionDegrees);
-
-            // 2. Fricción estática (kS): Solo si estamos fuera de tolerancia, inyectamos
-            // ese empujoncito
             double ffOutput = 0.0;
+            
+            // Inyectar fricción estática (kS) únicamente si el sistema aún no ha llegado a la meta
             if (!azimuthPID.atSetpoint()) {
                 ffOutput = Math.signum(pidOutput) * Constants.shooter.azimuth.kS;
             }
-
-            // 3. ¡Todo el poder al motor!
             io.setAzimuthVoltage(pidOutput + ffOutput);
-
-        })
-                .finallyDo(() -> io.stopAzimuth());
+        }).finallyDo(() -> io.stopAzimuth());
     }
 
+    /** 
+     * Control Teleoperado Manual para Ajuste Fino.
+     * Mapea los ejes del control a voltaje de la torreta y ángulo del servo.
+     */
     public Command controlManualAzimuth(DoubleSupplier ejeAzimuth, DoubleSupplier ejeChamfle) {
         return this.run(() -> {
-            // ==========================================
-            // 1. AZIMUTH (Torreta) - Control de Velocidad
-            // ==========================================
             double valAzimuth = MathUtil.applyDeadband(ejeAzimuth.getAsDouble(), 0.1);
-            // Multiplicamos por 4.0V máximo para que se mueva muy "de a poquito"
-            io.setAzimuthVoltage(valAzimuth * 8.0);
-
-            // ==========================================
-            // 2. CHAMFLE (Servo) - Control de Posición
-            // ==========================================
+            io.setAzimuthVoltage(valAzimuth * 8.0); // Escalado de voltaje para movimiento fino
+            
             double valChamfle = MathUtil.applyDeadband(ejeChamfle.getAsDouble(), 0.1);
-
-            // Si mueven la palanca, le sumamos grados a la memoria (ej. 1.5 grados cada
-            // 20ms)
-            anguloChamfleManual += valChamfle * 1.5;
-
-            // Límite duro de software para no tronar el servo mecánicamente
+            anguloChamfleManual += valChamfle * 1.5; // Integración posicional
             anguloChamfleManual = MathUtil.clamp(anguloChamfleManual, 0.0, 180.0);
-
+            
             io.setPivotAngle(anguloChamfleManual);
-
-        }).finallyDo(() -> {
-            io.stopAzimuth(); // Apagamos el motor de la torreta por seguridad
-            // OJO: El servo NO se apaga. Mantiene el último 'anguloChamfleManual' que
-            // calculó.
-        });
+        }).finallyDo(() -> io.stopAzimuth());
     }
 
+    /** 
+     * Comando principal de auto-apuntado inyectado por el cálculo cinemático del Chasis. 
+     */
     public Command autoApuntar(DoubleSupplier anguloCalculado) {
-    return this.run(() -> {
-        // 1. Leemos la matemática en vivo y limitamos al rango seguro (0 a 120)
-        double targetSeguro = MathUtil.clamp(anguloCalculado.getAsDouble(), 0.0, 120.0);
-        
-        // 2. Calculamos el PID Perfilado (Aceleración y velocidad controladas)
-        double pidOutput = azimuthPID.calculate(inputs.azimuthPositionDegrees, targetSeguro);
-        
-        // 3. Fricción estática (kS) inyectada solo si no hemos llegado a la meta
-        double ffOutput = 0.0;
-        if (!azimuthPID.atGoal()) { 
-            ffOutput = Math.signum(pidOutput) * Constants.shooter.azimuth.kS;
-        }
-        
-        // 4. Mover suavemente
-        io.setAzimuthVoltage(pidOutput + ffOutput);
-        SmartDashboard.putNumber("AutoAim/Turret_Target", targetSeguro);
-        
-    }).finallyDo(() -> io.stopAzimuth());
-}
+        return this.run(() -> {
+            // Abrazadera de software (Clamp) para evitar choques estructurales
+            double targetSeguro = MathUtil.clamp(anguloCalculado.getAsDouble(), 0.0, 120.0);
+            
+            double pidOutput = azimuthPID.calculate(inputs.azimuthPositionDegrees, targetSeguro);
+            double ffOutput = 0.0;
+            if (!azimuthPID.atGoal()) { 
+                ffOutput = Math.signum(pidOutput) * Constants.shooter.azimuth.kS;
+            }
+            
+            io.setAzimuthVoltage(pidOutput + ffOutput);
+            SmartDashboard.putNumber("AutoAim/Turret_Target", targetSeguro);
+        }).finallyDo(() -> io.stopAzimuth());
+    }
 
     public Command resetAzimuthEncoder() {
         return runOnce(() -> io.setAzimuthZero());
     }
 
-    public Command manualAzimuthCommand(double volts) {
-        return this.runEnd(() -> io.setAzimuthVoltage(volts), () -> io.stopAzimuth());
-    }
-
     public void setObjetivo(double targetChamfle) {
-
         io.setPivotAngle(targetChamfle);
     }
 
@@ -173,26 +143,15 @@ public class ShooterAzimuth extends SubsystemBase {
         io.stopAzimuth();
     }
 
-    // ==========================================================
-    // COMANDOS DE PIVOT (Chamfle con Servo)
-    // ==========================================================
-
-    public Command setPivotAngleCommand(double targetDegrees) {
-        // targetDegrees normalmente va de 0 a 180 para un servo estándar
-        return this.runOnce(() -> io.setPivotAngle(targetDegrees));
-    }
-
+    /** 
+     * Rutina de Homing: Gira lentamente hacia el límite físico para calibrar el 0 absoluto.
+     */
     public Command homingCero() {
-        return this.run(() -> {
-            // Giramos hacia la derecha (CW / Negativo) para buscar el 0
-            io.setAzimuthVoltage(-1.5);
-        })
-                .until(() -> inputs.isAzimuthLimitSwitchPressed) // Se detiene al tocar el límite de reversa
+        return this.run(() -> io.setAzimuthVoltage(-1.5))
+                .until(() -> inputs.isAzimuthLimitSwitchPressed)
                 .finallyDo(() -> {
                     io.stopAzimuth();
-
                     io.setAzimuthZero();
                 });
     }
-
 }

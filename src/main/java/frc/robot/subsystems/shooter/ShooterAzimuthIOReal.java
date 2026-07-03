@@ -1,3 +1,5 @@
+//aqui le pasamos al codigo que motor y como ocuparlo asi si cambiamos un motor por otro de golpe solamente modificamos aca
+
 package frc.robot.subsystems.shooter;
 
 import com.revrobotics.PersistMode;
@@ -13,11 +15,12 @@ import edu.wpi.first.wpilibj.Servo;
 import frc.robot.Constants;
 
 public class ShooterAzimuthIOReal implements ShooterAzimuthIO {
-
+    //esto define el motor
     private final SparkMax motorAzimuth;
+    // y esto el encoder el sensor que registrara las vueltas
     private final SparkAbsoluteEncoder azimuthEncoder;
-
-    private final Servo pivotServo; // NUEVO: Servo para el chamfle
+    //esto define un servomotor
+    private final Servo pivotServo; //Servo para el chamfle
 
     // --- Lógica de Vueltas Infinitas (Rollover) ---
     private double lastRawPosition = 0.0;
@@ -29,27 +32,35 @@ public class ShooterAzimuthIOReal implements ShooterAzimuthIO {
     public ShooterAzimuthIOReal() {
 
         // --- CONFIGURACIÓN AZIMUTH (TORRETA) ---
+        //aqui le decimos al motor en que ID esta viviendo su controlador y de que tipo es con escobillas o si escobillas
         motorAzimuth = new SparkMax(Constants.shooter.azimuth.kID, MotorType.kBrushless);
         // Leemos el encoder desde el puerto del adaptador de REV
         azimuthEncoder = motorAzimuth.getAbsoluteEncoder();
-
+        
+        //se crea la configuracion de este motor
         SparkMaxConfig configAzimuth = new SparkMaxConfig();
-        configAzimuth.idleMode(IdleMode.kBrake); // Mejor Brake para la torreta
-        configAzimuth.smartCurrentLimit(40); // Bajamos el límite para seguridad
+        //esto de aqui define el modo del motor, existen 2 brake y coast, el brake frena el motor de golpe cuando lo dejas de ocupar
+        //y genera una friccion para que no gire tan facil, luego el coast este lo deja seguir para que frene solo por friccion
+        configAzimuth.idleMode(IdleMode.kBrake);
+        //el limite de amperaje que le vamos a proporcionar al motor
+        configAzimuth.smartCurrentLimit(40); 
+        //para que gire para un lado o para otro
         configAzimuth.inverted(true);
+        //los estados de los limit switch unos switch que frenan el motor cuando se accionen para que no se decapite solo
         configAzimuth.limitSwitch.forwardLimitSwitchType(Type.kNormallyOpen);
         configAzimuth.limitSwitch.reverseLimitSwitchType(Type.kNormallyClosed);
+        //aqui si el encoder cuenta positivo o cuenta en negativo
+        configAzimuth.absoluteEncoder.inverted(true);
 
-        configAzimuth.absoluteEncoder.inverted(true); // (O false)
-
+        //y aqui le pasamos toda esa configuracion al motor 
         motorAzimuth.configure(configAzimuth, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         // --- SERVO PIVOT ---
-        // Asumiendo que lo conectas al puerto PWM 0 de la RoboRIO
+        //el pin al que se va a conectar en la rio
         pivotServo = new Servo(0);
 
         // INICIALIZACIÓN DE VUELTAS
-        // azimuthEncoder.getPosition() nos da un valor limpio de 0.0 a 1.0 por defecto
+        // da un valor de 0.0 a 1.0
         lastRawPosition = azimuthEncoder.getPosition();
     }
 
@@ -90,7 +101,7 @@ public class ShooterAzimuthIOReal implements ShooterAzimuthIO {
         inputs.pivotAngleDegrees = pivotServo.getAngle(); // Para el log
 
     }
-
+    //y aqui le traducimos a la interfaz como es con los motores
     @Override
     public void setAzimuthZero() {
         double currentRawDegrees = ((azimuthTotalRotations + lastRawPosition) / kEncoderGearRatio) * 360.0;
@@ -104,7 +115,7 @@ public class ShooterAzimuthIOReal implements ShooterAzimuthIO {
 
     @Override
     public void setPivotAngle(double degrees) {
-        // Los servos estándar de FRC aceptan de 0 a 180 grados
+        
         pivotServo.setAngle(degrees);
     }
 

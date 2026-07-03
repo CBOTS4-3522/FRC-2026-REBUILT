@@ -1,3 +1,10 @@
+/*
+ * RevSwerveModule.java
+ * 
+ * Implementación concreta de un módulo Swerve utilizando hardware de REV Robotics 
+ * (Controladores SPARK MAX, motores NEO) y un encoder absoluto CANCoder de CTRE.
+ * Integra capacidades completas de simulación física (DCMotorSim).
+ */
 package frc.robot.subsystems.swerve;
 
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -11,6 +18,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -25,82 +33,70 @@ import edu.wpi.first.math.MathUtil;
 public class RevSwerveModule implements SwerveModule {
     public int moduleNumber;
     private Rotation2d angleOffset;
-
+    
     private SparkMax mAngleMotor;
     private SparkMax mDriveMotor;
-
-    // motores de simulacion
+    
+    // Modelos matemáticos de estado en el espacio (State-Space) para simulación
     private DCMotorSim mDriveSim;
     private DCMotorSim mAngleSim;
-
-    // Objetos de configuración (REV 2025)
+    
+    // Objetos de configuración de la nueva API 2025 de REV
     private SparkMaxConfig mAngleConfig;
     private SparkMaxConfig mDriveConfig;
-
+    
     private CANcoder angleEncoder;
     private RelativeEncoder relAngleEncoder;
     private RelativeEncoder relDriveEncoder;
-
+    
     public SwerveModuleState desiredState;
     public final FeedForwardConfig feedForward = new FeedForwardConfig();
     private double lastVelocitySetpoint = 0.0;
 
     public RevSwerveModule(int moduleNumber, RevSwerveModuleConstants moduleConstants) {
         this.moduleNumber = moduleNumber;
-
         this.angleOffset = moduleConstants.angleOffset;
 
-        /* Angle Motor Config */
+        /* Inicialización del hardware físico */
         mAngleMotor = new SparkMax(moduleConstants.angleMotorID, MotorType.kBrushless);
         mAngleConfig = new SparkMaxConfig();
-        configAngleMotor(); // Prepara el config, no lo aplica todavía
+        configAngleMotor(); 
 
-        /* Drive Motor Config */
         mDriveMotor = new SparkMax(moduleConstants.driveMotorID, MotorType.kBrushless);
         mDriveConfig = new SparkMaxConfig();
-        configDriveMotor(); // Prepara el config, no lo aplica todavía
+        configDriveMotor(); 
 
-        /* Angle Encoder Config */
         angleEncoder = new CANcoder(moduleConstants.cancoderID);
 
-        // Configura encoders y APLICA la configuración a los motores
+        // Se aplican las configuraciones preparadas a los controladores
         configEncoders();
-
-        // Sincronizar encoders (Absolute -> Relative)
+        
+        // Alineación inicial crítica: Encoder Relativo <- Encoder Absoluto
         synchronizeEncoders();
+        
         this.desiredState = new SwerveModuleState(0, getAngle());
 
-        // ... dentro del constructor de RevSwerveModule ...
-
-        // 1. Definimos la física del sistema (La "Planta")
-        // createDCMotorSystem(Motor, Inercia J [kg*m^2], Relación de Engranes)
-
-        // Para el Drive (Rueda)
+        // -------------------------------------------------------------------
+        // MODELADO MATEMÁTICO PARA SIMULACIÓN
+        // -------------------------------------------------------------------
+        // Creamos "plantas" (modelos físicos) estimando la inercia del sistema 
+        // y la relación de reducción mecánica.
         var drivePlant = LinearSystemId.createDCMotorSystem(
-                DCMotor.getNEO(1), // Motor
-                0.025, // Inercia aprox (J)
-                Constants.Swerve.kDriveGearRatio // Gearing
+                DCMotor.getNEO(1), 0.025, Constants.Swerve.kDriveGearRatio
         );
-
-        // Para el Angle (Dirección)
         var anglePlant = LinearSystemId.createDCMotorSystem(
-                DCMotor.getNEO(1), // Motor
-                0.004, // Inercia aprox (J)
-                Constants.Swerve.kAngleGearRatio // Gearing
+                DCMotor.getNEO(1), 0.004, Constants.Swerve.kAngleGearRatio
         );
 
-        // 2. Creamos la simulación usando la planta
-        // El segundo parámetro es el gearbox, que usamos para saber limites de
-        // corriente, etc.
+        // Instanciamos los simuladores de los motores
         mDriveSim = new DCMotorSim(drivePlant, DCMotor.getNEO(1));
         mAngleSim = new DCMotorSim(anglePlant, DCMotor.getNEO(1));
     }
 
+    /** Configura los factores de conversión para que los SparkMax trabajen en Metros y Grados nativamente. */
     private void configEncoders() {
         relDriveEncoder = mDriveMotor.getEncoder();
         relDriveEncoder.setPosition(0);
-
-        // Factores de conversión
         mDriveConfig.encoder.positionConversionFactor(Constants.Swerve.kDriveRevToMeters);
         mDriveConfig.encoder.velocityConversionFactor(Constants.Swerve.kDriveRpmToMetersPerSecond);
 
@@ -112,6 +108,7 @@ public class RevSwerveModule implements SwerveModule {
         mAngleMotor.configure(mAngleConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
+    /** Configura las ganancias PID y límites de corriente del motor de dirección. */
     private void configAngleMotor() {
         mAngleConfig.closedLoop.p(Constants.Swerve.Angle.kP, ClosedLoopSlot.kSlot0);
         mAngleConfig.closedLoop.i(Constants.Swerve.Angle.kI, ClosedLoopSlot.kSlot0);
@@ -121,70 +118,63 @@ public class RevSwerveModule implements SwerveModule {
         mAngleConfig.closedLoop.feedForward.kA(Constants.Swerve.Angle.kA, ClosedLoopSlot.kSlot0);
         mAngleConfig.closedLoop.outputRange(-Constants.Swerve.kAnglePower, Constants.Swerve.kAnglePower);
         
-
-        // CORRECCION: Usar el límite de corriente de ANGLE, no de DRIVE
         mAngleConfig.smartCurrentLimit(Constants.Swerve.kAngleContinuousCurrentLimit);
-
         mAngleConfig.inverted(Constants.Swerve.kAngleMotorInvert);
         mAngleConfig.idleMode(Constants.Swerve.kAngleIdleMode);
         mAngleConfig.closedLoopRampRate(Constants.Swerve.kAngleRampRate);
     }
 
+    /** Configura las ganancias PID y límites de corriente del motor de tracción. */
     private void configDriveMotor() {
-        // Compensar voltaje
-        mDriveConfig.voltageCompensation(12.0);
-        // Aseguramos usar las constantes de DRIVE (KP, KI, KD)
+        mDriveConfig.voltageCompensation(12.0); // Previene comportamientos extraños si la batería baja
         mDriveConfig.closedLoop.p(Constants.Swerve.Drive.kP, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.i(Constants.Swerve.Drive.kI, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.d(Constants.Swerve.Drive.kD, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.feedForward.kA(Constants.Swerve.Drive.kA, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.feedForward.kV(Constants.Swerve.Drive.kV, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.feedForward.kS(Constants.Swerve.Drive.kS, ClosedLoopSlot.kSlot0);
-
         mDriveConfig.closedLoop.outputRange(-12.0, 12.0);
+        
         mDriveConfig.smartCurrentLimit(Constants.Swerve.kDriveContinuousCurrentLimit);
-
         mDriveConfig.inverted(Constants.Swerve.kDriveMotorInvert);
         mDriveConfig.idleMode(Constants.Swerve.kDriveIdleMode);
     }
 
-    @Override // Implementando de la interfaz
+    @Override
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop, boolean forceAngle) {
-        // Optimizar para no girar más de 90 grados
+        // Optimización del estado: Evita que el módulo gire más de 90 grados; invierte la velocidad si es necesario.
         this.desiredState = CTREState.optimize(desiredState, getState().angle);
         setAngle(this.desiredState, forceAngle);
         setSpeed(this.desiredState, isOpenLoop);
     }
-
     
-
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
-        // Si la velocidad es casi cero, apagamos el motor para evitar el "creeping"
+        // Anti-Jitter: Si el joystick se suelta, apagar motor.
         if (Math.abs(desiredState.speedMetersPerSecond) < 0.01) {
             mDriveMotor.stopMotor();
             return;
         }
 
         if (isOpenLoop) {
+            // Control por porcentaje (Teleoperado simple)
             double percentOutput = desiredState.speedMetersPerSecond / Constants.Swerve.kMaxSpeed;
             mDriveMotor.set(percentOutput);
             return;
         }
 
+        // Control Lazo Cerrado (Autónomo o perfiles de trayectoria)
         double velocity = desiredState.speedMetersPerSecond;
         SparkClosedLoopController controller = mDriveMotor.getClosedLoopController();
         controller.setSetpoint(velocity, ControlType.kVelocity, ClosedLoopSlot.kSlot0);
     }
 
     private void setAngle(SwerveModuleState desiredState, boolean forceAngle) {
-        // Prevenir Jitter: Si la velocidad es muy baja, no muevas el ángulo
+        // Anti-Jitter: No desgastar los engranes corrigiendo el ángulo si el robot no se está moviendo.
         if (!forceAngle && Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.kMaxSpeed * 0.01)) {
             mAngleMotor.stopMotor();
             return;
         }
-
-    
-
+             
         Rotation2d angle = desiredState.angle;
         SparkClosedLoopController controller = mAngleMotor.getClosedLoopController();
         double degReference = angle.getDegrees();
@@ -213,32 +203,24 @@ public class RevSwerveModule implements SwerveModule {
 
     @Override
     public void synchronizeEncoders() {
-        // Alinea el encoder relativo del NEO con el absoluto del CANCoder
+        // Resta el imán físico del módulo (offset) para alinear las ruedas hacia el frente.
         double absolutePosition = getCanCoder().getDegrees() - angleOffset.getDegrees();
         relAngleEncoder.setPosition(absolutePosition);
     }
 
     @Override
     public SwerveModuleState getState() {
-        // Si estamos en simulación, leemos la velocidad directo de la física
+        // Abstracción transparente: La capa superior (SwerveBase) no necesita saber si es simulación o hardware.
         if (edu.wpi.first.wpilibj.RobotBase.isSimulation()) {
             double simVel = mDriveSim.getAngularVelocityRadPerSec() * (Constants.Swerve.kWheelCircumference / (2 * Math.PI));
             return new SwerveModuleState(simVel, getAngle());
         }
-        
-        // Si es real, usamos el encoder
         return new SwerveModuleState(relDriveEncoder.getVelocity(), getAngle());
     }
 
     @Override
     public double getOmega() {
-        // Retorna la velocidad angular en grados por segundo (o la unidad que
-        // necesites)
-        // OJO: Checar si 'getVelocity' de CANCoder retorna Rotaciones/Seg o Grados/Seg
-        // Phoenix 6 retorna Rotaciones/Seg, por eso * 360 estaba en tu logica anterior
-        return angleEncoder.getVelocity().getValueAsDouble() * 360; 
-        
-        
+        return angleEncoder.getVelocity().getValueAsDouble() * 360;                       
     }
 
     @Override
@@ -253,92 +235,70 @@ public class RevSwerveModule implements SwerveModule {
         return desiredState;
     }
 
-    // Dentro de RevSwerveModule.java
     public void setDriveVoltage(double volts) {
         mDriveMotor.setVoltage(volts);
     }
 
     @Override
     public double getDriveVoltage() {
-        // El voltaje aplicado es el voltaje de la batería por el porcentaje de salida
         return mDriveMotor.getBusVoltage() * mDriveMotor.getAppliedOutput();
     }
 
     @Override
     public void lockAngle() {
-        // Forzamos a que el módulo siempre mire hacia adelante (0 grados)
         mAngleMotor.getClosedLoopController().setSetpoint(0, com.revrobotics.spark.SparkBase.ControlType.kPosition);
     }
 
     public void updateDrivePID(double p, double d, double i) {
-        // Actualizamos el objeto de configuración que ya tienes
         mDriveConfig.closedLoop.p(p, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.d(d, ClosedLoopSlot.kSlot0);
         mDriveConfig.closedLoop.i(i, ClosedLoopSlot.kSlot0);
-
-        // Aplicamos solo los cambios necesarios de forma segura
-        mDriveMotor.configure(mDriveConfig,
-                ResetMode.kNoResetSafeParameters,
-                PersistMode.kNoPersistParameters);
+        
+        mDriveMotor.configure(mDriveConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
     }
+
     /**
-     * Este método corre cada 20ms SOLO en el simulador.
+     * Bucle de simulación ejecutado periódicamente (20ms).
+     * Modela la respuesta de los motores basados en la cinemática deseada inyectando voltaje 
+     * a las plantas virtuales y actualizando los valores de los encoders simulados.
      */
     public void simulationPeriodic(double dt) {
-        // --- 1. LÓGICA DE CONTROL (Lo que hace tu código/SparkMax) ---
-
+        // 1. LÓGICA DE CONTROL (Simulación del Firmware del SparkMax)
         double velocitySetpoint = desiredState.speedMetersPerSecond;
         double currentSimVelocity = mDriveSim.getAngularVelocityRadPerSec() * (Constants.Swerve.kWheelCircumference / (2 * Math.PI));
-
-        // Calcular Aceleración Deseada (para kA)
+        
         double accelerationSetpoint = (velocitySetpoint - lastVelocitySetpoint) / dt;
         lastVelocitySetpoint = velocitySetpoint;
 
-        //Calculo de voltaje ff
-        // Feedforward: kS (Fricción) + kV (Velocidad) + kA (Aceleración)
+        // FeedForward Híbrido (Ecuación Física de Sistema)
         double driveVoltage = 0.0;
         if (Math.abs(velocitySetpoint) > 0.01) {
-            // kS: Solo se aplica si queremos movernos
-            driveVoltage += Math.signum(velocitySetpoint) * Constants.Swerve.Drive.kS;
+            driveVoltage += Math.signum(velocitySetpoint) * Constants.Swerve.Drive.kS; // Fricción
         }
-        driveVoltage += velocitySetpoint * Constants.Swerve.Drive.kV;
-        driveVoltage += accelerationSetpoint * Constants.Swerve.Drive.kA;
+        driveVoltage += velocitySetpoint * Constants.Swerve.Drive.kV; // Vel.
+        driveVoltage += accelerationSetpoint * Constants.Swerve.Drive.kA; // Acel.
 
-        // PID: Proporcional (kP)
-        // Aquí usamos kP * 12.0 porque en la simulación calculamos voltios directos.
-        // Si en tus Constants ya dividiste kP/12, entonces aquí multiplicas: (kP_Constants * Error * 12.0)
-        // Si en tus Constants tienes el valor de SysId (0.23), úsalo directo: (kP_SysId * Error)
-        
-        // ASUMIENDO que en Constants pondrás el valor correcto para SparkMax (0.02):
+        // Cálculo del Lazo Cerrado (Proporcional)
         double velocityError = velocitySetpoint - currentSimVelocity;
         driveVoltage += velocityError * (Constants.Swerve.Drive.kP * 12.0); 
 
-        // calculo de voltaje de giro
         double angleErrorDegrees = desiredState.angle.minus(getAngle()).getDegrees();
-        // Asumiendo que kP de Angle también está ajustado para SparkMax (0-1)
         double angleVoltage = angleErrorDegrees * (Constants.Swerve.Angle.kP * 12.0);
 
-
-        // Clamp a 12V (Batería)
         driveVoltage = MathUtil.clamp(driveVoltage, -12.0, 12.0);
         angleVoltage = MathUtil.clamp(angleVoltage, -12.0, 12.0);
 
-
-        // --- 2. FISICA DEL MUNDO REAL (DCMotorSim) ---
-        // Le mandamos los voltios calculados al motor virtual
+        // 2. APLICACIÓN FÍSICA AL MUNDO REAL SIMULADO
         mDriveSim.setInputVoltage(driveVoltage);
         mAngleSim.setInputVoltage(angleVoltage);
-
         mDriveSim.update(dt);
         mAngleSim.update(dt);
 
-
-        // --- 3. ACTUALIZAR SENSORES (Encoders) ---
+        // 3. ACTUALIZACIÓN DE SENSORES RELATIVOS
         double drivePosMeters = (mDriveSim.getAngularPositionRad() / (2 * Math.PI)) * Constants.Swerve.kWheelCircumference;
         relDriveEncoder.setPosition(drivePosMeters);
-        
+                 
         double angleDegrees = Math.toDegrees(mAngleSim.getAngularPositionRad());
         relAngleEncoder.setPosition(angleDegrees);
     }
-
 }

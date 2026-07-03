@@ -1,15 +1,16 @@
+/*
+ * ShooterFlywheels.java
+ *
+ * Lógica de alto nivel para el propulsor. 
+ * Combina un control basado en modelo de planta (FeedForward) con PID. 
+ * Incluye un algoritmo transitorio para detectar caídas de RPM, lo que permite inferir 
+ * con alta certeza cuándo un proyectil ha abandonado exitosamente el cañón.
+ */
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Second;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
-
+import static edu.wpi.first.units.Units.*;
 import java.util.function.DoubleSupplier;
-
 import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.units.measure.Voltage;
@@ -22,55 +23,37 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 
 public class ShooterFlywheels extends SubsystemBase {
-
     private final ShooterFlywheelsIO io;
     private final ShooterFlywheelsIOInputsAutoLogged inputs = new ShooterFlywheelsIOInputsAutoLogged();
     private final InterpolatingDoubleTreeMap mapaRPM = new InterpolatingDoubleTreeMap();
-
     private final SysIdRoutine m_sysIdRoutine;
-
-    private final Alert alertaEncoderShooterLider = new Alert(
-            "¡Falla de Sensor en Motor Lider del Shooter!",
-            AlertType.kError);
-    private final Alert alertaEncoderShooterSeguidor = new Alert(
-            "¡Falla de Sensor en Motor Seguidor del Shooter!",
-            AlertType.kError);
-            
-        
+    
+    private final Alert alertaEncoderShooterLider = new Alert("¡Falla de Sensor en Motor Líder del Shooter!", AlertType.kError);
+    private final Alert alertaEncoderShooterSeguidor = new Alert("¡Falla de Sensor en Motor Seguidor del Shooter!", AlertType.kError);
 
     private double objetivoRPMLlanta = 0.0;
+    
+    // FeedForward (kS: Estática, kV: Velocidad, kA: Aceleración).
+    // Provee >90% de la energía necesaria basándose en matemáticas, dejando al PID muy poco trabajo.
     private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(
             Constants.shooter.flywheels.kS,
             Constants.shooter.flywheels.kV,
             Constants.shooter.flywheels.kA);
-
+            
     private double kP = Constants.shooter.flywheels.kP;
     private double kD = Constants.shooter.flywheels.kD;
     private double kI = Constants.shooter.flywheels.kI;
-    // Variables para contar pelotas
 
     public ShooterFlywheels(ShooterFlywheelsIO io) {
         this.io = io;
-
-        /*
-         * 1m 2750rpm
-         * 
-         */
         SmartDashboard.putNumber("Shooter/kP", kP);
         SmartDashboard.putNumber("Shooter/kI", kI);
         SmartDashboard.putNumber("Shooter/kD", kD);
-
         SmartDashboard.setDefaultNumber("Shooter/RPM_Test", Constants.shooter.flywheels.defaultRPM);
 
-        // -----------------------------------------------------------
-        // CONFIGURACIÓN DE SYSID (Flywheel)
-        // -----------------------------------------------------------
+        // Configuración para rutinas de caracterización (SysId)
         m_sysIdRoutine = new SysIdRoutine(
-                new SysIdRoutine.Config(
-                        Volts.per(Second).of(1.0),
-                        Volts.of(7.0),
-                        Seconds.of(10),
-                        null),
+                new SysIdRoutine.Config(Volts.per(Second).of(1.0), Volts.of(7.0), Seconds.of(10), null),
                 new SysIdRoutine.Mechanism(
                         (Voltage volts) -> io.setFlywheelVoltage(volts.in(Volts)),
                         log -> {
@@ -82,22 +65,24 @@ public class ShooterFlywheels extends SubsystemBase {
                         this));
     }
 
-    // Devuelve TRUE si ya estamos a +-30 RPM de la meta
+    /** 
+     * Condición de tolerancia. Retorna True si los motores están dentro 
+     * de la banda de aceptación (±30 RPM) para autorizar un disparo consistente.
+     */
     public boolean estaEnVelocidad() {
-        // Asegurarnos de que no dispare si el objetivo es 0
-        if (objetivoRPMLlanta == 0.0)
-            return false;
-
+        if (objetivoRPMLlanta == 0.0) return false;
+        
         double rpmReales = inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor;
         double error = Math.abs(objetivoRPMLlanta - rpmReales);
-
-        return error < 30.0; // Tolerancia de 30 RPM
+        return error < 30.0; 
     }
 
+    /** Calcula el requerimiento total (FeedForward + Setpoint) para la capa de IO. */
     public void setObjetivoRPM(double rpm) {
         objetivoRPMLlanta = rpm;
         double rpmMotor = rpm / Constants.shooter.flywheels.relationMotor;
-        double rpsMotor = rpmMotor / 60.0;
+        double rpsMotor = rpmMotor / 60.0; // Transformación a Rotaciones Por Segundo para el cálculo FF
+        
         double ffVolts = feedforward.calculate(rpsMotor);
         io.setFlywheelVelocity(rpmMotor, ffVolts);
     }
@@ -111,21 +96,16 @@ public class ShooterFlywheels extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Shooter/Flywheels", inputs);
-        // Mandamos luces de estado para que Elastic las lea
+
         SmartDashboard.putBoolean("Elastic/Shooter Listo", estaEnVelocidad());
         SmartDashboard.putBoolean("Elastic/Anti-Atasco Activo", detectoBajonPelota());
-
         alertaEncoderShooterLider.set(inputs.errorEncoderLider);
         alertaEncoderShooterSeguidor.set(inputs.errorEncoderFollower);
 
-
-
+        // Tuning en caliente para lazos PID desde Shuffleboard
         double pDashboard = SmartDashboard.getNumber("Shooter/kP", kP);
         double iDashboard = SmartDashboard.getNumber("Shooter/kI", kI);
         double dDashboard = SmartDashboard.getNumber("Shooter/kD", kD);
-
-        // Solo enviamos comando por CAN si notamos que cambiaste un número en
-        // AdvantageScope/Shuffleboard
         if (pDashboard != kP || iDashboard != kI || dDashboard != kD) {
             kP = pDashboard;
             kI = iDashboard;
@@ -134,33 +114,37 @@ public class ShooterFlywheels extends SubsystemBase {
         }
 
         SmartDashboard.putNumber("Shooter/RPMObjetivo", objetivoRPMLlanta);
-        SmartDashboard.putNumber("Shooter/ObjetivoMotores",
-                objetivoRPMLlanta / Constants.shooter.flywheels.relationMotor);
-        Logger.recordOutput("Shooter/FlywheelRPM_Real",
-                inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor);
+        SmartDashboard.putNumber("Shooter/ObjetivoMotores", objetivoRPMLlanta / Constants.shooter.flywheels.relationMotor);
+        Logger.recordOutput("Shooter/FlywheelRPM_Real", inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor);
     }
 
     // ==========================================================
-    // COMANDOS DE AZIMUTH (Torreta)
+    // LÓGICA DE DETECCIÓN Y COMANDOS
     // ==========================================================
 
-    // ==========================================================
-    // COMANDOS DE FLYWHEEL & SYSID
-    // ==========================================================
+    /**
+     * Detección de salida de proyectil mediante análisis transitorio de RPM.
+     * Al entrar una pelota, la transferencia de energía causa una caída repentina de velocidad.
+     * Si la caída excede 100 RPM, se infiere una interacción física exitosa.
+     */
+    public boolean detectoBajonPelota() {
+        if (objetivoRPMLlanta == 0.0) return false;
+        
+        double rpmReales = inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor;
+        double bajon = objetivoRPMLlanta - rpmReales;
+        
+        SmartDashboard.putNumber("Shooter/BajonRPM", bajon);
+        return bajon > 100.0;
+    }
 
     public Command runShooterCommand(double rpmLlanta) {
         return this.run(() -> {
-            // 1. GUARDAMOS EL OBJETIVO para que lo vea el dashboard
             objetivoRPMLlanta = rpmLlanta;
-
-            // 2. Las matemáticas del motor
             double rpmMotor = rpmLlanta / (Constants.shooter.flywheels.relationMotor);
             double rpsMotor = rpmMotor / 60.0;
             double ffVolts = feedforward.calculate(rpsMotor);
-
             io.setFlywheelVelocity(rpmMotor, ffVolts);
         }).finallyDo(() -> {
-            // Cuando el comando se cancele o termine, el objetivo vuelve a 0
             objetivoRPMLlanta = 0.0;
             io.stopFlywheel();
         });
@@ -168,86 +152,50 @@ public class ShooterFlywheels extends SubsystemBase {
 
     public Command testShooterDesdeDashboard() {
         return this.run(() -> {
-            // A) Leer el número que los mecánicos escribieron en Elastic
             double rpmDeseado = SmartDashboard.getNumber("Shooter/RPM_Test", Constants.shooter.flywheels.defaultRPM);
-
-            // B) Guardamos el objetivo para que tu gráfica de AdvantageScope siga
-            // funcionando
             objetivoRPMLlanta = rpmDeseado;
-
-            // C) Las mismas matemáticas perfectas que ya hicimos
+            
             double rpmMotor = rpmDeseado / Constants.shooter.flywheels.relationMotor;
             double rpsMotor = rpmMotor / 60.0;
             double ffVolts = feedforward.calculate(rpsMotor);
-
             io.setFlywheelVelocity(rpmMotor, ffVolts);
-
         }).finallyDo(() -> {
-            objetivoRPMLlanta = 0.0; // Reiniciamos al soltar el botón
+            objetivoRPMLlanta = 0.0; 
             io.stopFlywheel();
         });
-    }
-
-    public boolean detectoBajonPelota() {
-        if (objetivoRPMLlanta == 0.0)
-            return false;
-
-        double rpmReales = inputs.flywheelVelocityRPMLider * Constants.shooter.flywheels.relationMotor;
-
-        // Calculamos qué tan caídas están las RPM respecto al objetivo
-        double bajon = objetivoRPMLlanta - rpmReales;
-
-        // Lo mandamos al dashboard para que veas exactamente cuánto caen al disparar
-        SmartDashboard.putNumber("Shooter/BajonRPM", bajon);
-
-        // Si las RPM caen más de 150 de golpe, asumimos que una pelota acaba de pasar.
-        // (Durante el arranque, este valor también será alto, lo cual es bueno porque
-        // mantendrá el timer reseteado hasta que las llantas lleguen a su velocidad).
-        return bajon > 100.0;
     }
 
     public Command stopShooterCommand() {
         return this.runOnce(() -> {
-            objetivoRPMLlanta = 0.0; // Reiniciamos el objetivo
+            objetivoRPMLlanta = 0.0;
             io.stopFlywheel();
-
         });
     }
 
     public Command activarManual() {
-        return this.runEnd(
-                () -> io.setFlywheelVoltage(5),
-                () -> io.stopFlywheel());
+        return this.runEnd(() -> io.setFlywheelVoltage(5), () -> io.stopFlywheel());
     }
 
     public Command dispararConMapa(DoubleSupplier distanciaMetrosSupplier) {
         return this.run(() -> {
-            // 1. Obtenemos la distancia actual
             double distanciaActual = distanciaMetrosSupplier.getAsDouble();
-
-            // 2. Le preguntamos al mapa cuántas RPM necesitamos para esa distancia
             double rpmDeseado = mapaRPM.get(distanciaActual);
-
-            // 3. Lo guardamos para que AdvantageScope y estaEnVelocidad() lo vean
             objetivoRPMLlanta = rpmDeseado;
-
-            // 4. Matemáticas de motores (Idénticas a tu otro comando)
+            
             double rpmMotor = rpmDeseado / Constants.shooter.flywheels.relationMotor;
             double rpsMotor = rpmMotor / 60.0;
             double ffVolts = feedforward.calculate(rpsMotor);
-
             io.setFlywheelVelocity(rpmMotor, ffVolts);
-
         }).finallyDo(() -> {
             objetivoRPMLlanta = 0.0;
             io.stopFlywheel();
         });
     }
 
+    // Comandos de caracterización SysId
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
         return m_sysIdRoutine.quasistatic(direction);
     }
-
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
         return m_sysIdRoutine.dynamic(direction);
     }

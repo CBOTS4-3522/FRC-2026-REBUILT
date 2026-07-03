@@ -1,3 +1,10 @@
+/*
+ * IntakeLiftIO.java
+ *
+ * Interfaz de abstracción de hardware (HAL) para el mecanismo de elevación del Intake.
+ * Define la estructura de datos (Inputs) que el motor y sus sensores enviarán 
+ * a la capa lógica para su procesamiento y registro (Logging).
+ */
 package frc.robot.subsystems.intake;
 
 import org.littletonrobotics.junction.AutoLog;
@@ -9,34 +16,24 @@ public interface IntakeLiftIO {
         public double rodillosCorriente = 0.0;
         public double rodillosVoltajeAplicado = 0.0;
         public double rodillosVelocidad = 0.0;
-
-        public double brazoEncoderRaw = 0.0; // 0 a 1 del absoluto
-        public double brazoPosicionGrados = 0.0; // Ya convertido
+        
+        // Datos específicos del Brazo
+        public double brazoEncoderRaw = 0.0; // Valor crudo del encoder (0.0 a 1.0)
+        public double brazoPosicionGrados = 0.0; 
         public double brazoVelocidadGradosPorSeg = 0.0;
-        public double brazoCorriente = 0.0;
+        public double brazoCorriente = 0.0; // CRÍTICO: Usado para la detección de colisiones (Stall)
         public double brazoVoltajeAplicado = 0.0;
     }
-    /**
-     * Actualiza las entradas del sistema.
-     * @param inputs Entradas del sistema.
-     */
+
+    /** Sincroniza el estado del hardware con la estructura de datos lógica. */
     public default void updateInputs(IntakeLiftIOInputs inputs) {}
-
-    /**
-     * Inyecta un voltaje al motor del brazo.
-     * @param volts Volts a inyectar.
-     */
+    
+    /** Inyecta un voltaje en lazo abierto (Open-Loop) al motor del brazo. */
     public default void setVoltajeLift(double volts) {}
-    
-    
-    /**
-     * Detiene el brazo.
-     *
-     */
+              
+    /** Corta la energía del motor (0 Volts). */
     public default void stopLift() {}
-
-    /**
-     * Reinicia el encoder del brazo a la posición inicial. 
-     */
+    
+    /** Define la posición física actual como el "Cero" lógico del encoder. */
     public default void resetEncoder() {}
 }
