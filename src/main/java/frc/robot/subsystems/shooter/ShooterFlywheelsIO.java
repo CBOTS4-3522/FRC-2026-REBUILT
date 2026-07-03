@@ -37,6 +37,17 @@ public interface ShooterFlywheelsIO {
      * @param ffVolts cantidad de voltaje necesario para empezar a girar
      */
     public default void setFlywheelVelocity(double rpm, double ffVolts) {}
+
+    /**
+     * Detiene el motor de lanzamiento
+     */
     public default void stopFlywheel() {}
+
+    /**
+     * Modifica el control de las revoluciones (el error es que tan lejos estamos el punto deseado (setpoint))
+     * @param p proporcional a el error
+     * @param i integral sobre el tiempo que lleva error
+     * @param d derivativo sobre la velocidad a la que se reduce el error
+     */
     public default void setPID(double p, double i, double d) {}
 }

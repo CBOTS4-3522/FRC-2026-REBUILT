@@ -1,3 +1,7 @@
+/*este es el comando que se manda llamar para mover el chasis al ser uno de los mas complejos
+ * y que la plantilla ya venia asi lo dejamos aca de forma independiente
+*/
+
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
@@ -21,6 +25,7 @@ public class TeleopSwerve extends Command {
     private final BooleanSupplier toggleRobotCentric;
     private BooleanSupplier alignToMoveSup;
     
+    //Esto es para que el robot no detenga las ruedas de golpe y no derrape
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
 
@@ -28,6 +33,17 @@ public class TeleopSwerve extends Command {
     private boolean lastButtonState = false;
     private final IntSupplier povSupplier;
 
+    /**
+     * Para inicializar el comando
+     * @param s_Swerve el objeto del chasis
+     * @param translationX El eje x del joystick
+     * @param translationY El eje Y del joystick
+     * @param rotation El eje x del joystick derecho
+     * @param turbo Un boton del control para que valla mas rapido
+     * @param toggleRobotCentric Un boton que cambia el modo de manejo
+     * @param alignToMoveSup Un boton que permite alineaserse a donde el robot este llendo
+     * @param povSupplier El giroscopio
+     */
     public TeleopSwerve(
             SwerveBase s_Swerve,
             DoubleSupplier translationX,
