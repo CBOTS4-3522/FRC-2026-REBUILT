@@ -7,13 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "atras"
+            "pathName": "recolectar desde alianza"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "DISPARAR_SMART"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": null,
+  "folder": "RED",
   "choreoAuto": false
 }

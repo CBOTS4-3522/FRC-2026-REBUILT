@@ -1,0 +1,63 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "tragar corral BLUE"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "BAJAR_INTAKE"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "tragarbolascorral BLUE"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "TRAGAR"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CORRAL LANZAR BLUE"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "DISPARAR_AUTO_AIM"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "BLUE",
+  "choreoAuto": false
+}

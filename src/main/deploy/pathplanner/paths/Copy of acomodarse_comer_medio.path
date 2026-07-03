@@ -3,38 +3,43 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.0,
-        "y": 7.0
+        "x": 3.560156626506024,
+        "y": 0.6342
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0,
-        "y": 6.512249685157149
+        "x": 5.789409638554216,
+        "y": 0.22122891566265052
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.0,
-        "y": 6.0
+        "x": 7.603409638554217,
+        "y": 1.204722891566264
       },
       "prevControl": {
-        "x": 2.0,
-        "y": 5.6734371192648
+        "x": 6.1500240963855415,
+        "y": 0.6255542168674698
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "neutral right zone acomodado"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 4.28,
+    "maxAcceleration": 3.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -42,10 +47,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 90.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "RECOLECTAR CENTRO LEFT RED",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

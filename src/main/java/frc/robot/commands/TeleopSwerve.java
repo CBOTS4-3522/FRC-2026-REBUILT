@@ -1,3 +1,7 @@
+/*este es el comando que se manda llamar para mover el chasis al ser uno de los mas complejos
+ * y que la plantilla ya venia asi lo dejamos aca de forma independiente
+*/
+
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
@@ -10,7 +14,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-
+import java.util.function.IntSupplier;
 
 public class TeleopSwerve extends Command {
     private final SwerveBase s_Swerve;
@@ -19,19 +23,36 @@ public class TeleopSwerve extends Command {
     private final DoubleSupplier rotation;
     private final DoubleSupplier turbo;
     private final BooleanSupplier toggleRobotCentric;
+    private BooleanSupplier alignToMoveSup;
+    
+    //Esto es para que el robot no detenga las ruedas de golpe y no derrape
     private final SlewRateLimiter xLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
     private final SlewRateLimiter yLimiter = new SlewRateLimiter(Constants.Swerve.kSlewRateLimit);
 
     private boolean robotCentric = false;
     private boolean lastButtonState = false;
+    private final IntSupplier povSupplier;
 
+    /**
+     * Para inicializar el comando
+     * @param s_Swerve el objeto del chasis
+     * @param translationX El eje x del joystick
+     * @param translationY El eje Y del joystick
+     * @param rotation El eje x del joystick derecho
+     * @param turbo Un boton del control para que valla mas rapido
+     * @param toggleRobotCentric Un boton que cambia el modo de manejo
+     * @param alignToMoveSup Un boton que permite alineaserse a donde el robot este llendo
+     * @param povSupplier El giroscopio
+     */
     public TeleopSwerve(
             SwerveBase s_Swerve,
             DoubleSupplier translationX,
             DoubleSupplier translationY,
             DoubleSupplier rotation,
             DoubleSupplier turbo,
-            BooleanSupplier toggleRobotCentric) {
+            BooleanSupplier toggleRobotCentric,
+            BooleanSupplier alignToMoveSup,
+            IntSupplier povSupplier) {
 
         this.s_Swerve = s_Swerve;
         addRequirements(s_Swerve);
@@ -41,50 +62,53 @@ public class TeleopSwerve extends Command {
         this.rotation = rotation;
         this.turbo = turbo;
         this.toggleRobotCentric = toggleRobotCentric;
+        this.alignToMoveSup = alignToMoveSup;
+        this.povSupplier = povSupplier;
     }
 
     @Override
     public void execute() {
-
-        // 1. Leer valores de joystick con deadband
-        double xRaw = MathUtil.applyDeadband(translationX.getAsDouble(), Constants.OIConstants.kStickDeadband);
-        double yRaw = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
-        double rotationVal = MathUtil.applyDeadband(-rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
-
-        // 2. APLICAR EL FILTRO (Capacitor Digital)
-        double xFiltered = xLimiter.calculate(xRaw);
-        double yFiltered = yLimiter.calculate(yRaw);
-
-    // Turbo para ajustar velocidad (manteniendo tu lógica actual)
-        boolean speedCutoffVal = turbo.getAsDouble() <= 0.1;
-        
-        // Leer valores de joystick con deadband
         double translationVal = MathUtil.applyDeadband(translationX.getAsDouble(), Constants.OIConstants.kStickDeadband);
         double strafeVal = MathUtil.applyDeadband(translationY.getAsDouble(), Constants.OIConstants.kStickDeadband);
-        
+        double rotationVal = MathUtil.applyDeadband(-rotation.getAsDouble(), Constants.OIConstants.kStickDeadband);
 
-       
+        double xFiltered = xLimiter.calculate(translationVal);
+        double yFiltered = yLimiter.calculate(strafeVal);
 
-        // Alternar entre orientado al campo y orientado al robot
+        int povAngle = povSupplier.getAsInt(); 
+        boolean isButtonPushed = alignToMoveSup.getAsBoolean();
+        boolean isMoving = (Math.abs(translationVal) > 0.01 || Math.abs(strafeVal) > 0.01);
+
+        if (povAngle != -1) {
+            double anguloCorregido = (360 - povAngle) % 360; 
+            double currentAngle = s_Swerve.getYaw().getDegrees();
+            
+            double pidOutput = s_Swerve.headingController.calculate(currentAngle, anguloCorregido);
+            rotationVal = MathUtil.clamp(pidOutput, -1.0, 1.0);
+            
+            SmartDashboard.putNumber("Debug/Target Angle", anguloCorregido);
+        }
+        else if (isButtonPushed && isMoving) {
+            double targetAngle = Math.toDegrees(Math.atan2(strafeVal, translationVal));
+            double currentAngle = s_Swerve.getYaw().getDegrees();
+            
+            double pidOutput = s_Swerve.headingController.calculate(currentAngle, targetAngle);
+            rotationVal = MathUtil.clamp(pidOutput, -1.0, 1.0);
+        }
+
+        boolean speedCutoffVal = turbo.getAsDouble() <= 0.1;
         boolean currentButtonState = toggleRobotCentric.getAsBoolean();
         if (currentButtonState && !lastButtonState) {
             robotCentric = !robotCentric;
         }
         lastButtonState = currentButtonState;
 
-        // Actualizar en el SmartDashboard
-        SmartDashboard.putNumber("translationVal", translationVal);
-        SmartDashboard.putNumber("strafeVal", strafeVal);
-        SmartDashboard.putNumber("rotationVal", rotationVal);
-        SmartDashboard.putBoolean("Robot Centric Mode", robotCentric);
-
         s_Swerve.drive(
-            new Translation2d(xFiltered, yFiltered)
-                    .times(Constants.Swerve.kMaxSpeed)
-                    .times(speedCutoffVal ? 1 : 0.5),
-            rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
-            !robotCentric,
-            true
-        );
+                new Translation2d(xFiltered, yFiltered)
+                        .times(Constants.Swerve.kMaxSpeed)
+                        .times(speedCutoffVal ? 1 : 0.5),
+                rotationVal * Constants.Swerve.kMaxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
+                !robotCentric,
+                Constants.Swerve.kIsOpenLoopTeleopSwerve);
     }
 }
